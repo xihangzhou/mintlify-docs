@@ -21,9 +21,7 @@ The Open API uses the JSON **`code`** field for business outcomes. HTTP status h
 | 413 | Payload Too Large | Upload or body exceeds limit |
 | 422 | Unprocessable Entity | Valid format but cannot be processed |
 | 500 | Internal Server Error | Server error |
-| 502 | Bad Gateway | Upstream (e.g. Lambda) failure |
-
-Defined in `OpenApiBizCode` in `vmeg-serv`.
+| 502 | Bad Gateway | Upstream processing failure |
 
 ## Response shape
 
@@ -48,6 +46,6 @@ Defined in `OpenApiBizCode` in `vmeg-serv`.
     Returned when a task cannot deduct project credits (TTS, translation, voice clone, media translation). <a href={productUrls.pricing}>Add credits</a> in the dashboard or <a href={productUrls.contactUs}>contact us</a>.
   </Accordion>
   <Accordion title="502 Upstream failure">
-    Lambda call failed or timed out. Poll task detail (`GET /openapi/tasks/detail`) or check status in <a href={productUrls.myTasks}>My tasks</a>; wait for callback retries if configured.
+    An upstream service failed or timed out. Poll task detail (`GET /openapi/tasks/detail`) or check status in <a href={productUrls.myTasks}>My tasks</a>; wait for callback retries if configured.
   </Accordion>
 </AccordionGroup>

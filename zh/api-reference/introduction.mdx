@@ -3,7 +3,7 @@ title: "API 概览"
 description: "VMEG Open API 接口组织方式"
 ---
 
-API 参考页面由 [OpenAPI 3.1](https://mintlify.com/docs/api-playground/openapi/setup) 规范 `api-reference/openapi.json` 自动生成。
+API 参考页面由已发布的 [OpenAPI 3.1](https://mintlify.com/docs/api-playground/openapi/setup) 规范自动生成。
 
 ## 地址
 
@@ -12,26 +12,11 @@ API 参考页面由 [OpenAPI 3.1](https://mintlify.com/docs/api-playground/opena
 | 文档站 | [https://docs.vmeg.ai/api](https://docs.vmeg.ai/api) |
 | API 基址（所有 `/openapi/**` 请求） | `https://api.vmeg.ai` |
 
-交互式 Playground 使用 `https://api.vmeg.ai`（在 `docs.json` → `api.mdx.server` 中配置）。
+交互式 Playground 会向 `https://api.vmeg.ai` 发送请求。
 
 ## 认证
 
 所有 `/openapi/**` 接口使用 Bearer API Key。在 Playground 中填入 Key 即可试调。
-
-## 保持规范同步
-
-规范与 `vmeg-serv`（`pro.vmeg.openapi`）中的 SpringDoc 分组 `openapi` 一致。后端变更后，本地启动服务并执行：
-
-```bash
-chmod +x scripts/sync-openapi.sh
-./scripts/sync-openapi.sh http://localhost:8080
-```
-
-SpringDoc 端点：`GET /v3/api-docs/openapi`
-
-<Warning>
-  从 SpringDoc 同步后，请检查 `openapi.json` 中是否仍有后端 `@Operation` 遗留的中文描述，发布前请统一为英文。
-</Warning>
 
 ## 接口分组
 

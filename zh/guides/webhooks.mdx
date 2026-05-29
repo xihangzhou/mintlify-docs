@@ -23,7 +23,7 @@ import { apiKeyUrl, productUrls } from "/snippets/product-urls.jsx";
 | `X-Timestamp` | Unix 毫秒时间戳（字符串） |
 | `X-Signature` | 小写十六进制 `HMAC-SHA256(secret, timestamp + rawBody)` |
 
-校验逻辑（与 `OpenApiCallbackSigner` 一致）：
+校验步骤：
 
 1. 确认 `X-Timestamp` 与服务器时间相差在 **300 秒** 内
 2. 计算 `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`
@@ -54,7 +54,7 @@ def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool
 
 | 字段 | 说明 |
 |-------|-------------|
-| `version` | 当前为 `1.0`（`CALLBACK_DISPATCH_VERSION`） |
+| `version` | 当前为 `1.0` |
 | `event` | 事件名，如 `task.completed` |
 | `extraData` | 提交请求中 `extraData` / 备注的回显 |
 | `data` | 处理器返回的任务结果 JSON |

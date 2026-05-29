@@ -3,7 +3,7 @@ title: "API overview"
 description: "How VMEG Open API endpoints are organized"
 ---
 
-API reference pages are generated from our [OpenAPI 3.1](https://mintlify.com/docs/api-playground/openapi/setup) spec at `api-reference/openapi.json`.
+API reference pages are generated from our published [OpenAPI 3.1](https://mintlify.com/docs/api-playground/openapi/setup) specification.
 
 ## URLs
 
@@ -12,26 +12,11 @@ API reference pages are generated from our [OpenAPI 3.1](https://mintlify.com/do
 | Documentation site | [https://docs.vmeg.ai/api](https://docs.vmeg.ai/api) |
 | API base URL (all `/openapi/**` requests) | `https://api.vmeg.ai` |
 
-The interactive Playground uses `https://api.vmeg.ai` (configured in `docs.json` → `api.mdx.server`).
+The interactive Playground sends requests to `https://api.vmeg.ai`.
 
 ## Authentication
 
 All `/openapi/**` endpoints use a Bearer API Key. Enter your key in the Playground to try requests.
-
-## Keep the spec in sync
-
-The spec matches the SpringDoc group `openapi` in `vmeg-serv` (`pro.vmeg.openapi`). After backend changes, start the service locally and run:
-
-```bash
-chmod +x scripts/sync-openapi.sh
-./scripts/sync-openapi.sh http://localhost:8080
-```
-
-SpringDoc endpoint: `GET /v3/api-docs/openapi`
-
-<Warning>
-  After syncing from SpringDoc, review `openapi.json` for any Chinese descriptions from backend `@Operation` annotations and translate them to English before publishing.
-</Warning>
 
 ## Endpoint groups
 

@@ -22,7 +22,7 @@ Without idempotency, each retry can create **another task** for the same intent.
 
 ## Scope
 
-These endpoints require an idempotency key (`@OpenApiIdempotent`):
+These endpoints require an idempotency key:
 
 - `POST /openapi/task/tts/create-async`
 - `POST /openapi/task/translate/create-async`

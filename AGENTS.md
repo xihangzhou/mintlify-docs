@@ -17,6 +17,14 @@
 - OpenAPI: English in `api-reference/openapi.json`; run `node scripts/build-openapi-i18n.mjs zh` (and other locales) after every OpenAPI change.
 - Backend Java `@Operation` text may be Chinese; normalize to **English** in the English spec before generating Chinese.
 
+## Mintlify MCP (Cursor)
+
+This repo includes [Mintlify documentation MCP](https://mintlify.com/docs/mcp) in `.cursor/mcp.json` (`search_mintlify`, `query_docs_filesystem_mintlify`) for official Mintlify platform docs.
+
+After adding or changing `.cursor/mcp.json`, reload Cursor (**Cmd+Shift+P** → **Developer: Reload Window**). In chat, ask *「What MCP tools do you have?」* to verify **Mintlify** is connected.
+
+To let agents **edit** this site on Mintlify (branch + PR), use the separate [Mintlify MCP](https://www.mintlify.com/docs/ai/mintlify-mcp) at `https://mcp.mintlify.com` (OAuth) — not the same as the docs search MCP above.
+
 ## Cursor skills (project)
 
 | Skill | When to use |

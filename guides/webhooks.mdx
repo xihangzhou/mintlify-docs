@@ -23,7 +23,7 @@ Use the ping endpoint during integration to test connectivity.
 | `X-Timestamp` | Unix timestamp in milliseconds (string) |
 | `X-Signature` | Lowercase hex `HMAC-SHA256(secret, timestamp + rawBody)` |
 
-Verification (matches `OpenApiCallbackSigner`):
+Verification steps:
 
 1. Ensure `X-Timestamp` is within **300 seconds** of server time
 2. Compute `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`
@@ -54,7 +54,7 @@ def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool
 
 | Field | Description |
 |-------|-------------|
-| `version` | Currently `1.0` (`CALLBACK_DISPATCH_VERSION`) |
+| `version` | Currently `1.0` |
 | `event` | Event name, e.g. `task.completed` |
 | `extraData` | Echo of `extraData` / memo from the submit request |
 | `data` | Task-specific result JSON from the handler |
