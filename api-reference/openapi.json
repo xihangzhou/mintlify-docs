@@ -1004,6 +1004,23 @@
           }
         }
       },
+      "OpenApiTtsResultItem": {
+        "type": "object",
+        "properties": {
+          "uri": {
+            "type": "string",
+            "description": "Audio URL (CDN HTTPS in API responses; S3 URI from Lambda)"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration in seconds"
+          },
+          "errorMessage": {
+            "type": "string",
+            "description": "Failure reason when synthesis failed for this item"
+          }
+        }
+      },
       "OpenApiTtsCreateData": {
         "type": "object",
         "properties": {
@@ -1013,15 +1030,7 @@
           "results": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "audioUrl": {
-                  "type": "string"
-                },
-                "duration": {
-                  "type": "number"
-                }
-              }
+              "$ref": "#/components/schemas/OpenApiTtsResultItem"
             },
             "description": "Omitted for async submissions"
           },
@@ -1119,6 +1128,19 @@
           }
         }
       },
+      "OpenApiTranslateResultItem": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Translated text"
+          },
+          "errorMessage": {
+            "type": "string",
+            "description": "Failure reason when translation failed for this segment"
+          }
+        }
+      },
       "OpenApiTranslateCreateData": {
         "type": "object",
         "properties": {
@@ -1128,8 +1150,9 @@
           "items": {
             "type": "array",
             "items": {
-              "type": "object"
-            }
+              "$ref": "#/components/schemas/OpenApiTranslateResultItem"
+            },
+            "description": "Aligned with request segments by index; omitted for async submissions"
           },
           "createdAt": {
             "type": "string"
@@ -1288,6 +1311,60 @@
           }
         ]
       },
+      "OpenApiTaskSummary": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/OpenApiTaskType"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiTaskListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiTaskSummary"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OpenApiTaskDetailData": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/OpenApiTaskType"
+          },
+          "status": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "description": "Task-specific result; structure varies by taskType",
+            "additionalProperties": true
+          }
+        }
+      },
       "OpenApiTaskListResponse": {
         "allOf": [
           {
@@ -1297,7 +1374,7 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiTaskListData"
               }
             }
           }
@@ -1312,7 +1389,7 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiTaskDetailData"
               }
             }
           }
@@ -1352,14 +1429,24 @@
       },
       "OpenApiMaterialUploadCompleteRequest": {
         "type": "object",
+        "required": [
+          "s3Uri",
+          "fileName",
+          "materialId",
+          "fileHash"
+        ],
         "properties": {
-          "fileHash": {
-            "type": "string"
+          "s3Uri": {
+            "type": "string",
+            "description": "Upload target S3 URI from gen-upload-url or multipart initiate"
           },
           "fileName": {
             "type": "string"
           },
-          "uploadId": {
+          "materialId": {
+            "type": "string"
+          },
+          "fileHash": {
             "type": "string"
           }
         }
@@ -1367,27 +1454,58 @@
       "OpenApiMaterialMultipartPresignRequest": {
         "type": "object",
         "properties": {
+          "materialId": {
+            "type": "string"
+          },
           "uploadId": {
+            "type": "string"
+          },
+          "fileHash": {
+            "type": "string"
+          },
+          "fileName": {
             "type": "string"
           },
           "partNumbers": {
             "type": "array",
             "items": {
               "type": "integer"
-            }
+            },
+            "description": "Part numbers to presign (1–10000)"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartCompletePart": {
+        "type": "object",
+        "properties": {
+          "partNumber": {
+            "type": "integer"
+          },
+          "eTag": {
+            "type": "string",
+            "description": "ETag from the S3 part PUT response"
           }
         }
       },
       "OpenApiMaterialMultipartCompleteRequest": {
         "type": "object",
         "properties": {
+          "materialId": {
+            "type": "string"
+          },
           "uploadId": {
+            "type": "string"
+          },
+          "fileHash": {
+            "type": "string"
+          },
+          "fileName": {
             "type": "string"
           },
           "parts": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/OpenApiMaterialMultipartCompletePart"
             }
           }
         }
@@ -1395,7 +1513,16 @@
       "OpenApiMaterialMultipartAbortRequest": {
         "type": "object",
         "properties": {
+          "materialId": {
+            "type": "string"
+          },
           "uploadId": {
+            "type": "string"
+          },
+          "fileHash": {
+            "type": "string"
+          },
+          "fileName": {
             "type": "string"
           }
         }
@@ -1408,6 +1535,146 @@
           }
         }
       },
+      "OpenApiMaterialDto": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "example": "video",
+            "description": "Material type"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display file name"
+          },
+          "addressUrl": {
+            "type": "string",
+            "description": "Main file CDN URL"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "Thumbnail CDN URL"
+          },
+          "audioUrl": {
+            "type": "string",
+            "description": "Separated audio track CDN URL"
+          },
+          "resolution": {
+            "type": "string",
+            "example": "1920x1080"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "fileHash": {
+            "type": "string"
+          },
+          "filesize": {
+            "type": "integer",
+            "format": "int64",
+            "description": "File size in bytes"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Duration in milliseconds"
+          },
+          "createTime": {
+            "type": "string"
+          },
+          "updateTime": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMaterialGenUploadUrlData": {
+        "type": "object",
+        "properties": {
+          "uploadUrl": {
+            "type": "string",
+            "description": "Presigned PUT URL; empty when instant upload (dedup) applies"
+          },
+          "material": {
+            "$ref": "#/components/schemas/OpenApiMaterialDto",
+            "description": "Present when the file already exists (instant upload)"
+          },
+          "s3Uri": {
+            "type": "string",
+            "description": "Upload target S3 URI; pass to complete"
+          },
+          "materialId": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartInitiateData": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string"
+          },
+          "s3Uri": {
+            "type": "string"
+          },
+          "uploadId": {
+            "type": "string"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "recommendedPartSize": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Suggested part size in bytes (S3 multipart minimum is typically 5 MB except the last part)"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartPresignPartUrl": {
+        "type": "object",
+        "properties": {
+          "partNumber": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string",
+            "description": "Presigned PUT URL for this part"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartPresignData": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignPartUrl"
+            }
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OpenApiMaterialListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMaterialDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "OpenApiMaterialGenUploadUrlResponse": {
         "allOf": [
           {
@@ -1417,7 +1684,7 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiMaterialGenUploadUrlData"
               }
             }
           }
@@ -1432,7 +1699,7 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartInitiateData"
               }
             }
           }
@@ -1447,7 +1714,7 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignData"
               }
             }
           }
@@ -1462,7 +1729,7 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiMaterialDto"
               }
             }
           }
@@ -1477,14 +1744,209 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiMaterialListData"
               }
             }
           }
         ]
       },
+      "OpenApiBasicVoiceDto": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "localName": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en-US"
+          },
+          "localeName": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          },
+          "rolePlay": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "personalities": {
+            "type": "string"
+          },
+          "personalityList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scenarios": {
+            "type": "string"
+          },
+          "scenarioList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isHd": {
+            "type": "integer"
+          },
+          "isPreferred": {
+            "type": "integer"
+          },
+          "score": {
+            "type": "number"
+          },
+          "model": {
+            "type": "string"
+          },
+          "cover": {
+            "type": "string"
+          },
+          "audio": {
+            "type": "string"
+          },
+          "createTime": {
+            "type": "string"
+          },
+          "updateTime": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiCloneVoiceDto": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "exampleLanguage": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "audio": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "createTime": {
+            "type": "string"
+          },
+          "updateTime": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiBasicVoiceListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiBasicVoiceDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OpenApiCloneVoiceListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiCloneVoiceDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "OpenApiBasicVoiceListRequest": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string"
+          },
+          "searchName": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en-US"
+          },
+          "age": {
+            "type": "string",
+            "description": "young / adult / senior"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "quality": {
+            "type": "string",
+            "description": "any / high"
+          },
+          "category": {
+            "type": "string"
+          },
+          "emotionPrompt": {
+            "type": "string",
+            "description": "exclude / include"
+          },
+          "topIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "currentPage": {
+            "type": "integer",
+            "default": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 10
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "voiceId / score / create_time / update_time / is_preferred"
+          },
+          "order": {
+            "type": "string",
+            "default": "desc"
+          }
+        }
       },
       "OpenApiBasicVoiceListResponse": {
         "allOf": [
@@ -1495,14 +1957,44 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiBasicVoiceListData"
               }
             }
           }
         ]
       },
       "OpenApiCloneVoiceListRequest": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string"
+          },
+          "voiceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "searchName": {
+            "type": "string"
+          },
+          "currentPage": {
+            "type": "integer",
+            "default": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 10
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "voiceId / name / create_time / update_time"
+          },
+          "order": {
+            "type": "string",
+            "default": "desc"
+          }
+        }
       },
       "OpenApiCloneVoiceListResponse": {
         "allOf": [
@@ -1513,7 +2005,7 @@
             "type": "object",
             "properties": {
               "data": {
-                "type": "object"
+                "$ref": "#/components/schemas/OpenApiCloneVoiceListData"
               }
             }
           }
@@ -1538,6 +2030,18 @@
           }
         }
       },
+      "OpenApiCallbackDispatchData": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "taskConfig": {
+            "type": "string",
+            "description": "S3 URI of task configuration"
+          }
+        }
+      },
       "OpenApiCallbackDispatchBody": {
         "type": "object",
         "properties": {
@@ -1558,11 +2062,11 @@
           },
           "extraData": {
             "type": "object",
-            "description": "From request extraData / memo"
+            "description": "From request extraData / memo",
+            "additionalProperties": true
           },
           "data": {
-            "type": "object",
-            "description": "Task result JSON"
+            "$ref": "#/components/schemas/OpenApiCallbackDispatchData"
           }
         }
       }
