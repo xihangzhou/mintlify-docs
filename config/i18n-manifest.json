@@ -1,0 +1,24 @@
+{
+  "sourceLanguage": "en",
+  "sourcePages": [
+    "index",
+    "guides/quickstart",
+    "guides/authentication",
+    "guides/errors",
+    "guides/idempotency",
+    "guides/webhooks",
+    "guides/materials",
+    "guides/media-translation",
+    "api-reference/introduction"
+  ],
+  "openapi": {
+    "enSource": "api-reference/openapi.json",
+    "enDirectory": "api-reference",
+    "localeStrings": "scripts/locales/{locale}.json"
+  },
+  "mintlifyLanguageCodes": [
+    "ar", "ca", "cs", "zh", "zh-Hans", "zh-Hant", "de", "en", "es", "fr", "fr-CA",
+    "he", "hi", "hu", "id", "it", "ja", "ko", "nl", "no", "pl", "pt", "pt-BR",
+    "ro", "ru", "sv", "tr", "uk", "uz", "vi"
+  ]
+}

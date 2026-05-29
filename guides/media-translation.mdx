@@ -1,0 +1,72 @@
+---
+title: "Media translation"
+description: "Async video and audio translation tasks (vt / at)"
+icon: "film"
+---
+
+import { apiKeyUrl, productUrls } from "/snippets/product-urls.jsx";
+
+## Task types
+
+| taskType | Meaning |
+|----------|---------|
+| `vt` | Video translation |
+| `at` | Audio translation |
+
+<Info>
+  If you request `at` but the material is video, the server runs **video translation (vt)** and sets `data.requestedTaskType` to your original type.
+</Info>
+
+## Submit a task
+
+`POST /openapi/task/media-translation/create-async`
+
+Required header: `X-Idempotency-Key`
+
+```json
+{
+  "taskType": "vt",
+  "source": { "materialId": "mat_abc123" },
+  "language": {
+    "source": "zh-CN",
+    "target": "en-US"
+  },
+  "options": {
+    "voiceClone": { "enabled": true },
+    "translate": { "enabled": true }
+  },
+  "extraData": { "orderId": "20260529001" }
+}
+```
+
+`options` covers voice clone, ASR, translation, separation, enhancement, lip sync, and more—aligned with <a href={productUrls.videoTranslation}>video translation</a> and <a href={productUrls.audioTranslation}>audio translation</a> in the product. For the full schema, sync from SpringDoc with `./scripts/sync-openapi.sh` while `vmeg-serv` is running.
+
+## Response and callback
+
+Immediate response example:
+
+```json
+{
+  "code": 200,
+  "data": {
+    "taskId": "tsk_...",
+    "requestedTaskType": "vt",
+    "createdAt": "..."
+  }
+}
+```
+
+Final deliverables arrive via [Webhook](/guides/webhooks) in `data` (URLs, subtitles, etc., depending on task type).
+
+## Prerequisites
+
+1. [Upload a material](/guides/materials) to get `materialId`
+2. (Optional) List voices via API or manage clones in <a href={productUrls.cloneVoice}>Clone voice</a>
+3. Configure and verify your webhook on <a href={apiKeyUrl}>API Configuration</a>
+
+## Task management
+
+- List: `GET /openapi/tasks/list`
+- Detail: `GET /openapi/tasks/detail`
+- Delete: `POST /openapi/tasks/delete`
+- Product UI: <a href={productUrls.myTasks}>My tasks</a>

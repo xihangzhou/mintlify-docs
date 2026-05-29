@@ -1,0 +1,77 @@
+---
+title: "Idempotency"
+description: "Prevent duplicate async task submissions with X-Idempotency-Key"
+icon: "rotate"
+---
+
+## Why idempotency is required
+
+Async `create-async` endpoints start billable, long-running work (TTS, translation, voice clone, media translation). In production, clients often **retry** the same HTTP request—for example after a timeout, a dropped connection, or an ambiguous `5xx`—even though the server may have already accepted the task.
+
+Without idempotency, each retry can create **another task** for the same intent. That leads to:
+
+- Duplicate jobs you did not mean to run
+- Extra quota or credit usage
+- Confusing duplicate webhooks and task IDs
+
+`X-Idempotency-Key` tells VMEG: “this submission is the same logical request.” The server records the key and **rejects a second submission with the same key**, so retries do not spawn duplicate invalid work. You still get a normal response on the first successful accept; safe retries reuse the same key so you do not pay twice for one user action.
+
+<Info>
+  Idempotency protects against **duplicate submissions**, not against sending two genuinely different jobs. Use a **new key** when you intend a new task.
+</Info>
+
+## Scope
+
+These endpoints require an idempotency key (`@OpenApiIdempotent`):
+
+- `POST /openapi/task/tts/create-async`
+- `POST /openapi/task/translate/create-async`
+- `POST /openapi/task/clone-voice/create-async`
+- `POST /openapi/task/media-translation/create-async`
+
+Sync `create` endpoints may accept the same header for client consistency but do not enforce it.
+
+## Request header
+
+```http
+X-Idempotency-Key: <unique-string>
+```
+
+Rules:
+
+- Non-empty after trim, max length **64**
+- Same `projId` + path + key is accepted only once within the TTL (default 24 hours)
+
+## Conflict behavior
+
+If the key is already claimed:
+
+- HTTP `409 Conflict`
+- Header `Retry-After: 2`
+- Body: `code: 409`, `message` contains `Idempotency key already used`
+
+## Safe retry vs new task
+
+| Situation | Key to use | Result |
+|-----------|------------|--------|
+| First submit | New unique key | Task created once |
+| Retry after timeout (same payload, same intent) | **Same key** | No duplicate task; first accept wins |
+| User clicks “submit” again for a new job | **New key** | New task (expected) |
+| Reuse key for a different payload | Same key | `409 Conflict` — key already used |
+
+## Recommended usage
+
+```bash
+# New business submission → new key
+export IDEM_KEY="tts-$(date +%s)-$RANDOM"
+
+curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "X-Idempotency-Key: $IDEM_KEY" \
+  -H "Content-Type: application/json" \
+  -d @payload.json
+```
+
+<Tip>
+  Generate the idempotency key **before** the first request and store it with the attempt (DB, cache, or client state). If the call fails ambiguously, retry with that **same key**—do not mint a new key on every retry, or you risk duplicate tasks.
+</Tip>

@@ -5,3 +5,17 @@
 # Draft content
 drafts/
 *.draft.mdx
+
+# Mintlify starter kit (replaced by VMEG docs; leading / = repo root only)
+/quickstart.mdx
+/development.mdx
+essentials/
+agent-ready/
+ai-tools/
+api-reference/endpoint/
+scripts/
+config/
+.cursor/
+api-reference/.openapi.prev.json
+api-reference/.openapi.diff.md
+api-reference/.vmeg-serv.commit-diff.md

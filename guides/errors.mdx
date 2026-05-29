@@ -1,0 +1,53 @@
+---
+title: "Error codes"
+description: "Business codes in Open API responses"
+icon: "triangle-exclamation"
+---
+
+import { productUrls } from "/snippets/product-urls.jsx";
+
+The Open API uses the JSON **`code`** field for business outcomes. HTTP status handles transport (for example `401` for auth failures), but success and failure semantics are defined by `code`.
+
+## Code reference
+
+| code | Name | Description |
+|------|------|-------------|
+| 200 | Success | Request succeeded |
+| 400 | Bad Request | Invalid or failed validation |
+| 401 | Unauthorized | API Key missing or invalid |
+| 402 | Payment Required | Insufficient credits or quota |
+| 404 | Not Found | Resource not found |
+| 409 | Conflict | Idempotency key already used |
+| 413 | Payload Too Large | Upload or body exceeds limit |
+| 422 | Unprocessable Entity | Valid format but cannot be processed |
+| 500 | Internal Server Error | Server error |
+| 502 | Bad Gateway | Upstream (e.g. Lambda) failure |
+
+Defined in `OpenApiBizCode` in `vmeg-serv`.
+
+## Response shape
+
+```json
+{
+  "code": 402,
+  "message": "Insufficient quota",
+  "data": null
+}
+```
+
+- Success: `code === 200`, payload in `data`
+- Failure: human-readable `message` for logs and support
+
+## Common cases
+
+<AccordionGroup>
+  <Accordion title="409 Idempotency conflict">
+    Returned when the same `X-Idempotency-Key` is reused on an idempotent `create-async` endpoint. The response may include `Retry-After: 2`. See [Idempotency](/guides/idempotency).
+  </Accordion>
+  <Accordion title="402 Insufficient quota">
+    Returned when a task cannot deduct project credits (TTS, translation, voice clone, media translation). <a href={productUrls.pricing}>Add credits</a> in the dashboard or <a href={productUrls.contactUs}>contact us</a>.
+  </Accordion>
+  <Accordion title="502 Upstream failure">
+    Lambda call failed or timed out. Poll task detail (`GET /openapi/tasks/detail`) or check status in <a href={productUrls.myTasks}>My tasks</a>; wait for callback retries if configured.
+  </Accordion>
+</AccordionGroup>

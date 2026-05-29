@@ -1,126 +1,163 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "VMEG Open API",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#7B4DFF",
+    "light": "#9B7AFF",
+    "dark": "#6239CC"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Guides",
-        "groups": [
+        "language": "en",
+        "tabs": [
           {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Get started",
+                "pages": [
+                  "index",
+                  "guides/quickstart",
+                  "guides/authentication"
+                ]
+              },
+              {
+                "group": "Core concepts",
+                "pages": [
+                  "guides/errors",
+                  "guides/idempotency",
+                  "guides/webhooks"
+                ]
+              },
+              {
+                "group": "Workflows",
+                "pages": [
+                  "guides/materials",
+                  "guides/media-translation"
+                ]
+              }
             ]
           },
           {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/components",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "Agent ready",
-            "pages": [
-              "agent-ready/prompt",
-              "agent-ready/visibility",
-              "agent-ready/contextual",
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+            "tab": "API reference",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": ["api-reference/introduction"]
+              },
+              {
+                "group": "Endpoints",
+                "openapi": {
+                  "source": "api-reference/openapi.json",
+                  "directory": "api-reference"
+                }
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
-        "groups": [
+        "language": "zh",
+        "tabs": [
           {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
+            "tab": "指南",
+            "groups": [
+              {
+                "group": "快速开始",
+                "pages": [
+                  "zh/index",
+                  "zh/guides/quickstart",
+                  "zh/guides/authentication"
+                ]
+              },
+              {
+                "group": "核心概念",
+                "pages": [
+                  "zh/guides/errors",
+                  "zh/guides/idempotency",
+                  "zh/guides/webhooks"
+                ]
+              },
+              {
+                "group": "工作流",
+                "pages": [
+                  "zh/guides/materials",
+                  "zh/guides/media-translation"
+                ]
+              }
             ]
           },
           {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+            "tab": "API 参考",
+            "groups": [
+              {
+                "group": "概览",
+                "pages": ["zh/api-reference/introduction"]
+              },
+              {
+                "group": "接口",
+                "openapi": {
+                  "source": "zh/api-reference/openapi.json",
+                  "directory": "zh/api-reference"
+                }
+              }
             ]
           }
-        ]
+        ],
+        "navbar": {
+          "links": [
+            {
+              "label": "帮助中心",
+              "href": "https://www.vmeg.ai/help-center/"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "获取 API Key",
+            "href": "https://www.vmeg.ai/signIn?redirect=%2Fopen-api-setting"
+          }
+        }
       }
     ],
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Dashboard",
+          "href": "https://www.vmeg.ai/home",
+          "icon": "grid-2"
         }
       ]
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
   },
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "Help center",
+        "href": "https://www.vmeg.ai/help-center/"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Get API Key",
+      "href": "https://www.vmeg.ai/signIn?redirect=%2Fopen-api-setting"
+    }
+  },
+  "api": {
+    "playground": {
+      "display": "interactive"
+    },
+    "mdx": {
+      "server": "https://api.vmeg.ai"
     }
   },
   "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    "options": ["copy", "view", "chatgpt", "claude", "cursor", "vscode"]
   }
 }

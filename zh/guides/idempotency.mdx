@@ -1,0 +1,77 @@
+---
+title: "幂等"
+description: "用 X-Idempotency-Key 防止重复的异步任务提交"
+icon: "rotate"
+---
+
+## 为什么需要幂等
+
+异步 `create-async` 接口会创建**计费、耗时**的任务（TTS、翻译、声音克隆、媒体翻译等）。线上常见情况是：请求因**超时、断网、5xx 不确定是否成功**而被客户端**自动重试**，但服务端可能早已接单并开始处理。
+
+若没有幂等机制，每次重试都可能再创建**一条相同意图的任务**，带来：
+
+- 重复执行你并不想要的工作
+- 配额或积分被多扣
+- 重复的 Webhook 与 `taskId`，难以对账
+
+`X-Idempotency-Key` 表示「这是同一次业务提交」。服务端会记录该 Key，**同一 Key 的第二次提交会被拒绝**，从而避免重复的无效请求。首次成功接单仍按正常流程返回；安全重试应**沿用同一 Key**，避免一次用户操作被计费两次。
+
+<Info>
+  幂等防的是**同一次提交的重复投递**，不是禁止你发起两次不同的任务。要创建新任务时，请使用**新的 Key**。
+</Info>
+
+## 适用范围
+
+以下接口需要幂等键（`@OpenApiIdempotent`）：
+
+- `POST /openapi/task/tts/create-async`
+- `POST /openapi/task/translate/create-async`
+- `POST /openapi/task/clone-voice/create-async`
+- `POST /openapi/task/media-translation/create-async`
+
+同步 `create` 接口可接受相同请求头以保持一致，但不强制。
+
+## 请求头
+
+```http
+X-Idempotency-Key: <unique-string>
+```
+
+规则：
+
+- 去空格后非空，最长 **64** 字符
+- 同一 `projId` + 路径 + Key 在 TTL 内（默认 24 小时）仅接受一次
+
+## 冲突行为
+
+Key 已被占用时：
+
+- HTTP `409 Conflict`
+- 响应头 `Retry-After: 2`
+- 响应体：`code: 409`，`message` 含 `Idempotency key already used`
+
+## 安全重试 vs 新任务
+
+| 场景 | 使用的 Key | 结果 |
+|------|------------|------|
+| 首次提交 | 新的唯一 Key | 只创建一条任务 |
+| 超时后重试（相同载荷、相同意图） | **相同 Key** | 不会重复建任务；以首次接单为准 |
+| 用户再次点击「提交」发起新任务 | **新 Key** | 新建任务（符合预期） |
+| 相同 Key 但改了请求体 | 相同 Key | `409 Conflict` — Key 已被占用 |
+
+## 推荐用法
+
+```bash
+# 新业务提交 → 使用新 Key
+export IDEM_KEY="tts-$(date +%s)-$RANDOM"
+
+curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "X-Idempotency-Key: $IDEM_KEY" \
+  -H "Content-Type: application/json" \
+  -d @payload.json
+```
+
+<Tip>
+  在**第一次请求之前**就生成幂等 Key，并和本次尝试一起持久化（数据库、缓存或客户端状态）。若调用结果不确定，用**同一个 Key** 重试——不要在每次重试时换新 Key，否则可能产生重复任务。
+</Tip>

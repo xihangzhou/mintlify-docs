@@ -1,0 +1,57 @@
+---
+title: "Authentication"
+description: "Access the Open API with a Bearer API Key"
+icon: "key"
+---
+
+import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
+
+## API Key
+
+All public endpoints under `/openapi` (tasks, assets, task management) require an **API Key**.
+
+Send it in the `Authorization` header:
+
+```http
+Authorization: Bearer <your_api_key>
+```
+
+The server resolves the key to a `projId` (project ID). Query parameters such as `projId` on list and detail calls must match the project bound to the key.
+
+<Warning>
+  Do not hardcode API Keys in client apps or public repositories. Use a secrets manager or environment variables in production.
+</Warning>
+
+## Create and rotate keys
+
+Create and rotate API Keys on the <a href={apiKeyUrl}>API Configuration</a> page in the product (sidebar **API**). <a href={productUrls.signInToApiSettings}>Sign in</a> if you are not logged in.
+
+The page also manages **Webhook** URL and secret for async callbacks.
+
+<Info>
+  In the product, the **API** sidebar entry (path `/open-api-setting`) is available on paid plans. Free users are prompted to upgrade before accessing API Configuration.
+</Info>
+
+## Authentication failures
+
+HTTP status is `401`. Example body:
+
+```json
+{
+  "code": 401,
+  "message": "Invalid or missing API Key",
+  "data": null
+}
+```
+
+See [Error codes](/guides/errors) for the full list.
+
+## Public API vs dashboard routes
+
+| Path prefix | Auth | Purpose |
+|-------------|------|---------|
+| `/openapi/**` | Bearer API Key | Customer integration |
+| `/api/openapi/auth/**` | Dashboard JWT | Key management (product UI) |
+| `/api/openapi/callback/**` | Dashboard JWT | Webhook config and ping |
+
+For integration you typically only need `/openapi/**` and your [webhook receiver](/guides/webhooks).

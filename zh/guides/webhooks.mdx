@@ -1,0 +1,70 @@
+---
+title: "Webhook"
+description: "接收异步任务回调并校验签名"
+icon: "webhook"
+---
+
+import { apiKeyUrl, productUrls } from "/snippets/product-urls.jsx";
+
+## 概述
+
+异步任务（TTS、翻译、声音克隆、媒体翻译等）完成后，VMEG 会向配置的 URL 发送 **HTTP POST**。请求体为统一回调结构，并附带签名头以保证完整性与防重放。
+
+## 配置
+
+在产品 <a href={apiKeyUrl}>API 配置</a> 设置回调 URL 与 **Webhook Secret**（与 API Key 同一页面）。需要时请先 <a href={productUrls.signInToApiSettings}>登录</a>。
+
+集成时可使用 Ping 接口测试连通性。
+
+## 请求头
+
+| 请求头 | 说明 |
+|--------|-------------|
+| `X-Timestamp` | Unix 毫秒时间戳（字符串） |
+| `X-Signature` | 小写十六进制 `HMAC-SHA256(secret, timestamp + rawBody)` |
+
+校验逻辑（与 `OpenApiCallbackSigner` 一致）：
+
+1. 确认 `X-Timestamp` 与服务器时间相差在 **300 秒** 内
+2. 计算 `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`
+3. 与 `X-Signature` 做常量时间比较
+
+```python
+import hmac
+import hashlib
+
+def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool:
+    message = timestamp.encode() + raw_body
+    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+## 请求体
+
+```json
+{
+  "code": 200,
+  "version": "1.0",
+  "event": "task.completed",
+  "message": "",
+  "extraData": { "your": "memo fields" },
+  "data": { }
+}
+```
+
+| 字段 | 说明 |
+|-------|-------------|
+| `version` | 当前为 `1.0`（`CALLBACK_DISPATCH_VERSION`） |
+| `event` | 事件名，如 `task.completed` |
+| `extraData` | 提交请求中 `extraData` / 备注的回显 |
+| `data` | 处理器返回的任务结果 JSON |
+
+## 接收端要求
+
+- 尽快返回 **2xx**；否则 VMEG 会按退避策略重试
+- 对 **原始 body 字节** 验签（勿重新序列化 JSON）
+- 按 `taskId` 或业务键去重；重试可能多次投递相同 `pipelineKey`
+
+<Note>
+  OpenAPI 中的 Webhook 定义见 API 参考 → Webhooks → `taskCallback`。
+</Note>

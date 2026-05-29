@@ -2,13 +2,13 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG Open API",
-    "description": "VMEG public Open API for TTS, text translation, media translation, voice cloning, and asset management. Responses use `{ code, message, data }`; `code === 200` means success.",
+    "description": "VMEG 公开 Open API，支持 TTS、文本翻译、媒体翻译、声音克隆与资产管理。响应格式为 `{ code, message, data }`；`code === 200` 表示成功。",
     "version": "1.0.0"
   },
   "servers": [
     {
       "url": "https://api.vmeg.ai",
-      "description": "Production"
+      "description": "生产环境"
     }
   ],
   "security": [
@@ -52,8 +52,8 @@
         "tags": [
           "TTS"
         ],
-        "summary": "Create TTS task (sync)",
-        "description": "Invokes vmeg-tts Lambda (RequestResponse) and returns synthesis results inline.",
+        "summary": "创建 TTS 任务（同步）",
+        "description": "调用 vmeg-tts Lambda（RequestResponse），同步返回合成结果。",
         "operationId": "ttsCreateSync",
         "parameters": [
           {
@@ -72,7 +72,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -89,8 +89,8 @@
         "tags": [
           "TTS"
         ],
-        "summary": "Create TTS task (async)",
-        "description": "Invokes vmeg-tts Lambda (Event); returns taskId only. Results are delivered via callback.",
+        "summary": "创建 TTS 任务（异步）",
+        "description": "调用 vmeg-tts Lambda（Event），仅返回 taskId；结果通过回调投递。",
         "operationId": "ttsCreateAsync",
         "parameters": [
           {
@@ -109,7 +109,7 @@
         },
         "responses": {
           "200": {
-            "description": "Accepted",
+            "description": "已接受",
             "content": {
               "application/json": {
                 "schema": {
@@ -124,9 +124,9 @@
     "/openapi/task/translate/create": {
       "post": {
         "tags": [
-          "Text translation"
+          "文本翻译"
         ],
-        "summary": "Create text translation (sync)",
+        "summary": "创建文本翻译（同步）",
         "operationId": "translateCreateSync",
         "parameters": [
           {
@@ -145,7 +145,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -155,15 +155,15 @@
             }
           }
         },
-        "description": "Invokes translate Lambda (RequestResponse) and returns translated items."
+        "description": "调用 translate Lambda（RequestResponse），同步返回翻译结果。"
       }
     },
     "/openapi/task/translate/create-async": {
       "post": {
         "tags": [
-          "Text translation"
+          "文本翻译"
         ],
-        "summary": "Create text translation (async)",
+        "summary": "创建文本翻译（异步）",
         "operationId": "translateCreateAsync",
         "parameters": [
           {
@@ -182,7 +182,7 @@
         },
         "responses": {
           "200": {
-            "description": "Accepted",
+            "description": "已接受",
             "content": {
               "application/json": {
                 "schema": {
@@ -192,15 +192,15 @@
             }
           }
         },
-        "description": "Lambda Event mode; returns taskId only."
+        "description": "Lambda Event 模式，仅返回 taskId。"
       }
     },
     "/openapi/task/clone-voice/create": {
       "post": {
         "tags": [
-          "Voice clone"
+          "声音克隆"
         ],
-        "summary": "Create voice clone (sync)",
+        "summary": "创建声音克隆（同步）",
         "operationId": "cloneVoiceCreateSync",
         "parameters": [
           {
@@ -219,7 +219,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -229,15 +229,15 @@
             }
           }
         },
-        "description": "Invokes clone-voice Lambda; on success returns voiceId and persists to t_openapi_voice."
+        "description": "调用 clone-voice Lambda；成功时返回 voiceId 并写入 t_openapi_voice。"
       }
     },
     "/openapi/task/clone-voice/create-async": {
       "post": {
         "tags": [
-          "Voice clone"
+          "声音克隆"
         ],
-        "summary": "Create voice clone (async)",
+        "summary": "创建声音克隆（异步）",
         "operationId": "cloneVoiceCreateAsync",
         "parameters": [
           {
@@ -256,7 +256,7 @@
         },
         "responses": {
           "200": {
-            "description": "Accepted",
+            "description": "已接受",
             "content": {
               "application/json": {
                 "schema": {
@@ -266,16 +266,16 @@
             }
           }
         },
-        "description": "Lambda Event mode; returns taskId only."
+        "description": "Lambda Event 模式，仅返回 taskId。"
       }
     },
     "/openapi/task/media-translation/create-async": {
       "post": {
         "tags": [
-          "Media translation"
+          "媒体翻译"
         ],
-        "summary": "Create media translation (async)",
-        "description": "Returns taskId immediately; final result via webhook. If taskType=at and material is video, runs as vt; see requestedTaskType in response.",
+        "summary": "创建媒体翻译（异步）",
+        "description": "立即返回 taskId，最终结果通过 Webhook 投递。若 taskType=at 且素材为视频，则按 vt 执行；响应中的 requestedTaskType 为原始请求类型。",
         "operationId": "mediaTranslationCreateAsync",
         "parameters": [
           {
@@ -294,7 +294,7 @@
         },
         "responses": {
           "200": {
-            "description": "Accepted",
+            "description": "已接受",
             "content": {
               "application/json": {
                 "schema": {
@@ -309,9 +309,9 @@
     "/openapi/tasks/list": {
       "get": {
         "tags": [
-          "Task management"
+          "任务管理"
         ],
-        "summary": "List tasks",
+        "summary": "任务列表",
         "operationId": "tasksList",
         "parameters": [
           {
@@ -321,7 +321,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Project ID (from API Key auth context)"
+            "description": "项目 ID（来自 API Key 鉴权上下文）"
           },
           {
             "name": "taskType",
@@ -356,7 +356,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -371,9 +371,9 @@
     "/openapi/tasks/detail": {
       "get": {
         "tags": [
-          "Task management"
+          "任务管理"
         ],
-        "summary": "Get task detail",
+        "summary": "任务详情",
         "operationId": "tasksDetail",
         "parameters": [
           {
@@ -395,7 +395,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -410,9 +410,9 @@
     "/openapi/tasks/delete": {
       "post": {
         "tags": [
-          "Task management"
+          "任务管理"
         ],
-        "summary": "Delete task",
+        "summary": "删除任务",
         "operationId": "tasksDelete",
         "requestBody": {
           "required": true,
@@ -426,7 +426,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -441,9 +441,9 @@
     "/openapi/assets/material/upload/gen-upload-url": {
       "post": {
         "tags": [
-          "Assets - Materials"
+          "资产 - 素材"
         ],
-        "summary": "Generate presigned upload URL",
+        "summary": "生成预签名上传 URL",
         "operationId": "materialGenUploadUrl",
         "requestBody": {
           "required": true,
@@ -457,7 +457,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -472,9 +472,9 @@
     "/openapi/assets/material/upload/complete": {
       "post": {
         "tags": [
-          "Assets - Materials"
+          "资产 - 素材"
         ],
-        "summary": "Complete single-file upload",
+        "summary": "完成单文件上传",
         "operationId": "materialUploadComplete",
         "requestBody": {
           "required": true,
@@ -488,7 +488,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -503,9 +503,9 @@
     "/openapi/assets/material/upload/multipart/initiate": {
       "post": {
         "tags": [
-          "Assets - Materials"
+          "资产 - 素材"
         ],
-        "summary": "Initiate multipart upload",
+        "summary": "初始化分片上传",
         "operationId": "materialMultipartInitiate",
         "requestBody": {
           "required": true,
@@ -519,7 +519,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -534,9 +534,9 @@
     "/openapi/assets/material/upload/multipart/presign-parts": {
       "post": {
         "tags": [
-          "Assets - Materials"
+          "资产 - 素材"
         ],
-        "summary": "Presign multipart parts",
+        "summary": "为分片生成预签名 URL",
         "operationId": "materialMultipartPresign",
         "requestBody": {
           "required": true,
@@ -550,7 +550,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -565,9 +565,9 @@
     "/openapi/assets/material/upload/multipart/complete": {
       "post": {
         "tags": [
-          "Assets - Materials"
+          "资产 - 素材"
         ],
-        "summary": "Complete multipart upload",
+        "summary": "完成分片上传",
         "operationId": "materialMultipartComplete",
         "requestBody": {
           "required": true,
@@ -581,7 +581,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -596,9 +596,9 @@
     "/openapi/assets/material/upload/multipart/abort": {
       "post": {
         "tags": [
-          "Assets - Materials"
+          "资产 - 素材"
         ],
-        "summary": "Abort multipart upload",
+        "summary": "中止分片上传",
         "operationId": "materialMultipartAbort",
         "requestBody": {
           "required": true,
@@ -612,7 +612,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -627,9 +627,9 @@
     "/openapi/assets/material/list": {
       "get": {
         "tags": [
-          "Assets - Materials"
+          "资产 - 素材"
         ],
-        "summary": "List materials",
+        "summary": "素材列表",
         "operationId": "materialList",
         "parameters": [
           {
@@ -659,7 +659,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -674,9 +674,9 @@
     "/openapi/assets/material/delete": {
       "post": {
         "tags": [
-          "Assets - Materials"
+          "资产 - 素材"
         ],
-        "summary": "Delete material (logical)",
+        "summary": "删除素材（逻辑删除）",
         "operationId": "materialDelete",
         "requestBody": {
           "required": true,
@@ -690,7 +690,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -705,9 +705,9 @@
     "/openapi/assets/voice/basic/list": {
       "post": {
         "tags": [
-          "Assets - Voices"
+          "资产 - 音色"
         ],
-        "summary": "List system voices (read-only)",
+        "summary": "系统音色列表（只读）",
         "operationId": "voiceBasicList",
         "requestBody": {
           "content": {
@@ -720,7 +720,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -735,9 +735,9 @@
     "/openapi/assets/voice/clone/list": {
       "post": {
         "tags": [
-          "Assets - Voices"
+          "资产 - 音色"
         ],
-        "summary": "List cloned voices",
+        "summary": "克隆音色列表",
         "operationId": "voiceCloneList",
         "requestBody": {
           "content": {
@@ -750,7 +750,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -765,9 +765,9 @@
     "/openapi/assets/voice/clone/update": {
       "post": {
         "tags": [
-          "Assets - Voices"
+          "资产 - 音色"
         ],
-        "summary": "Rename cloned voice",
+        "summary": "重命名克隆音色",
         "operationId": "voiceCloneUpdate",
         "requestBody": {
           "required": true,
@@ -781,7 +781,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -796,9 +796,9 @@
     "/openapi/assets/voice/clone/delete": {
       "post": {
         "tags": [
-          "Assets - Voices"
+          "资产 - 音色"
         ],
-        "summary": "Delete cloned voice (logical)",
+        "summary": "删除克隆音色（逻辑删除）",
         "operationId": "voiceCloneDelete",
         "requestBody": {
           "required": true,
@@ -812,7 +812,7 @@
         },
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "成功",
             "content": {
               "application/json": {
                 "schema": {
@@ -829,10 +829,10 @@
     "taskCallback": {
       "post": {
         "tags": [
-          "Webhooks"
+          "Webhook"
         ],
-        "summary": "Task completion callback (sent by VMEG to your URL)",
-        "description": "After async tasks complete, VMEG POSTs to your configured webhook URL with X-Timestamp and X-Signature (HMAC-SHA256).",
+        "summary": "任务完成回调（由 VMEG 发送至你的 URL）",
+        "description": "异步任务完成后，VMEG 向配置的 Webhook URL 发送 POST，并附带 X-Timestamp 与 X-Signature（HMAC-SHA256）。",
         "requestBody": {
           "required": true,
           "content": {
@@ -845,7 +845,7 @@
         },
         "responses": {
           "200": {
-            "description": "Received successfully (return 2xx)"
+            "description": "接收成功（请返回 2xx）"
           }
         }
       }
@@ -856,14 +856,14 @@
       "apiKeyAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Project API Key: `Authorization: Bearer <api_key>`"
+        "description": "项目 API Key：`Authorization: Bearer <api_key>`"
       }
     },
     "parameters": {
       "IdempotencyKey": {
         "name": "X-Idempotency-Key",
         "in": "header",
-        "description": "Idempotency key (required on async create, max 64 characters)",
+        "description": "幂等键（异步创建必填，最长 64 字符）",
         "schema": {
           "type": "string",
           "maxLength": 64
@@ -873,7 +873,7 @@
         "name": "X-Idempotency-Key",
         "in": "header",
         "required": true,
-        "description": "Idempotency key (required, max 64 characters)",
+        "description": "幂等键（必填，最长 64 字符）",
         "schema": {
           "type": "string",
           "maxLength": 64
@@ -887,7 +887,7 @@
           "code": {
             "type": "integer",
             "example": 200,
-            "description": "Business code; 200 means success"
+            "description": "业务码；200 表示成功"
           },
           "message": {
             "type": "string",
@@ -933,7 +933,7 @@
           "provider": {
             "type": "string",
             "example": "V1",
-            "description": "Engine code: V1-V5, or MM/V2/CB/IT/CVC, etc."
+            "description": "引擎代码：V1-V5，或 MM/V2/CB/IT/CVC 等"
           },
           "language": {
             "type": "object",
@@ -981,11 +981,11 @@
           },
           "voiceId": {
             "type": "string",
-            "description": "Use either voiceId or timbreRefAudio"
+            "description": "使用 voiceId 或 timbreRefAudio 之一"
           },
           "timbreRefAudio": {
             "type": "string",
-            "description": "Timbre reference audio S3 URL"
+            "description": "音色参考音频 S3 URL"
           },
           "emoWeight": {
             "type": "number",
@@ -1000,7 +1000,7 @@
           },
           "duration": {
             "type": "number",
-            "description": "Target duration in seconds"
+            "description": "目标时长（秒）"
           }
         }
       },
@@ -1023,7 +1023,7 @@
                 }
               }
             },
-            "description": "Omitted for async submissions"
+            "description": "异步提交时不返回"
           },
           "createdAt": {
             "type": "string"

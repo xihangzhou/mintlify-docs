@@ -1,33 +1,48 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API overview"
+description: "How VMEG Open API endpoints are organized"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+API reference pages are generated from our [OpenAPI 3.1](https://mintlify.com/docs/api-playground/openapi/setup) spec at `api-reference/openapi.json`.
 
-## Welcome
+## URLs
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+| Purpose | URL |
+|---------|-----|
+| Documentation site | [https://docs.vmeg.ai/api](https://docs.vmeg.ai/api) |
+| API base URL (all `/openapi/**` requests) | `https://api.vmeg.ai` |
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+The interactive Playground uses `https://api.vmeg.ai` (configured in `docs.json` → `api.mdx.server`).
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All `/openapi/**` endpoints use a Bearer API Key. Enter your key in the Playground to try requests.
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+## Keep the spec in sync
+
+The spec matches the SpringDoc group `openapi` in `vmeg-serv` (`pro.vmeg.openapi`). After backend changes, start the service locally and run:
+
+```bash
+chmod +x scripts/sync-openapi.sh
+./scripts/sync-openapi.sh http://localhost:8080
 ```
+
+SpringDoc endpoint: `GET /v3/api-docs/openapi`
+
+<Warning>
+  After syncing from SpringDoc, review `openapi.json` for any Chinese descriptions from backend `@Operation` annotations and translate them to English before publishing.
+</Warning>
+
+## Endpoint groups
+
+| Group | Description |
+|-------|-------------|
+| TTS | Speech synthesis (sync and async) |
+| Text translation | Batch sentence translation |
+| Voice clone | Clone from reference audio |
+| Media translation | Video/audio localization pipeline |
+| Task management | List, detail, delete |
+| Assets - Materials | Upload and material library |
+| Assets - Voices | System and cloned voices |
+
+Concept guides (idempotency, webhooks, errors) are under the **Guides** tab.

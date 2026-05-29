@@ -1,0 +1,53 @@
+---
+title: "错误码"
+description: "Open API 响应中的业务码"
+icon: "triangle-exclamation"
+---
+
+import { productUrls } from "/snippets/product-urls.jsx";
+
+Open API 使用 JSON 字段 **`code`** 表示业务结果。HTTP 状态码用于传输层（例如认证失败为 `401`），成功与否以 `code` 为准。
+
+## 码表
+
+| code | 名称 | 说明 |
+|------|------|-------------|
+| 200 | Success | 请求成功 |
+| 400 | Bad Request | 参数无效或校验失败 |
+| 401 | Unauthorized | API Key 缺失或无效 |
+| 402 | Payment Required | 积分或配额不足 |
+| 404 | Not Found | 资源不存在 |
+| 409 | Conflict | 幂等键已被使用 |
+| 413 | Payload Too Large | 上传或请求体超限 |
+| 422 | Unprocessable Entity | 格式正确但无法处理 |
+| 500 | Internal Server Error | 服务端错误 |
+| 502 | Bad Gateway | 上游（如 Lambda）失败 |
+
+定义于 `vmeg-serv` 中的 `OpenApiBizCode`。
+
+## 响应结构
+
+```json
+{
+  "code": 402,
+  "message": "Insufficient quota",
+  "data": null
+}
+```
+
+- 成功：`code === 200`，载荷在 `data`
+- 失败：`message` 供日志与支持排查
+
+## 常见场景
+
+<AccordionGroup>
+  <Accordion title="409 幂等冲突">
+    同一 `X-Idempotency-Key` 在幂等 `create-async` 接口上重复提交时返回。响应可能包含 `Retry-After: 2`。见 [幂等](/zh/guides/idempotency)。
+  </Accordion>
+  <Accordion title="402 配额不足">
+    任务无法扣减项目积分时返回（TTS、翻译、声音克隆、媒体翻译等）。请在控制台 <a href={productUrls.pricing}>充值</a> 或 <a href={productUrls.contactUs}>联系我们</a>。
+  </Accordion>
+  <Accordion title="502 上游失败">
+    Lambda 调用失败或超时。可轮询任务详情（`GET /openapi/tasks/detail`）或在 <a href={productUrls.myTasks}>我的任务</a> 查看；若已配置回调，可等待重试。
+  </Accordion>
+</AccordionGroup>

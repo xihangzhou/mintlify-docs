@@ -1,0 +1,70 @@
+---
+title: "Webhooks"
+description: "Receive async task callbacks and verify signatures"
+icon: "webhook"
+---
+
+import { apiKeyUrl, productUrls } from "/snippets/product-urls.jsx";
+
+## Overview
+
+When async tasks (TTS, translation, voice clone, media translation, and others) finish, VMEG sends an **HTTP POST** to your configured URL. The body uses a unified callback shape, with signature headers for integrity and replay protection.
+
+## Configuration
+
+Set your callback URL and **Webhook Secret** on <a href={apiKeyUrl}>API Configuration</a> in the product (same page as API Key management). <a href={productUrls.signInToApiSettings}>Sign in</a> if needed.
+
+Use the ping endpoint during integration to test connectivity.
+
+## Request headers
+
+| Header | Description |
+|--------|-------------|
+| `X-Timestamp` | Unix timestamp in milliseconds (string) |
+| `X-Signature` | Lowercase hex `HMAC-SHA256(secret, timestamp + rawBody)` |
+
+Verification (matches `OpenApiCallbackSigner`):
+
+1. Ensure `X-Timestamp` is within **300 seconds** of server time
+2. Compute `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`
+3. Constant-time compare with `X-Signature`
+
+```python
+import hmac
+import hashlib
+
+def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool:
+    message = timestamp.encode() + raw_body
+    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+## Request body
+
+```json
+{
+  "code": 200,
+  "version": "1.0",
+  "event": "task.completed",
+  "message": "",
+  "extraData": { "your": "memo fields" },
+  "data": { }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `version` | Currently `1.0` (`CALLBACK_DISPATCH_VERSION`) |
+| `event` | Event name, e.g. `task.completed` |
+| `extraData` | Echo of `extraData` / memo from the submit request |
+| `data` | Task-specific result JSON from the handler |
+
+## Receiver requirements
+
+- Return **2xx** promptly; otherwise VMEG retries with backoff
+- Verify signatures on the **raw body bytes** (do not re-serialize JSON)
+- Dedupe by `taskId` or your business key; retries may deliver the same `pipelineKey` more than once
+
+<Note>
+  The OpenAPI webhook definition is under API reference → Webhooks → `taskCallback`.
+</Note>

@@ -1,0 +1,88 @@
+---
+title: "Quickstart"
+description: "Make your first synchronous TTS request with an API Key"
+icon: "rocket"
+---
+
+import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
+
+## Prerequisites
+
+- An **API Key** from <a href={apiKeyUrl}>API Configuration</a> (<a href={productUrls.signInToApiSettings}>sign in</a> if needed)
+- Network access to the API base URL (production default: `https://api.vmeg.ai`)
+
+## Synchronous TTS example
+
+This example submits one line of text and returns a synthesized audio URL immediately.
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "V1",
+    "language": { "target": "en-US" },
+    "outputFormat": "mp3",
+    "data": [
+      {
+        "text": "Hello from VMEG Open API.",
+        "voiceId": "YOUR_VOICE_ID"
+      }
+    ]
+  }'
+```
+
+A successful response looks like:
+
+```json
+{
+  "code": 200,
+  "message": "",
+  "data": {
+    "taskId": "tsk_...",
+    "results": [
+      { "audioUrl": "https://...", "duration": 2.4 }
+    ],
+    "createdAt": "2026-05-29T12:00:00Z"
+  }
+}
+```
+
+## Async tasks
+
+For `create-async` endpoints:
+
+1. Include [`X-Idempotency-Key`](/guides/idempotency) (max 64 characters).
+2. `data` usually contains only `taskId`.
+3. Configure a [Webhook](/guides/webhooks) on <a href={apiKeyUrl}>API Configuration</a> to receive events such as `task.completed`.
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "X-Idempotency-Key: idem-$(uuidgen)" \
+  -d '{
+    "provider": "V1",
+    "language": { "target": "en-US" },
+    "data": [{ "text": "Async TTS sample.", "voiceId": "YOUR_VOICE_ID" }]
+  }'
+```
+
+## Typical media translation flow
+
+1. [Upload a material](/guides/materials) → obtain `materialId` (assets live in <a href={productUrls.myAssets}>My assets</a>)
+2. Call `POST /openapi/task/media-translation/create-async`
+3. Handle deliverables in the webhook `data` payload
+
+See [Media translation](/guides/media-translation) for details.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/guides/authentication">
+    API Key format and error handling
+  </Card>
+  <Card title="Error codes" icon="triangle-exclamation" href="/guides/errors">
+    Business code reference
+  </Card>
+</CardGroup>

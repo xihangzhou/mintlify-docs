@@ -1,0 +1,88 @@
+---
+title: "快速开始"
+description: "使用 API Key 完成首次同步 TTS 请求"
+icon: "rocket"
+---
+
+import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
+
+## 前置条件
+
+- 在 <a href={apiKeyUrl}>API 配置</a> 获取 **API Key**（需要时请先 <a href={productUrls.signInToApiSettings}>登录</a>）
+- 可访问 API 基址（生产环境默认：`https://api.vmeg.ai`）
+
+## 同步 TTS 示例
+
+以下示例提交一行文本并立即返回合成音频 URL。
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "V1",
+    "language": { "target": "en-US" },
+    "outputFormat": "mp3",
+    "data": [
+      {
+        "text": "Hello from VMEG Open API.",
+        "voiceId": "YOUR_VOICE_ID"
+      }
+    ]
+  }'
+```
+
+成功响应示例：
+
+```json
+{
+  "code": 200,
+  "message": "",
+  "data": {
+    "taskId": "tsk_...",
+    "results": [
+      { "audioUrl": "https://...", "duration": 2.4 }
+    ],
+    "createdAt": "2026-05-29T12:00:00Z"
+  }
+}
+```
+
+## 异步任务
+
+对于 `create-async` 接口：
+
+1. 携带 [`X-Idempotency-Key`](/zh/guides/idempotency)（最长 64 字符）。
+2. 响应 `data` 通常仅含 `taskId`。
+3. 在 <a href={apiKeyUrl}>API 配置</a> 配置 [Webhook](/zh/guides/webhooks)，接收 `task.completed` 等事件。
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "X-Idempotency-Key: idem-$(uuidgen)" \
+  -d '{
+    "provider": "V1",
+    "language": { "target": "en-US" },
+    "data": [{ "text": "Async TTS sample.", "voiceId": "YOUR_VOICE_ID" }]
+  }'
+```
+
+## 典型媒体翻译流程
+
+1. [上传素材](/zh/guides/materials) → 获得 `materialId`（也可在 <a href={productUrls.myAssets}>我的素材</a> 管理）
+2. 调用 `POST /openapi/task/media-translation/create-async`
+3. 在 Webhook 的 `data` 中处理交付物
+
+详见 [媒体翻译](/zh/guides/media-translation)。
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="认证" icon="key" href="/zh/guides/authentication">
+    API Key 格式与错误处理
+  </Card>
+  <Card title="错误码" icon="triangle-exclamation" href="/zh/guides/errors">
+    业务码对照表
+  </Card>
+</CardGroup>
