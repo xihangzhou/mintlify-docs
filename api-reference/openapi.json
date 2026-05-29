@@ -90,8 +90,11 @@
           "TTS"
         ],
         "summary": "Create TTS task (async)",
-        "description": "Invokes vmeg-tts Lambda (Event); returns taskId only. Results are delivered via callback.",
+        "description": "Async TTS submission.",
         "operationId": "ttsCreateAsync",
+        "x-mint": {
+          "content": "<Note>\n**Response:** immediate acceptance (`taskId`, `createdAt`). Does not include synthesis results.\n\n**Callbacks → task.completed:** the [Webhook](/guides/webhooks) **request body** VMEG POSTs to your server when the task finishes. The `data` field below carries synthesis results.\n</Note>"
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -109,11 +112,44 @@
         },
         "responses": {
           "200": {
-            "description": "Accepted",
+            "description": "Acceptance only (`taskId`, `createdAt`). Synthesis results are in the webhook callback request body under **Callbacks → task.completed**.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OpenApiTtsCreateResponse"
+                  "$ref": "#/components/schemas/OpenApiTaskAcceptedResponse"
+                }
+              }
+            }
+          }
+        },
+        "callbacks": {
+          "taskCompleted": {
+            "https://{yourWebhookUrl}": {
+              "post": {
+                "summary": "Webhook request: task.completed",
+                "description": "HTTP **request body** of the POST VMEG sends to your [Webhook](/guides/webhooks) URL when synthesis finishes. Not part of the create-async **Response** above.",
+                "parameters": [
+                  {
+                    "$ref": "#/components/parameters/CallbackTimestamp"
+                  },
+                  {
+                    "$ref": "#/components/parameters/CallbackSignature"
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OpenApiTtsTaskCompletedCallback"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Return 2xx promptly to stop retries"
+                  }
                 }
               }
             }
@@ -165,6 +201,10 @@
         ],
         "summary": "Create text translation (async)",
         "operationId": "translateCreateAsync",
+        "description": "Async text translation submission.",
+        "x-mint": {
+          "content": "<Note>\n**Response:** immediate acceptance (`taskId`, `createdAt`). Does not include translated text.\n\n**Callbacks → task.completed:** the [Webhook](/guides/webhooks) **request body** VMEG POSTs to your server when the task finishes. The `data` field below carries translation results.\n</Note>"
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -182,17 +222,49 @@
         },
         "responses": {
           "200": {
-            "description": "Accepted",
+            "description": "Acceptance only (`taskId`, `createdAt`). Translation results are in the webhook callback request body under **Callbacks → task.completed**.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OpenApiTranslateCreateResponse"
+                  "$ref": "#/components/schemas/OpenApiTaskAcceptedResponse"
                 }
               }
             }
           }
         },
-        "description": "Lambda Event mode; returns taskId only."
+        "callbacks": {
+          "taskCompleted": {
+            "https://{yourWebhookUrl}": {
+              "post": {
+                "summary": "Webhook request: task.completed",
+                "description": "HTTP **request body** of the POST VMEG sends to your [Webhook](/guides/webhooks) URL when translation finishes. Not part of the create-async **Response** above.",
+                "parameters": [
+                  {
+                    "$ref": "#/components/parameters/CallbackTimestamp"
+                  },
+                  {
+                    "$ref": "#/components/parameters/CallbackSignature"
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OpenApiTranslateTaskCompletedCallback"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Return 2xx promptly to stop retries"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/openapi/task/clone-voice/create": {
@@ -239,6 +311,10 @@
         ],
         "summary": "Create voice clone (async)",
         "operationId": "cloneVoiceCreateAsync",
+        "description": "Async voice clone submission.",
+        "x-mint": {
+          "content": "<Note>\n**Response:** immediate acceptance (`taskId` only). Does not include `voiceId` or audio.\n\n**Callbacks → task.completed:** the [Webhook](/guides/webhooks) **request body** VMEG POSTs to your server when cloning finishes. The `data` field below carries clone results.\n</Note>"
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -256,17 +332,49 @@
         },
         "responses": {
           "200": {
-            "description": "Accepted",
+            "description": "Acceptance only (`taskId`). Clone results are in the webhook callback request body under **Callbacks → task.completed**.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OpenApiCloneVoiceCreateResponse"
+                  "$ref": "#/components/schemas/OpenApiTaskAcceptedResponse"
                 }
               }
             }
           }
         },
-        "description": "Lambda Event mode; returns taskId only."
+        "callbacks": {
+          "taskCompleted": {
+            "https://{yourWebhookUrl}": {
+              "post": {
+                "summary": "Webhook request: task.completed",
+                "description": "HTTP **request body** of the POST VMEG sends to your [Webhook](/guides/webhooks) URL when cloning finishes. Not part of the create-async **Response** above.",
+                "parameters": [
+                  {
+                    "$ref": "#/components/parameters/CallbackTimestamp"
+                  },
+                  {
+                    "$ref": "#/components/parameters/CallbackSignature"
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OpenApiCloneVoiceTaskCompletedCallback"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Return 2xx promptly to stop retries"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/openapi/task/media-translation/create-async": {
@@ -275,8 +383,11 @@
           "Media translation"
         ],
         "summary": "Create media translation (async)",
-        "description": "Returns taskId immediately; final result via webhook. If taskType=at and material is video, runs as vt; see requestedTaskType in response.",
+        "description": "Async media translation. If request `taskType` is `at` but the material is video, the server may run `vt` instead (see `taskType` in the acceptance response).",
         "operationId": "mediaTranslationCreateAsync",
+        "x-mint": {
+          "content": "<Note>\n**Response:** immediate acceptance (`taskId`, `taskType`, `status`, `createdAt`). Does not include deliverables.\n\n**Callbacks → task.completed:** the [Webhook](/guides/webhooks) **request body** VMEG POSTs to your server when localization finishes. The `data` field below carries deliverables.\n</Note>"
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -294,11 +405,44 @@
         },
         "responses": {
           "200": {
-            "description": "Accepted",
+            "description": "Acceptance only (`taskId`, `taskType`, `status`, `createdAt`). Deliverables are in the webhook callback request body under **Callbacks → task.completed**.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OpenApiMediaTranslationCreateResponse"
+                  "$ref": "#/components/schemas/OpenApiMediaTranslationAcceptedResponse"
+                }
+              }
+            }
+          }
+        },
+        "callbacks": {
+          "taskCompleted": {
+            "https://{yourWebhookUrl}": {
+              "post": {
+                "summary": "Webhook request: task.completed",
+                "description": "HTTP **request body** of the POST VMEG sends to your [Webhook](/guides/webhooks) URL when localization finishes. Not part of the create-async **Response** above.",
+                "parameters": [
+                  {
+                    "$ref": "#/components/parameters/CallbackTimestamp"
+                  },
+                  {
+                    "$ref": "#/components/parameters/CallbackSignature"
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OpenApiMediaTranslationTaskCompletedCallback"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Return 2xx promptly to stop retries"
+                  }
                 }
               }
             }
@@ -832,7 +976,7 @@
           "Webhooks"
         ],
         "summary": "Task completion callback (sent by VMEG to your URL)",
-        "description": "After async tasks complete, VMEG POSTs to your configured webhook URL with X-Timestamp and X-Signature (HMAC-SHA256).",
+        "description": "After async tasks complete, VMEG POSTs to your configured webhook URL. Per-task `data` schemas are documented under Callbacks on each `create-async` operation. Envelope signing: Webhooks guide.",
         "requestBody": {
           "required": true,
           "content": {
@@ -877,6 +1021,24 @@
         "schema": {
           "type": "string",
           "maxLength": 64
+        }
+      },
+      "CallbackTimestamp": {
+        "name": "X-Timestamp",
+        "in": "header",
+        "required": true,
+        "description": "Unix timestamp in milliseconds (string)",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "CallbackSignature": {
+        "name": "X-Signature",
+        "in": "header",
+        "required": true,
+        "description": "Lowercase hex HMAC-SHA256(secret, X-Timestamp + rawBody)",
+        "schema": {
+          "type": "string"
         }
       }
     },
@@ -1023,6 +1185,7 @@
       },
       "OpenApiTtsCreateData": {
         "type": "object",
+        "description": "Synchronous create response and task.completed webhook `data` for TTS",
         "properties": {
           "taskId": {
             "type": "string"
@@ -1032,12 +1195,43 @@
             "items": {
               "$ref": "#/components/schemas/OpenApiTtsResultItem"
             },
-            "description": "Omitted for async submissions"
+            "description": "Present on synchronous create and in the task.completed webhook `data`"
           },
           "createdAt": {
             "type": "string"
           }
         }
+      },
+      "OpenApiTaskAcceptedData": {
+        "type": "object",
+        "description": "Immediate response for async task submission (no task results)",
+        "required": [
+          "taskId"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Returned by TTS and text translation async create"
+          }
+        }
+      },
+      "OpenApiTaskAcceptedResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiTaskAcceptedData"
+              }
+            }
+          }
+        ]
       },
       "OpenApiTtsCreateResponse": {
         "allOf": [
@@ -1143,6 +1337,7 @@
       },
       "OpenApiTranslateCreateData": {
         "type": "object",
+        "description": "Synchronous create response and task.completed webhook `data` for text translation",
         "properties": {
           "taskId": {
             "type": "string"
@@ -1152,7 +1347,7 @@
             "items": {
               "$ref": "#/components/schemas/OpenApiTranslateResultItem"
             },
-            "description": "Aligned with request segments by index; omitted for async submissions"
+            "description": "Aligned with request segments by index; present on synchronous create and in the task.completed webhook `data`"
           },
           "createdAt": {
             "type": "string"
@@ -1203,6 +1398,7 @@
       },
       "OpenApiCloneVoiceCreateData": {
         "type": "object",
+        "description": "Synchronous create response and task.completed webhook `data` for voice clone (voiceId and audio populated on completion)",
         "properties": {
           "taskId": {
             "type": "string"
@@ -1282,21 +1478,35 @@
           }
         }
       },
-      "OpenApiMediaTranslationCreateData": {
+      "OpenApiMediaTranslationAcceptedData": {
         "type": "object",
+        "description": "Immediate response for media translation async create (no deliverables)",
+        "required": [
+          "taskId"
+        ],
         "properties": {
           "taskId": {
             "type": "string"
           },
-          "requestedTaskType": {
-            "type": "string"
+          "taskType": {
+            "$ref": "#/components/schemas/OpenApiTaskType",
+            "description": "Effective task type (may differ from request when audio material is processed as video translation)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "failed",
+              "finished"
+            ],
+            "example": "running"
           },
           "createdAt": {
             "type": "string"
           }
         }
       },
-      "OpenApiMediaTranslationCreateResponse": {
+      "OpenApiMediaTranslationAcceptedResponse": {
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiResponseBase"
@@ -1305,11 +1515,36 @@
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiMediaTranslationCreateData"
+                "$ref": "#/components/schemas/OpenApiMediaTranslationAcceptedData"
               }
             }
           }
         ]
+      },
+      "OpenApiMediaTranslationCallbackData": {
+        "type": "object",
+        "description": "Webhook `data` for media translation task.completed",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/OpenApiTaskType"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "failed",
+              "finished"
+            ]
+          },
+          "result": {
+            "type": "object",
+            "description": "Sanitized deliverables (CDN URLs and selected fields); structure varies by taskType",
+            "additionalProperties": true
+          }
+        }
       },
       "OpenApiTaskSummary": {
         "type": "object",
@@ -2030,24 +2265,14 @@
           }
         }
       },
-      "OpenApiCallbackDispatchData": {
+      "OpenApiCallbackEnvelope": {
         "type": "object",
-        "properties": {
-          "taskId": {
-            "type": "string"
-          },
-          "taskConfig": {
-            "type": "string",
-            "description": "S3 URI of task configuration"
-          }
-        }
-      },
-      "OpenApiCallbackDispatchBody": {
-        "type": "object",
+        "description": "Shared fields of the HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL on `task.completed`. Configure the URL, signing headers, and retries in the Webhooks guide.",
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "Business outcome for this delivery"
           },
           "version": {
             "type": "string",
@@ -2062,13 +2287,103 @@
           },
           "extraData": {
             "type": "object",
-            "description": "From request extraData / memo",
+            "description": "Echo of extraData / memo from the submit request",
             "additionalProperties": true
-          },
-          "data": {
-            "$ref": "#/components/schemas/OpenApiCallbackDispatchData"
           }
         }
+      },
+      "OpenApiTtsTaskCompletedCallback": {
+        "description": "Complete webhook callback **request body** for TTS `task.completed`. See [Webhooks](/guides/webhooks) for URL configuration and signature verification.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiTtsCreateData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiTranslateTaskCompletedCallback": {
+        "description": "Complete webhook callback **request body** for text translation `task.completed`. See [Webhooks](/guides/webhooks) for URL configuration and signature verification.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiCloneVoiceTaskCompletedCallback": {
+        "description": "Complete webhook callback **request body** for voice clone `task.completed`. See [Webhooks](/guides/webhooks) for URL configuration and signature verification.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMediaTranslationTaskCompletedCallback": {
+        "description": "Complete webhook callback **request body** for media translation `task.completed`. See [Webhooks](/guides/webhooks) for URL configuration and signature verification.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMediaTranslationCallbackData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiCallbackDispatchBody": {
+        "description": "Union of all task.completed payloads (see per-endpoint Callbacks on create-async operations)",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiTtsTaskCompletedCallback"
+          },
+          {
+            "$ref": "#/components/schemas/OpenApiTranslateTaskCompletedCallback"
+          },
+          {
+            "$ref": "#/components/schemas/OpenApiCloneVoiceTaskCompletedCallback"
+          },
+          {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTaskCompletedCallback"
+          }
+        ]
       }
     }
   }

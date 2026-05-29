@@ -53,8 +53,8 @@ curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
 对于 `create-async` 接口：
 
 1. 携带 [`X-Idempotency-Key`](/zh/guides/idempotency)（最长 64 字符）。
-2. 响应 `data` 通常仅含 `taskId`。
-3. 在 <a href={apiKeyUrl}>API 配置</a> 配置 [Webhook](/zh/guides/webhooks)，接收 `task.completed` 等事件。
+2. HTTP 响应仅表示受理（`taskId`，部分含 `createdAt` 或 `status`），不含合成/翻译结果。
+3. 在 <a href={apiKeyUrl}>API 配置</a> 配置 [Webhook](/zh/guides/webhooks)，并在 [各任务类型的回调 data](/zh/guides/webhooks#各任务类型的回调-data) 查看 `task.completed` 的交付物结构。
 
 ```bash
 curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \

@@ -90,8 +90,11 @@
           "TTS"
         ],
         "summary": "创建 TTS 任务（异步）",
-        "description": "调用 vmeg-tts Lambda（Event），仅返回 taskId；结果通过回调投递。",
+        "description": "异步 TTS 提交。",
         "operationId": "ttsCreateAsync",
+        "x-mint": {
+          "content": "<Note>\n**Response：** 立即受理（`taskId`、`createdAt`），不含合成结果。\n\n**Callbacks → task.completed：** 任务完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**，下方 `data` 为合成结果。\n</Note>"
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -109,11 +112,44 @@
         },
         "responses": {
           "200": {
-            "description": "已接受",
+            "description": "仅受理（`taskId`、`createdAt`）。合成结果在 **Callbacks → task.completed** 的 Webhook 回调请求体中。",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OpenApiTtsCreateResponse"
+                  "$ref": "#/components/schemas/OpenApiTaskAcceptedResponse"
+                }
+              }
+            }
+          }
+        },
+        "callbacks": {
+          "taskCompleted": {
+            "https://{yourWebhookUrl}": {
+              "post": {
+                "summary": "Webhook 请求：task.completed",
+                "description": "任务完成后 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的 HTTP **请求体**，不属于上方 create-async 的 **Response**。",
+                "parameters": [
+                  {
+                    "$ref": "#/components/parameters/CallbackTimestamp"
+                  },
+                  {
+                    "$ref": "#/components/parameters/CallbackSignature"
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OpenApiTtsTaskCompletedCallback"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Return 2xx promptly to stop retries"
+                  }
                 }
               }
             }
@@ -165,6 +201,10 @@
         ],
         "summary": "创建文本翻译（异步）",
         "operationId": "translateCreateAsync",
+        "description": "异步文本翻译提交。",
+        "x-mint": {
+          "content": "<Note>\n**Response：** 立即受理（`taskId`、`createdAt`），不含译文。\n\n**Callbacks → task.completed：** 任务完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**，下方 `data` 为翻译结果。\n</Note>"
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -182,17 +222,49 @@
         },
         "responses": {
           "200": {
-            "description": "已接受",
+            "description": "仅受理（`taskId`、`createdAt`）。翻译结果在 **Callbacks → task.completed** 的 Webhook 回调请求体中。",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OpenApiTranslateCreateResponse"
+                  "$ref": "#/components/schemas/OpenApiTaskAcceptedResponse"
                 }
               }
             }
           }
         },
-        "description": "Lambda Event 模式，仅返回 taskId。"
+        "callbacks": {
+          "taskCompleted": {
+            "https://{yourWebhookUrl}": {
+              "post": {
+                "summary": "Webhook 请求：task.completed",
+                "description": "翻译完成后 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的 HTTP **请求体**，不属于上方 create-async 的 **Response**。",
+                "parameters": [
+                  {
+                    "$ref": "#/components/parameters/CallbackTimestamp"
+                  },
+                  {
+                    "$ref": "#/components/parameters/CallbackSignature"
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OpenApiTranslateTaskCompletedCallback"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Return 2xx promptly to stop retries"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/openapi/task/clone-voice/create": {
@@ -239,6 +311,10 @@
         ],
         "summary": "创建声音克隆（异步）",
         "operationId": "cloneVoiceCreateAsync",
+        "description": "异步声音克隆提交。",
+        "x-mint": {
+          "content": "<Note>\n**Response：** 仅受理（`taskId`），不含 `voiceId` 或音频。\n\n**Callbacks → task.completed：** 克隆完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**，下方 `data` 为克隆结果。\n</Note>"
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -256,17 +332,49 @@
         },
         "responses": {
           "200": {
-            "description": "已接受",
+            "description": "仅受理（`taskId`）。克隆结果在 **Callbacks → task.completed** 的 Webhook 回调请求体中。",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OpenApiCloneVoiceCreateResponse"
+                  "$ref": "#/components/schemas/OpenApiTaskAcceptedResponse"
                 }
               }
             }
           }
         },
-        "description": "Lambda Event 模式，仅返回 taskId。"
+        "callbacks": {
+          "taskCompleted": {
+            "https://{yourWebhookUrl}": {
+              "post": {
+                "summary": "Webhook 请求：task.completed",
+                "description": "克隆完成后 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的 HTTP **请求体**，不属于上方 create-async 的 **Response**。",
+                "parameters": [
+                  {
+                    "$ref": "#/components/parameters/CallbackTimestamp"
+                  },
+                  {
+                    "$ref": "#/components/parameters/CallbackSignature"
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OpenApiCloneVoiceTaskCompletedCallback"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Return 2xx promptly to stop retries"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/openapi/task/media-translation/create-async": {
@@ -275,8 +383,11 @@
           "媒体翻译"
         ],
         "summary": "创建媒体翻译（异步）",
-        "description": "立即返回 taskId，最终结果通过 Webhook 投递。若 taskType=at 且素材为视频，则按 vt 执行；响应中的 requestedTaskType 为原始请求类型。",
+        "description": "异步媒体翻译。若请求 `taskType` 为 `at` 但素材为视频，服务端可能按 `vt` 执行（见受理响应中的 `taskType`）。",
         "operationId": "mediaTranslationCreateAsync",
+        "x-mint": {
+          "content": "<Note>\n**Response：** 立即受理（`taskId`、`taskType`、`status`、`createdAt`），不含交付物。\n\n**Callbacks → task.completed：** 本地化完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**，下方 `data` 为交付物。\n</Note>"
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -294,11 +405,44 @@
         },
         "responses": {
           "200": {
-            "description": "已接受",
+            "description": "仅受理（`taskId`、`taskType`、`status`、`createdAt`）。交付物在 **Callbacks → task.completed** 的 Webhook 回调请求体中。",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OpenApiMediaTranslationCreateResponse"
+                  "$ref": "#/components/schemas/OpenApiMediaTranslationAcceptedResponse"
+                }
+              }
+            }
+          }
+        },
+        "callbacks": {
+          "taskCompleted": {
+            "https://{yourWebhookUrl}": {
+              "post": {
+                "summary": "Webhook 请求：task.completed",
+                "description": "本地化完成后 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的 HTTP **请求体**，不属于上方 create-async 的 **Response**。",
+                "parameters": [
+                  {
+                    "$ref": "#/components/parameters/CallbackTimestamp"
+                  },
+                  {
+                    "$ref": "#/components/parameters/CallbackSignature"
+                  }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/OpenApiMediaTranslationTaskCompletedCallback"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Return 2xx promptly to stop retries"
+                  }
                 }
               }
             }
@@ -832,7 +976,7 @@
           "Webhook"
         ],
         "summary": "任务完成回调（由 VMEG 发送至你的 URL）",
-        "description": "异步任务完成后，VMEG 向配置的 Webhook URL 发送 POST，并附带 X-Timestamp 与 X-Signature（HMAC-SHA256）。",
+        "description": "异步任务完成后，VMEG 向配置的 Webhook URL 发送 POST。各任务 `data` schema 见对应 `create-async` 下的 Callbacks。外壳验签见 Webhooks 指南。",
         "requestBody": {
           "required": true,
           "content": {
@@ -877,6 +1021,24 @@
         "schema": {
           "type": "string",
           "maxLength": 64
+        }
+      },
+      "CallbackTimestamp": {
+        "name": "X-Timestamp",
+        "in": "header",
+        "required": true,
+        "description": "Unix timestamp in milliseconds (string)",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "CallbackSignature": {
+        "name": "X-Signature",
+        "in": "header",
+        "required": true,
+        "description": "Lowercase hex HMAC-SHA256(secret, X-Timestamp + rawBody)",
+        "schema": {
+          "type": "string"
         }
       }
     },
@@ -1023,6 +1185,7 @@
       },
       "OpenApiTtsCreateData": {
         "type": "object",
+        "description": "Synchronous create response and task.completed webhook `data` for TTS",
         "properties": {
           "taskId": {
             "type": "string"
@@ -1032,12 +1195,43 @@
             "items": {
               "$ref": "#/components/schemas/OpenApiTtsResultItem"
             },
-            "description": "异步提交时不返回"
+            "description": "Present on synchronous create and in the task.completed webhook `data`"
           },
           "createdAt": {
             "type": "string"
           }
         }
+      },
+      "OpenApiTaskAcceptedData": {
+        "type": "object",
+        "description": "Immediate response for async task submission (no task results)",
+        "required": [
+          "taskId"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Returned by TTS and text translation async create"
+          }
+        }
+      },
+      "OpenApiTaskAcceptedResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiTaskAcceptedData"
+              }
+            }
+          }
+        ]
       },
       "OpenApiTtsCreateResponse": {
         "allOf": [
@@ -1143,6 +1337,7 @@
       },
       "OpenApiTranslateCreateData": {
         "type": "object",
+        "description": "Synchronous create response and task.completed webhook `data` for text translation",
         "properties": {
           "taskId": {
             "type": "string"
@@ -1152,7 +1347,7 @@
             "items": {
               "$ref": "#/components/schemas/OpenApiTranslateResultItem"
             },
-            "description": "Aligned with request segments by index; omitted for async submissions"
+            "description": "Aligned with request segments by index; present on synchronous create and in the task.completed webhook `data`"
           },
           "createdAt": {
             "type": "string"
@@ -1203,6 +1398,7 @@
       },
       "OpenApiCloneVoiceCreateData": {
         "type": "object",
+        "description": "Synchronous create response and task.completed webhook `data` for voice clone (voiceId and audio populated on completion)",
         "properties": {
           "taskId": {
             "type": "string"
@@ -1282,21 +1478,35 @@
           }
         }
       },
-      "OpenApiMediaTranslationCreateData": {
+      "OpenApiMediaTranslationAcceptedData": {
         "type": "object",
+        "description": "Immediate response for media translation async create (no deliverables)",
+        "required": [
+          "taskId"
+        ],
         "properties": {
           "taskId": {
             "type": "string"
           },
-          "requestedTaskType": {
-            "type": "string"
+          "taskType": {
+            "$ref": "#/components/schemas/OpenApiTaskType",
+            "description": "Effective task type (may differ from request when audio material is processed as video translation)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "failed",
+              "finished"
+            ],
+            "example": "running"
           },
           "createdAt": {
             "type": "string"
           }
         }
       },
-      "OpenApiMediaTranslationCreateResponse": {
+      "OpenApiMediaTranslationAcceptedResponse": {
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiResponseBase"
@@ -1305,11 +1515,36 @@
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiMediaTranslationCreateData"
+                "$ref": "#/components/schemas/OpenApiMediaTranslationAcceptedData"
               }
             }
           }
         ]
+      },
+      "OpenApiMediaTranslationCallbackData": {
+        "type": "object",
+        "description": "Webhook `data` for media translation task.completed",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/OpenApiTaskType"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "failed",
+              "finished"
+            ]
+          },
+          "result": {
+            "type": "object",
+            "description": "Sanitized deliverables (CDN URLs and selected fields); structure varies by taskType",
+            "additionalProperties": true
+          }
+        }
       },
       "OpenApiTaskSummary": {
         "type": "object",
@@ -2030,24 +2265,14 @@
           }
         }
       },
-      "OpenApiCallbackDispatchData": {
+      "OpenApiCallbackEnvelope": {
         "type": "object",
-        "properties": {
-          "taskId": {
-            "type": "string"
-          },
-          "taskConfig": {
-            "type": "string",
-            "description": "S3 URI of task configuration"
-          }
-        }
-      },
-      "OpenApiCallbackDispatchBody": {
-        "type": "object",
+        "description": "`task.completed` 时 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的请求体公共字段。URL、签名头与重试见 Webhooks 指南。",
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 200,
+            "description": "Business outcome for this delivery"
           },
           "version": {
             "type": "string",
@@ -2062,13 +2287,103 @@
           },
           "extraData": {
             "type": "object",
-            "description": "From request extraData / memo",
+            "description": "Echo of extraData / memo from the submit request",
             "additionalProperties": true
-          },
-          "data": {
-            "$ref": "#/components/schemas/OpenApiCallbackDispatchData"
           }
         }
+      },
+      "OpenApiTtsTaskCompletedCallback": {
+        "description": "TTS `task.completed` 的完整 Webhook 回调**请求体**。URL 配置与验签见 [Webhook](/zh/guides/webhooks)。",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiTtsCreateData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiTranslateTaskCompletedCallback": {
+        "description": "文本翻译 `task.completed` 的完整 Webhook 回调**请求体**。URL 配置与验签见 [Webhook](/zh/guides/webhooks)。",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiCloneVoiceTaskCompletedCallback": {
+        "description": "声音克隆 `task.completed` 的完整 Webhook 回调**请求体**。URL 配置与验签见 [Webhook](/zh/guides/webhooks)。",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMediaTranslationTaskCompletedCallback": {
+        "description": "媒体翻译 `task.completed` 的完整 Webhook 回调**请求体**。URL 配置与验签见 [Webhook](/zh/guides/webhooks)。",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMediaTranslationCallbackData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiCallbackDispatchBody": {
+        "description": "Union of all task.completed payloads (see per-endpoint Callbacks on create-async operations)",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiTtsTaskCompletedCallback"
+          },
+          {
+            "$ref": "#/components/schemas/OpenApiTranslateTaskCompletedCallback"
+          },
+          {
+            "$ref": "#/components/schemas/OpenApiCloneVoiceTaskCompletedCallback"
+          },
+          {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTaskCompletedCallback"
+          }
+        ]
       }
     }
   }

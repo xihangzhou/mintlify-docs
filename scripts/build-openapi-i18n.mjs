@@ -43,6 +43,12 @@ function walk(node) {
         out[key] = translateValue(value);
       } else if (key === "tags" && Array.isArray(value)) {
         out[key] = value.map(translateValue);
+      } else if (key === "x-mint" && value && typeof value === "object") {
+        const mint = { ...value };
+        if (typeof mint.content === "string") {
+          mint.content = translateValue(mint.content);
+        }
+        out[key] = walk(mint);
       } else {
         out[key] = walk(value);
       }
