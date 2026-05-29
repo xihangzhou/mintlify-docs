@@ -22,15 +22,6 @@ VMEG Open API 让你以编程方式运行语音与翻译任务：提交任务、
   </Step>
 </Steps>
 
-## 约定
-
-| 项目 | 说明 |
-|------|------|
-| 路径前缀 | `/openapi` |
-| 响应结构 | `{ "code": 200, "message": "", "data": { ... } }` |
-| 成功 | `code === 200`（业务码，非 HTTP 状态码） |
-| 异步幂等 | 请求头 `X-Idempotency-Key`（`*-async` 创建接口必填） |
-
 <Card title="API 参考" icon="code" href="/zh/api-reference/introduction">
   浏览接口、请求 schema 与交互式 Playground。
 </Card>

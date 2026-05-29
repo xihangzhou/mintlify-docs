@@ -22,15 +22,6 @@ The VMEG Open API lets you programmatically run speech and translation workloads
   </Step>
 </Steps>
 
-## Conventions
-
-| Item | Detail |
-|------|--------|
-| Path prefix | `/openapi` |
-| Response shape | `{ "code": 200, "message": "", "data": { ... } }` |
-| Success | `code === 200` (business code, not HTTP status) |
-| Async idempotency | `X-Idempotency-Key` header (required on `*-async` create endpoints) |
-
 <Card title="API reference" icon="code" href="/api-reference/introduction">
   Browse endpoints, request schemas, and the interactive playground.
 </Card>
