@@ -1,0 +1,45 @@
+---
+title: "Voice clone"
+description: "Clone a voice from sample audio"
+icon: "microphone"
+---
+
+Create a reusable **cloned voice** from sample audio. On success, VMEG assigns a **`voiceId`** and stores the clone as an [API voice asset](/guides/assets/voices).
+
+## Sync vs async
+
+| Mode | Endpoint | Results |
+|------|----------|---------|
+| Sync | `POST /openapi/task/clone-voice/create` | `voiceId` and sample metadata in HTTP response |
+| Async | `POST /openapi/task/clone-voice/create-async` | [Webhook](/guides/webhook-request) with `voiceId` on `task.completed` |
+
+Async requires [`X-Idempotency-Key`](/guides/idempotency) and a configured webhook.
+
+## Workflow
+
+<Steps>
+  <Step title="Prepare sample">
+    Provide reference audio per request schema (URL or uploaded asset fields in API reference).
+  </Step>
+  <Step title="Submit clone task">
+    Sync or async create endpoint with `sampleLanguage` from [Supported languages](/guides/supported-languages).
+  </Step>
+  <Step title="Use voiceId">
+    Pass `voiceId` to [Text to speech](/guides/products/text-to-speech) requests.
+  </Step>
+</Steps>
+
+## After cloning
+
+- List clones: `POST /openapi/assets/voice/clone/list`
+- Rename: `POST /openapi/assets/voice/clone/update`
+- Delete: `POST /openapi/assets/voice/clone/delete`
+
+Clones are **not visible** in Dashboard voice UI. See [Assets overview](/guides/assets/overview).
+
+Request and callback schemas: **API reference → Voice clone** operations.
+
+## Related
+
+- [Voices](/guides/assets/voices)
+- [Products overview](/guides/products/overview)

@@ -1,0 +1,42 @@
+---
+title: "Usage limits"
+description: "Technical quotas and payload limits"
+icon: "gauge-high"
+---
+
+Technical limits below are enforced by the API. **Credit balance** and paid access are covered in [Pricing](/guides/pricing).
+
+## Idempotency
+
+| Limit | Value |
+|-------|-------|
+| `X-Idempotency-Key` max length | 64 characters |
+| Required on | All `*-create-async` endpoints |
+
+See [Idempotency](/guides/idempotency).
+
+## TTS and text translation
+
+| Limit | Value |
+|-------|-------|
+| Segments / lines per request (`data` or `segments`) | 50 items max |
+| `emoWeight` (TTS) | 0–1 |
+
+## Material upload
+
+| Topic | Detail |
+|-------|--------|
+| Upload path | Direct to CDN via presigned URLs — not through API gateway body size |
+| Multipart | Use multipart flow for large files; part size guidance in initiate response (S3 minimum typically 5 MB per part except the last) |
+| HTTP 413 | Returned when a request body or upload exceeds allowed size |
+
+Exact upload request fields: **API reference → Assets - Materials**.
+
+## Rate and concurrency
+
+Per-account rate limits and concurrency caps may apply in production. If you hit throttling, retry with backoff and contact support for higher quotas.
+
+## Related
+
+- [Error codes](/guides/errors) — including `413 Payload Too Large`
+- [Pricing](/guides/pricing) — credits and `402`

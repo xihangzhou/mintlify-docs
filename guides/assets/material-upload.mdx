@@ -1,0 +1,85 @@
+---
+title: "Material upload"
+description: "Presigned and multipart CDN upload"
+icon: "cloud-arrow-up"
+---
+
+Materials are uploaded **directly to CDN/object storage** via presigned URLs, then registered with the VMEG API. Bytes do not pass through the API gateway.
+
+## Choose an upload mode
+
+| Mode | When to use |
+|------|-------------|
+| **Single-file (presigned URL)** | Smaller files, one PUT |
+| **Multipart** | Large files, resumable parts |
+
+Exact request bodies: **API reference → Assets - Materials → upload** operations.
+
+## Single-file upload
+
+<Steps>
+  <Step title="Get presigned URL">
+    `POST /openapi/assets/material/upload/gen-upload-url`
+
+    Provide `fileHash` (MD5) and `fileName`. Response includes a CDN upload URL and session fields.
+  </Step>
+  <Step title="PUT file to CDN">
+    Upload raw bytes to the returned URL from your server or client.
+  </Step>
+  <Step title="Complete upload">
+    `POST /openapi/assets/material/upload/complete`
+
+    Server processes metadata and returns `materialId` in `data`.
+  </Step>
+</Steps>
+
+### Example (curl)
+
+```bash
+# 1. Get URL (replace hash and name)
+curl -X POST "https://api.vmeg.ai/openapi/assets/material/upload/gen-upload-url" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"fileHash":"<md5>","fileName":"demo.mp4"}'
+
+# 2. PUT to the CDN URL from step 1
+curl -X PUT "<upload_url_from_response>" \
+  --data-binary @demo.mp4
+
+# 3. Complete (fields from gen-upload-url response)
+curl -X POST "https://api.vmeg.ai/openapi/assets/material/upload/complete" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+```
+
+## Multipart upload
+
+For large files:
+
+1. `POST .../multipart/initiate`
+2. `POST .../multipart/presign-parts` — presigned URL per part
+3. Upload each part to CDN
+4. `POST .../multipart/complete` — finalize and get `materialId`
+5. On failure: `POST .../multipart/abort`
+
+Part size guidance is in the initiate response (S3 minimum part size is typically 5 MB except the last part).
+
+### Example (Python sketch)
+
+```python
+import requests
+
+headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+base = "https://api.vmeg.ai/openapi/assets/material/upload"
+
+init = requests.post(f"{base}/multipart/initiate", headers=headers, json={
+    "fileHash": file_md5, "fileName": "large.mp4"
+}).json()["data"]
+
+# presign, upload parts, then complete — see API reference for part ETags
+```
+
+## After upload
+
+Use `materialId` in `source.materialId` for [media translation](/guides/products/media-translation). Manage assets via [Materials](/guides/assets/materials).

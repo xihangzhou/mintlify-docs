@@ -1,0 +1,39 @@
+---
+title: "Materials"
+description: "Video and audio assets for Open API tasks"
+icon: "photo-film"
+---
+
+## What a material is
+
+A **material** is a registered video or audio file stored for Open API use. After upload completes, the API returns a **`materialId`** you pass to tasks such as [media translation](/guides/products/media-translation).
+
+Materials are **API-only assets** — they do not appear in Dashboard **My assets**. See [Assets overview](/guides/assets/overview).
+
+## Material type
+
+The `category` field on a material describes the asset type, for example:
+
+| `category` | Typical use |
+|------------|-------------|
+| `video` | Video translation (`taskType: vt`) |
+| `audio` | Audio translation (`taskType: at`) |
+
+Other fields on a material include `name`, CDN URLs (`addressUrl`, `thumbnailUrl`, `audioUrl`), `mimeType`, `duration`, and `filesize`. Full schema: **API reference → OpenApiMaterialDto**.
+
+## Lifecycle
+
+1. [Upload](/guides/assets/material-upload) → receive `materialId`
+2. Reference `materialId` in a product request
+3. **List** or **delete** when no longer needed
+
+## Operations
+
+| Action | Endpoint |
+|--------|----------|
+| List | `GET /openapi/assets/material/list` |
+| Delete (logical) | `POST /openapi/assets/material/delete` |
+
+Upload flows are on [Material upload](/guides/assets/material-upload).
+
+Request and response fields: **API reference → Assets - Materials**.

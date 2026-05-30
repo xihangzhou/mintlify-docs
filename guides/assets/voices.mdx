@@ -1,0 +1,36 @@
+---
+title: "Voices"
+description: "System and cloned voices for TTS"
+icon: "waveform-lines"
+---
+
+Voices are **API-scoped assets** referenced by `voiceId` in TTS requests. They do not sync with Dashboard voice libraries. See [Assets overview](/guides/assets/overview).
+
+## Two voice types
+
+| Type | Source | API access |
+|------|--------|------------|
+| **System (basic)** | Platform presets | `POST /openapi/assets/voice/basic/list` — read-only |
+| **Cloned** | [Voice clone](/guides/products/voice-clone) task success | `POST /openapi/assets/voice/clone/list`, `update`, `delete` |
+
+## System voices
+
+List available preset voices and pick a `voiceId` for [Text to speech](/guides/products/text-to-speech).
+
+Filter options and response fields: **API reference → List system voices**.
+
+## Cloned voices
+
+When a voice clone task succeeds (sync response or async webhook), VMEG persists a clone with a new **`voiceId`**. Use it in subsequent TTS calls.
+
+You can rename or logically delete clones via the clone asset endpoints. Schema: **API reference → Assets - Voices**.
+
+## Typical flow
+
+```text
+List basic voices → pick voiceId → TTS
+        or
+Voice clone → voiceId in webhook/sync response → TTS
+```
+
+Supported languages for synthesis: [Supported languages](/guides/supported-languages).

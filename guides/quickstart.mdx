@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Make your first synchronous TTS request with an API Key"
+description: "Make your first synchronous TTS request"
 icon: "rocket"
 ---
 
@@ -8,12 +8,12 @@ import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
 
 ## Prerequisites
 
-- An **API Key** from <a href={apiKeyUrl}>API Configuration</a> (<a href={productUrls.signInToApiSettings}>sign in</a> if needed)
-- Network access to the API base URL (production default: `https://api.vmeg.ai`)
+- A paid account with credits — see [Pricing](/guides/pricing)
+- An **API Key** — see [Auth](/guides/authentication) and <a href={apiKeyUrl}>API Configuration</a> (<a href={productUrls.signInToApiSettings}>sign in</a> if needed)
 
 ## Synchronous TTS example
 
-This example submits one line of text and returns a synthesized audio URL immediately.
+Submit one line of text and receive a synthesized audio URL in the HTTP response.
 
 ```bash
 curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
@@ -32,57 +32,25 @@ curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
   }'
 ```
 
-A successful response looks like:
-
-```json
-{
-  "code": 200,
-  "message": "",
-  "data": {
-    "taskId": "tsk_...",
-    "results": [
-      { "uri": "https://...", "duration": 2.4 }
-    ],
-    "createdAt": "2026-05-29T12:00:00Z"
-  }
-}
-```
+On success, `code` is `200` and `data.results` contains CDN audio URLs. Field-level detail: [Create TTS (sync)](/api-reference/introduction) in API reference.
 
 ## Async tasks
 
 For `create-async` endpoints:
 
-1. Include [`X-Idempotency-Key`](/guides/idempotency) (max 64 characters).
-2. The HTTP response only confirms acceptance (`taskId`, and sometimes `createdAt` or `status`) — not synthesis or translation output.
-3. Configure a [Webhook](/guides/webhooks) on <a href={apiKeyUrl}>API Configuration</a> and read [Callback `data` by task type](/guides/webhooks#callback-data-by-task-type) for deliverables on `task.completed`.
+1. Send [`X-Idempotency-Key`](/guides/idempotency) (required, max 64 characters).
+2. Configure a [Webhook](/guides/webhooks) URL on <a href={apiKeyUrl}>API Configuration</a>.
+3. The HTTP response confirms acceptance only (`taskId`, etc.) — deliverables arrive via [Webhook request body](/guides/webhook-request).
 
-```bash
-curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -H "X-Idempotency-Key: idem-$(uuidgen)" \
-  -d '{
-    "provider": "V1",
-    "language": { "target": "en-US" },
-    "data": [{ "text": "Async TTS sample.", "voiceId": "YOUR_VOICE_ID" }]
-  }'
-```
-
-## Typical media translation flow
-
-1. [Upload a material](/guides/materials) → obtain `materialId` (assets live in <a href={productUrls.myAssets}>My assets</a>)
-2. Call `POST /openapi/task/media-translation/create-async`
-3. Handle deliverables in the webhook `data` payload
-
-See [Media translation](/guides/media-translation) for details.
+See [Products overview](/guides/products/overview) for sync vs async by product.
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Authentication" icon="key" href="/guides/authentication">
-    API Key format and error handling
+  <Card title="Auth" icon="key" href="/guides/authentication">
+    API Key and Bearer header
   </Card>
-  <Card title="Error codes" icon="triangle-exclamation" href="/guides/errors">
-    Business code reference
+  <Card title="Text to speech" icon="volume-high" href="/guides/products/text-to-speech">
+    TTS workflows and voice selection
   </Card>
 </CardGroup>

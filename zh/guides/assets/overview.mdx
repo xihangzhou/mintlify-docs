@@ -1,0 +1,54 @@
+---
+title: "资产概览"
+description: "API 侧素材与音色"
+icon: "folder-tree"
+---
+
+Open API **资产**是你在任务请求中通过 ID 引用的资源。两类：
+
+| 资产 | ID 字段 | 用途 |
+|------|---------|------|
+| **素材（Material）** | `materialId` | 上传的音视频输入（主要用于媒体翻译） |
+| **音色（Voice）** | `voiceId` | 系统预设或克隆音色，用于 TTS |
+
+## 与 Dashboard 隔离
+
+Open API 的 **资产与任务** 使用独立存储，与 Dashboard UI **不互通**。
+
+### 资产
+
+API 资产 **不与** Dashboard **我的素材** 互通：
+
+- 通过 `/openapi/assets/material/**` 上传的素材 **不会** 出现在 Dashboard 文件库。
+- API 声音克隆产生的音色 **不会** 出现在 Dashboard 音色管理。
+- 反之亦然 — Dashboard 上传的内容 **不能** 作为 Open API 的 `materialId` 使用。
+
+请仅通过 Open API 资产接口管理素材与音色。
+
+### 任务
+
+通过 Open API 创建的任务 **不会** 出现在 Dashboard **我的任务** 中；Dashboard 任务也无法用 `/openapi/tasks/**` 查询。见 [产品概览](/zh/guides/products/overview)。
+
+## 典型流程
+
+```text
+上传素材 → materialId → 媒体翻译任务
+声音克隆 → voiceId → TTS 任务
+查询系统音色 → voiceId → TTS 任务
+```
+
+## 指南
+
+<CardGroup cols={2}>
+  <Card title="素材" icon="photo-film" href="/zh/guides/assets/materials">
+    类型、列表与删除
+  </Card>
+  <Card title="素材上传" icon="cloud-arrow-up" href="/zh/guides/assets/material-upload">
+    预签名与分片上传
+  </Card>
+  <Card title="音色" icon="waveform-lines" href="/zh/guides/assets/voices">
+    系统音色与克隆音色
+  </Card>
+</CardGroup>
+
+字段 schema：**API 参考 → Assets - Materials** 与 **Assets - Voices**。

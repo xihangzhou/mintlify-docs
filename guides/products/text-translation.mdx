@@ -1,0 +1,46 @@
+---
+title: "Text translation"
+description: "Translate text segments synchronously or asynchronously"
+icon: "language"
+---
+
+Translate one or more text segments between locales supported in [Supported languages](/guides/supported-languages).
+
+## Sync vs async
+
+| Mode | Endpoint | Results |
+|------|----------|---------|
+| Sync | `POST /openapi/task/translate/create` | `data.items` in HTTP response |
+| Async | `POST /openapi/task/translate/create-async` | [Webhook](/guides/webhook-request) on `task.completed` |
+
+Async requires [`X-Idempotency-Key`](/guides/idempotency) and a configured webhook.
+
+## Workflow (sync)
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/task/translate/create" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "language": { "source": "zh-CN", "target": "en-US" },
+    "segments": [{ "text": "你好" }]
+  }'
+```
+
+Translated text appears in `data.items`, aligned with input segments.
+
+## Workflow (async)
+
+1. Configure [Webhooks](/guides/webhooks)
+2. POST to `create-async` with idempotency key
+3. Save `taskId` from acceptance response
+4. Read translated segments from webhook `data.items`
+
+## Request details
+
+Segment structure, provider options, and `extraData`: **API reference → Text translation** operations.
+
+## Related
+
+- [Products overview](/guides/products/overview)
+- [Pricing](/guides/pricing) — credit consumption

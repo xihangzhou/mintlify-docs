@@ -1,0 +1,85 @@
+---
+title: "素材上传"
+description: "预签名与分片 CDN 上传"
+icon: "cloud-arrow-up"
+---
+
+素材通过 **预签名 URL 直传 CDN/对象存储**，再调用 VMEG API 完成注册。文件字节 **不经过** API 网关。
+
+## 选择上传方式
+
+| 方式 | 适用场景 |
+|------|----------|
+| **单文件（预签名 URL）** | 较小文件，一次 PUT |
+| **分片（Multipart）** | 大文件、可断点续传 |
+
+精确请求体：**API 参考 → Assets - Materials → upload** 相关操作。
+
+## 单文件上传
+
+<Steps>
+  <Step title="获取预签名 URL">
+    `POST /openapi/assets/material/upload/gen-upload-url`
+
+    传入 `fileHash`（MD5）与 `fileName`。响应含 CDN 上传 URL 与会话字段。
+  </Step>
+  <Step title="PUT 到 CDN">
+    将文件字节上传到返回的 URL。
+  </Step>
+  <Step title="完成上传">
+    `POST /openapi/assets/material/upload/complete`
+
+    服务端处理元数据并返回 `materialId`。
+  </Step>
+</Steps>
+
+### 示例（curl）
+
+```bash
+# 1. 获取 URL
+curl -X POST "https://api.vmeg.ai/openapi/assets/material/upload/gen-upload-url" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"fileHash":"<md5>","fileName":"demo.mp4"}'
+
+# 2. PUT 到响应中的 CDN URL
+curl -X PUT "<upload_url_from_response>" \
+  --data-binary @demo.mp4
+
+# 3. 完成（字段来自 gen-upload-url 响应）
+curl -X POST "https://api.vmeg.ai/openapi/assets/material/upload/complete" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+```
+
+## 分片上传
+
+大文件流程：
+
+1. `POST .../multipart/initiate`
+2. `POST .../multipart/presign-parts` — 每片预签名 URL
+3. 各分片 PUT 到 CDN
+4. `POST .../multipart/complete` —  finalize，获得 `materialId`
+5. 失败时：`POST .../multipart/abort`
+
+分片大小说明见 initiate 响应（S3 单片通常至少 5 MB，最后一片除外）。
+
+### 示例（Python 概要）
+
+```python
+import requests
+
+headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+base = "https://api.vmeg.ai/openapi/assets/material/upload"
+
+init = requests.post(f"{base}/multipart/initiate", headers=headers, json={
+    "fileHash": file_md5, "fileName": "large.mp4"
+}).json()["data"]
+
+# presign、上传各 part、complete — part ETag 见 API 参考
+```
+
+## 上传之后
+
+在 [音视频翻译](/zh/guides/products/media-translation) 的 `source.materialId` 中使用 `materialId`。管理资产见 [素材](/zh/guides/assets/materials)。

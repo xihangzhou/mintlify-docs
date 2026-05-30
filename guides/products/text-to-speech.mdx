@@ -1,0 +1,45 @@
+---
+title: "Text to speech"
+description: "Synthesize speech from text"
+icon: "volume-high"
+---
+
+Convert text to speech using a system or cloned **voiceId**. See [Voices](/guides/assets/voices) for how to obtain IDs.
+
+## Sync vs async
+
+| Mode | Endpoint | Results |
+|------|----------|---------|
+| Sync | `POST /openapi/task/tts/create` | `data.results[].uri` (CDN audio) in HTTP response |
+| Async | `POST /openapi/task/tts/create-async` | [Webhook](/guides/webhook-request) with `results` on `task.completed` |
+
+Async requires [`X-Idempotency-Key`](/guides/idempotency) and a configured webhook.
+
+## Workflow (sync)
+
+See [Quickstart](/guides/quickstart) for a complete curl example.
+
+Key request fields:
+
+- `provider` — engine code (e.g. `V1`)
+- `language.target` — locale from [Supported languages](/guides/supported-languages)
+- `data[]` — up to 50 lines; each needs `text` and `voiceId` (or `timbreRefAudio`)
+- `outputFormat` — `wav`, `mp3`, or `m4a`
+
+## Workflow (async)
+
+1. Configure [Webhooks](/guides/webhooks)
+2. POST to `create-async` with idempotency key
+3. Handle audio URLs in webhook `data.results`
+
+## Voices
+
+- **System voices**: `POST /openapi/assets/voice/basic/list`
+- **Cloned voices**: create via [Voice clone](/guides/products/voice-clone), then use returned `voiceId`
+
+Full request schema: **API reference → TTS** operations.
+
+## Related
+
+- [Products overview](/guides/products/overview)
+- [Usage limits](/guides/usage-limits) — batch size limits

@@ -1,6 +1,6 @@
 ---
 title: "快速开始"
-description: "使用 API Key 完成首次同步 TTS 请求"
+description: "完成首次同步 TTS 请求"
 icon: "rocket"
 ---
 
@@ -8,12 +8,12 @@ import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
 
 ## 前置条件
 
-- 在 <a href={apiKeyUrl}>API 配置</a> 获取 **API Key**（需要时请先 <a href={productUrls.signInToApiSettings}>登录</a>）
-- 可访问 API 基址（生产环境默认：`https://api.vmeg.ai`）
+- 已付费账户且有余量 — 见 [价格](/zh/guides/pricing)
+- 已创建 **API Key** — 见 [鉴权](/zh/guides/authentication) 与 <a href={apiKeyUrl}>API 配置</a>（未登录请先 <a href={productUrls.signInToApiSettings}>登录</a>）
 
 ## 同步 TTS 示例
 
-以下示例提交一行文本并立即返回合成音频 URL。
+提交一行文本，在 HTTP 响应中直接获得合成音频 URL。
 
 ```bash
 curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
@@ -32,57 +32,25 @@ curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
   }'
 ```
 
-成功响应示例：
-
-```json
-{
-  "code": 200,
-  "message": "",
-  "data": {
-    "taskId": "tsk_...",
-    "results": [
-      { "uri": "https://...", "duration": 2.4 }
-    ],
-    "createdAt": "2026-05-29T12:00:00Z"
-  }
-}
-```
+成功时 `code` 为 `200`，`data.results` 含 CDN 音频地址。字段细节见 API 参考中 **Create TTS (sync)**。
 
 ## 异步任务
 
-对于 `create-async` 接口：
+调用 `create-async` 时：
 
-1. 携带 [`X-Idempotency-Key`](/zh/guides/idempotency)（最长 64 字符）。
-2. HTTP 响应仅表示受理（`taskId`，部分含 `createdAt` 或 `status`），不含合成/翻译结果。
-3. 在 <a href={apiKeyUrl}>API 配置</a> 配置 [Webhook](/zh/guides/webhooks)，并在 [各任务类型的回调 data](/zh/guides/webhooks#各任务类型的回调-data) 查看 `task.completed` 的交付物结构。
+1. 携带 [`X-Idempotency-Key`](/zh/guides/idempotency)（必填，最长 64 字符）。
+2. 在 <a href={apiKeyUrl}>API 配置</a> 设置 [Webhook](/zh/guides/webhooks)。
+3. HTTP 响应仅确认受理（`taskId` 等）— 成品在 [Webhook 请求体](/zh/guides/webhook-request) 中送达。
 
-```bash
-curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -H "X-Idempotency-Key: idem-$(uuidgen)" \
-  -d '{
-    "provider": "V1",
-    "language": { "target": "en-US" },
-    "data": [{ "text": "Async TTS sample.", "voiceId": "YOUR_VOICE_ID" }]
-  }'
-```
-
-## 典型媒体翻译流程
-
-1. [上传素材](/zh/guides/materials) → 获得 `materialId`（也可在 <a href={productUrls.myAssets}>我的素材</a> 管理）
-2. 调用 `POST /openapi/task/media-translation/create-async`
-3. 在 Webhook 的 `data` 中处理交付物
-
-详见 [媒体翻译](/zh/guides/media-translation)。
+各产品同步/异步对照见 [产品概览](/zh/guides/products/overview)。
 
 ## 下一步
 
 <CardGroup cols={2}>
-  <Card title="认证" icon="key" href="/zh/guides/authentication">
-    API Key 格式与错误处理
+  <Card title="鉴权" icon="key" href="/zh/guides/authentication">
+    API Key 与 Bearer 头
   </Card>
-  <Card title="错误码" icon="triangle-exclamation" href="/zh/guides/errors">
-    业务码对照表
+  <Card title="文本转语音" icon="volume-high" href="/zh/guides/products/text-to-speech">
+    TTS 流程与选音色
   </Card>
 </CardGroup>

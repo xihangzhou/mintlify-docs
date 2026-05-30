@@ -43,9 +43,9 @@ The Open API uses the JSON **`code`** field for business outcomes. HTTP status h
     Returned when the same `X-Idempotency-Key` is reused on an idempotent `create-async` endpoint. The response may include `Retry-After: 2`. See [Idempotency](/guides/idempotency).
   </Accordion>
   <Accordion title="402 Insufficient quota">
-    Returned when a task cannot deduct project credits (TTS, translation, voice clone, media translation). <a href={productUrls.pricing}>Add credits</a> in the dashboard or <a href={productUrls.contactUs}>contact us</a>.
+    Returned when a task cannot deduct project credits (TTS, translation, voice clone, media translation). See [Pricing](/guides/pricing) or <a href={productUrls.pricing}>add credits</a> in the dashboard.
   </Accordion>
   <Accordion title="502 Upstream failure">
-    An upstream service failed or timed out. Poll task detail (`GET /openapi/tasks/detail`) or check status in <a href={productUrls.myTasks}>My tasks</a>; wait for callback retries if configured.
+    An upstream service failed or timed out. Poll `GET /openapi/tasks/detail` with the `taskId` (Dashboard **My tasks** does not list Open API jobs). If a webhook is configured, wait for retries.
   </Accordion>
 </AccordionGroup>

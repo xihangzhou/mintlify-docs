@@ -1,0 +1,61 @@
+---
+title: "Webhook 签名校验"
+description: "使用 HMAC-SHA256 验证回调"
+icon: "shield-check"
+---
+
+## 请求头
+
+| 请求头 | 说明 |
+|--------|------|
+| `X-Timestamp` | Unix 时间戳，**毫秒**（字符串） |
+| `X-Signature` | 小写 hex：`HMAC-SHA256(webhook_secret, X-Timestamp + rawBody)` |
+
+**Webhook Secret** 在 [API 配置](https://www.vmeg.ai/open-api-setting) 设置（与 API Key 同一页）。
+
+## 校验步骤
+
+1. 若 `X-Timestamp` 与服务器时间相差超过 **300 秒**，拒绝（防重放）。
+2. 使用 **原始请求体字节** 计算 — 不要重新序列化 JSON。
+3. 计算 `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`。
+4. 用 **常数时间** 比较 `expected` 与 `X-Signature`。
+
+校验失败返回 `401` 或 `403`，仍须快速响应。
+
+## 示例
+
+<CodeGroup>
+
+```python Python
+import hmac
+import hashlib
+import time
+
+def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool:
+    if abs(int(timestamp) - int(time.time() * 1000)) > 300_000:
+        return False
+    message = timestamp.encode() + raw_body
+    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+```javascript Node.js
+import crypto from "node:crypto";
+
+function verify(secret, timestamp, rawBody, signature) {
+  if (Math.abs(Number(timestamp) - Date.now()) > 300_000) return false;
+  const message = Buffer.concat([Buffer.from(timestamp), rawBody]);
+  const expected = crypto.createHmac("sha256", secret).update(message).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+```
+
+</CodeGroup>
+
+## 校验通过后
+
+1. 解析 JSON，处理 `event`（通常为 `task.completed`）。
+2. 按 [Webhook 请求体](/zh/guides/webhook-request) 处理 `data`。
+3. **立即返回 2xx**；耗时逻辑入队。
+
+配置与接收要求见 [Webhooks](/zh/guides/webhooks)。

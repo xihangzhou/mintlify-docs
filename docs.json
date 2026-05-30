@@ -8,6 +8,16 @@
     "dark": "#6239CC"
   },
   "favicon": "/favicon.ico",
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/guides/introduction"
+    },
+    {
+      "source": "/zh",
+      "destination": "/zh/guides/introduction"
+    }
+  ],
   "navigation": {
     "languages": [
       {
@@ -19,25 +29,47 @@
               {
                 "group": "Get started",
                 "pages": [
-                  "index",
+                  "guides/introduction",
                   "guides/quickstart",
-                  "guides/authentication"
+                  "guides/pricing",
+                  "guides/supported-languages"
                 ]
               },
               {
-                "group": "Core concepts",
+                "group": "Auth",
+                "icon": "key",
+                "pages": ["guides/authentication", "guides/idempotency"]
+              },
+              {
+                "group": "Webhooks",
                 "pages": [
-                  "guides/errors",
-                  "guides/idempotency",
-                  "guides/webhooks"
+                  "guides/webhooks",
+                  "guides/webhook-request",
+                  "guides/webhook-verification"
                 ]
               },
               {
-                "group": "Workflows",
+                "group": "Assets",
                 "pages": [
-                  "guides/materials",
-                  "guides/media-translation"
+                  "guides/assets/overview",
+                  "guides/assets/materials",
+                  "guides/assets/material-upload",
+                  "guides/assets/voices"
                 ]
+              },
+              {
+                "group": "Products",
+                "pages": [
+                  "guides/products/overview",
+                  "guides/products/media-translation",
+                  "guides/products/text-translation",
+                  "guides/products/text-to-speech",
+                  "guides/products/voice-clone"
+                ]
+              },
+              {
+                "group": "Limits",
+                "pages": ["guides/usage-limits", "guides/errors"]
               }
             ]
           },
@@ -50,10 +82,7 @@
               },
               {
                 "group": "Endpoints",
-                "openapi": {
-                  "source": "api-reference/openapi.json",
-                  "directory": "api-reference"
-                }
+                "openapi": "api-reference/openapi.json"
               }
             ]
           }
@@ -68,25 +97,47 @@
               {
                 "group": "快速开始",
                 "pages": [
-                  "zh/index",
+                  "zh/guides/introduction",
                   "zh/guides/quickstart",
-                  "zh/guides/authentication"
+                  "zh/guides/pricing",
+                  "zh/guides/supported-languages"
                 ]
               },
               {
-                "group": "核心概念",
+                "group": "鉴权",
+                "icon": "key",
+                "pages": ["zh/guides/authentication", "zh/guides/idempotency"]
+              },
+              {
+                "group": "Webhooks",
                 "pages": [
-                  "zh/guides/errors",
-                  "zh/guides/idempotency",
-                  "zh/guides/webhooks"
+                  "zh/guides/webhooks",
+                  "zh/guides/webhook-request",
+                  "zh/guides/webhook-verification"
                 ]
               },
               {
-                "group": "工作流",
+                "group": "资产",
                 "pages": [
-                  "zh/guides/materials",
-                  "zh/guides/media-translation"
+                  "zh/guides/assets/overview",
+                  "zh/guides/assets/materials",
+                  "zh/guides/assets/material-upload",
+                  "zh/guides/assets/voices"
                 ]
+              },
+              {
+                "group": "产品",
+                "pages": [
+                  "zh/guides/products/overview",
+                  "zh/guides/products/media-translation",
+                  "zh/guides/products/text-translation",
+                  "zh/guides/products/text-to-speech",
+                  "zh/guides/products/voice-clone"
+                ]
+              },
+              {
+                "group": "限制",
+                "pages": ["zh/guides/usage-limits", "zh/guides/errors"]
               }
             ]
           },
@@ -99,16 +150,17 @@
               },
               {
                 "group": "接口",
-                "openapi": {
-                  "source": "zh/api-reference/openapi.json",
-                  "directory": "zh/api-reference"
-                }
+                "openapi": "zh/api-reference/openapi.json"
               }
             ]
           }
         ],
         "navbar": {
           "links": [
+            {
+              "label": "控制台",
+              "href": "https://www.vmeg.ai/home"
+            },
             {
               "label": "帮助中心",
               "href": "https://www.vmeg.ai/help-center/"
@@ -121,23 +173,19 @@
           }
         }
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Dashboard",
-          "href": "https://www.vmeg.ai/home",
-          "icon": "grid-2"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.png",
-    "dark": "/logo/dark.png"
+    "dark": "/logo/dark.png",
+    "href": "/guides/introduction"
   },
   "navbar": {
     "links": [
+      {
+        "label": "Dashboard",
+        "href": "https://www.vmeg.ai/home"
+      },
       {
         "label": "Help center",
         "href": "https://www.vmeg.ai/help-center/"

@@ -1,0 +1,42 @@
+---
+title: "使用限制"
+description: "技术配额与 payload 限制"
+icon: "gauge-high"
+---
+
+以下为 API 强制技术限制。**积分与付费**见 [价格](/zh/guides/pricing)。
+
+## 幂等
+
+| 限制 | 值 |
+|------|-----|
+| `X-Idempotency-Key` 最大长度 | 64 字符 |
+| 必填接口 | 所有 `*-create-async` |
+
+见 [幂等](/zh/guides/idempotency)。
+
+## TTS 与文本翻译
+
+| 限制 | 值 |
+|------|-----|
+| 单次请求条数（`data` 或 `segments`） | 最多 50 条 |
+| `emoWeight`（TTS） | 0–1 |
+
+## 素材上传
+
+| 主题 | 说明 |
+|------|------|
+| 上传路径 | 经预签名 URL 直传 CDN — 不经 API 网关 body |
+| 分片 | 大文件走 multipart；分片大小见 initiate 响应（S3 通常单片至少 5 MB，最后一片除外） |
+| HTTP 413 | 请求体或上传超限 |
+
+上传字段细节：**API 参考 → Assets - Materials**。
+
+## 速率与并发
+
+生产环境可能对账户施加 QPS/并发限制。遇限流请退避重试或联系支持提升配额。
+
+## 相关
+
+- [错误码](/zh/guides/errors) — 含 `413 Payload Too Large`
+- [价格](/zh/guides/pricing) — 积分与 `402`

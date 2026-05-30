@@ -1,0 +1,71 @@
+---
+title: "Webhook 请求体"
+description: "回调信封与任务结果概览"
+icon: "file-code"
+---
+
+## 投递方式
+
+任务完成时 VMEG 向你的 URL POST JSON。签名请求头见 [Webhook 签名校验](/zh/guides/webhook-verification)。
+
+## 信封结构
+
+每次回调共享以下顶层结构：
+
+```json
+{
+  "code": 200,
+  "version": "1.0",
+  "event": "task.completed",
+  "message": "",
+  "extraData": { "your": "memo" },
+  "data": { }
+}
+```
+
+| 字段 | 含义 |
+|------|------|
+| `code` | 本次回调的业务结果（`200` 表示任务成功） |
+| `version` | 协议版本（当前 `1.0`） |
+| `event` | 事件名，如 `task.completed` |
+| `message` | `code` 非成功时的说明 |
+| `extraData` | 提交请求中 `extraData` 的回显 |
+| `data` | **任务相关结果** — 见下文 |
+
+精确类型与必填字段以 **API 参考 → Webhooks → taskCallback** 或对应 `create-async` 的 **Callbacks** 为准。
+
+## 各产品 `data` 概要
+
+`data` 因任务类型而异。指南说明「读什么」；schema 以 API 参考为准。
+
+### TTS
+
+含 `taskId`、`results`（CDN 音频 URL）、`createdAt`。与同步 TTS create 结构一致。
+
+→ API 参考 **Create TTS (async) → Callbacks → task.completed**
+
+### 文本翻译
+
+含 `taskId`、`items`（与请求 segments 对齐的译文）、`createdAt`。
+
+→ API 参考 **Create text translation (async) → Callbacks → task.completed**
+
+### 声音克隆
+
+含 `taskId`、`voiceId`（写入克隆库）、示例音频 URL 等。
+
+→ API 参考 **Create voice clone (async) → Callbacks → task.completed**
+
+### 音视频翻译
+
+含 `taskId`、`taskType`、`status`、`result`（交付物 CDN URL）。
+
+→ API 参考 **Create media translation (async) → Callbacks → task.completed**
+
+## 不在 Webhook 里的内容
+
+`create-async` 立即返回的受理字段（如 `taskId`、`createdAt`、`status: "running"`）见各异步创建接口的 **Response**。任务完成前不会在 Webhook 的 `data` 中重复这些交付物。
+
+## 兜底：轮询任务详情
+
+集成阶段若回调延迟或丢失，可用 `taskId` 调用 `GET /openapi/tasks/detail`。见 [产品概览](/zh/guides/products/overview)。

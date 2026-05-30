@@ -1,0 +1,47 @@
+---
+title: "Supported languages"
+description: "Source and target locale codes for Open API products"
+icon: "globe"
+---
+
+import {
+  LanguageList,
+  sourceLanguages,
+  targetLanguages,
+} from "/snippets/SupportedLanguageLists.jsx";
+
+All Open API products (TTS, text translation, media translation, voice clone) share the **same language catalog** as the VMEG Dashboard.
+
+Use **BCP-47-style locale codes** in request bodies, for example `en-US`, `zh-CN`, `ja-JP`.
+
+## Source languages
+
+Use as `language.source` (media translation) or for auto-detection where supported.
+
+Includes **`auto`** for automatic source detection. Target languages cannot use `auto`.
+
+**Count:** {sourceLanguages.length} codes (including `auto`).
+
+<LanguageList codes={sourceLanguages} />
+
+## Target languages
+
+Use as `language.target` (TTS, translation, media translation).
+
+**Count:** {targetLanguages.length} codes.
+
+<LanguageList codes={targetLanguages} />
+
+## In API requests
+
+| Field | Used by |
+|-------|---------|
+| `language.source` | Media translation |
+| `language.target` | TTS, text translation, media translation |
+| `sampleLanguage` | Voice clone (see [Voice clone](/guides/products/voice-clone)) |
+
+Exact field types and examples are in [API reference](/api-reference/introduction).
+
+<Note>
+  This list is synced from the VMEG product language configuration. Regenerate with `node scripts/generate-supported-languages.mjs` when languages change.
+</Note>

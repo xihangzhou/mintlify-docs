@@ -1,0 +1,39 @@
+---
+title: "素材"
+description: "Open API 音视频资产"
+icon: "photo-film"
+---
+
+## 什么是素材
+
+**素材**是已注册的音视频文件，供 Open API 任务引用。上传完成后 API 返回 **`materialId`**，用于 [音视频翻译](/zh/guides/products/media-translation) 等场景。
+
+素材为 **API 专用资产**，不会出现在 Dashboard **我的素材** 中。见 [资产概览](/zh/guides/assets/overview)。
+
+## 素材类型
+
+字段 `category` 表示资产类型，例如：
+
+| `category` | 典型用途 |
+|------------|----------|
+| `video` | 视频翻译（`taskType: vt`） |
+| `audio` | 音频翻译（`taskType: at`） |
+
+其他字段包括 `name`、CDN 地址（`addressUrl`、`thumbnailUrl`、`audioUrl`）、`mimeType`、`duration`、`filesize` 等。完整 schema：**API 参考 → OpenApiMaterialDto**。
+
+## 生命周期
+
+1. [上传](/zh/guides/assets/material-upload) → 获得 `materialId`
+2. 在产品请求中引用
+3. 不需要时 **列表查询** 或 **删除**
+
+## 操作
+
+| 操作 | 接口 |
+|------|------|
+| 列表 | `GET /openapi/assets/material/list` |
+| 删除（逻辑删除） | `POST /openapi/assets/material/delete` |
+
+上传流程见 [素材上传](/zh/guides/assets/material-upload)。
+
+请求与响应字段：**API 参考 → Assets - Materials**。

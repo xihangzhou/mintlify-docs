@@ -1,167 +1,58 @@
 ---
-title: "Webhook"
-description: "接收异步任务回调并校验签名"
+title: "Webhooks"
+description: "配置异步任务回调"
 icon: "webhook"
 ---
 
 import { apiKeyUrl, productUrls } from "/snippets/product-urls.jsx";
 
-## 概述
+## Webhook 是什么
 
-异步任务（TTS、翻译、声音克隆、媒体翻译）完成后，VMEG 会向配置的 URL 发送 **HTTP POST**。请求体为统一外壳（`code`、`version`、`event`、`message`、`extraData`、`data`），并附带签名头以保证完整性与防重放。
+**异步**任务完成时（TTS、文本翻译、声音克隆、音视频翻译），VMEG 向你配置的 URL 发送 **HTTP POST**。这是接收 **任务结果** 的方式 — `create-async` 的 HTTP 响应只确认受理（`taskId` 等）。
 
-**`create-async` 异步创建接口** 的 HTTP 响应只表示受理（`taskId`，部分接口还有 `createdAt` 或 `status`），**不包含任务结果**。
+Webhook 是异步结果的 **投递机制**，不是独立产品。
 
-在 **API 参考** 的各 `create-async` 页：**Response** 为受理响应；**Callbacks → task.completed** 为任务完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**。本页说明 URL 配置、验签、重试与去重。
+## 为什么需要
+
+| 未配置 Webhook | 已配置 Webhook |
+|----------------|----------------|
+| `create-async` 只返回 `taskId` | POST 请求体含完整交付物 |
+| 需轮询 `GET /openapi/tasks/detail` | 任务完成时主动通知你的服务 |
+
+生产环境异步集成应在调用 `*-create-async` 前配置 Webhook。
 
 ## 配置
 
-在产品 <a href={apiKeyUrl}>API 配置</a> 设置回调 URL 与 **Webhook Secret**（与 API Key 同一页面）。需要时请先 <a href={productUrls.signInToApiSettings}>登录</a>。
+在 Dashboard <a href={apiKeyUrl}>API 配置</a>（<a href={productUrls.signInToApiSettings}>登录</a>）：
 
-集成时可使用 Ping 接口测试连通性。
+1. 设置 **Webhook URL**（建议使用 HTTPS）。
+2. 设置 **Webhook Secret**，用于 [签名校验](/zh/guides/webhook-verification)。
 
-## 请求头
-
-| 请求头 | 说明 |
-|--------|------|
-| `X-Timestamp` | Unix 毫秒时间戳（字符串） |
-| `X-Signature` | 小写十六进制 `HMAC-SHA256(secret, timestamp + rawBody)` |
-
-校验步骤：
-
-1. 确认 `X-Timestamp` 与服务器时间相差在 **300 秒** 内
-2. 计算 `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`
-3. 与 `X-Signature` 做常量时间比较
-
-```python
-import hmac
-import hashlib
-
-def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool:
-    message = timestamp.encode() + raw_body
-    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
-```
-
-## 回调外壳
-
-每次投递的顶层结构：
-
-```json
-{
-  "code": 200,
-  "version": "1.0",
-  "event": "task.completed",
-  "message": "",
-  "extraData": { "your": "memo fields" },
-  "data": { }
-}
-```
-
-| 字段 | 说明 |
-|-------|------|
-| `code` | 业务结果（本回调成功时为 `200`） |
-| `version` | 协议版本，当前为 `1.0` |
-| `event` | 事件名，如 `task.completed` |
-| `message` | `code` 非成功时的说明 |
-| `extraData` | 提交请求中 `extraData` / 备注的回显 |
-| `data` | 任务结果，见下文分类型说明 |
-
-## 异步提交的 HTTP 响应
-
-以下为 `*-async` 创建接口**立即返回**的 `data` 字段（非 Webhook）：
-
-| 任务 | 接口 | `data` 字段 |
-|------|------|-------------|
-| TTS | `POST /openapi/task/tts/create-async` | `taskId`、`createdAt` |
-| 文本翻译 | `POST /openapi/task/translate/create-async` | `taskId`、`createdAt` |
-| 声音克隆 | `POST /openapi/task/clone-voice/create-async` | `taskId` |
-| 媒体翻译 | `POST /openapi/task/media-translation/create-async` | `taskId`、`taskType`、`status`（`running`）、`createdAt` |
-
-示例（TTS）：
-
-```json
-{
-  "code": 200,
-  "message": "",
-  "data": {
-    "taskId": "tsk_abc123",
-    "createdAt": "2026-05-29T12:00:00Z"
-  }
-}
-```
-
-## 各任务类型的回调 `data`
-
-优先查看 API 参考里各 `create-async` 接口下的 **Callbacks** 小节（与下文 schema 一致）。**Webhooks → taskCallback** 汇总了所有任务类型的联合定义。
-
-### TTS（`task.completed`）
-
-与同步 `POST /openapi/task/tts/create` 的 `data` 相同：
-
-| 字段 | 说明 |
-|-------|------|
-| `taskId` | 任务 ID |
-| `results` | `{ uri, duration, errorMessage? }` 数组，CDN 音频地址 |
-| `createdAt` | 提交时间 |
-
-```json
-{
-  "taskId": "tsk_abc123",
-  "results": [
-    { "uri": "https://cdn.example/audio.mp3", "duration": 2.4 }
-  ],
-  "createdAt": "2026-05-29T12:00:00Z"
-}
-```
-
-### 文本翻译（`task.completed`）
-
-| 字段 | 说明 |
-|-------|------|
-| `taskId` | 任务 ID |
-| `items` | `{ text, errorMessage? }` 数组，与请求 `segments` 按下标对应 |
-| `createdAt` | 提交时间 |
-
-### 声音克隆（`task.completed`）
-
-| 字段 | 说明 |
-|-------|------|
-| `taskId` | 任务 ID |
-| `voiceId` | 克隆音色 ID，供后续 TTS 使用 |
-| `provider` | 对外 provider 编码 |
-| `exampleLanguage` | 样例语言 |
-| `content` | 样例文本 |
-| `audio` | 样例音频 CDN 地址 |
-
-### 媒体翻译（`task.completed`）
-
-| 字段 | 说明 |
-|-------|------|
-| `taskId` | 任务 ID |
-| `taskType` | 实际类型（`VIDEO_TRANSLATION`、`AUDIO_TRANSLATION` 等） |
-| `status` | `finished` 或 `failed` |
-| `result` | 裁剪后的交付物（CDN URL 等），字段随流水线变化 |
-
-```json
-{
-  "taskId": "tsk_xyz",
-  "taskType": "VIDEO_TRANSLATION",
-  "status": "finished",
-  "result": {
-    "outputVideoUrl": "https://cdn.example/out.mp4"
-  }
-}
-```
-
-集成阶段如需完整落库结果，可轮询 `GET /openapi/tasks/detail`。
+可在同一页面测试连通性（若产品提供）。
 
 ## 接收端要求
 
-- 尽快返回 **2xx**；否则 VMEG 会按退避策略重试
-- 对 **原始 body 字节** 验签（勿重新序列化 JSON）
-- 按 `taskId` 或业务键去重；重试可能多次投递相同内容
+你的接口必须：
+
+1. **快速返回 2xx**（数秒内）。重逻辑放入队列或后台 worker。
+2. **校验签名**（对原始请求体）— 见 [Webhook 签名校验](/zh/guides/webhook-verification)。
+3. **按 `taskId` 去重**（或业务键）。重试可能重复投递相同载荷。
+
+非 2xx 或超时时，VMEG 会按退避策略重试。
+
+## 在哪里看 payload
+
+| 主题 | 指南 | API 参考 |
+|------|------|----------|
+| 信封与各任务 `data` | [Webhook 请求体](/zh/guides/webhook-request) | 各 `create-async` 的 **Callbacks → task.completed** |
+| 全部回调变体 | — | **Webhooks → taskCallback** |
+| 仅受理响应 | [产品概览](/zh/guides/products/overview) | 各 `create-async` 的 **Response** |
 
 <Note>
-  API 参考：各 `create-async` 含 **Response**（受理）与 **Callbacks → task.completed**（Webhook 请求体）。验签与运维说明见本指南。
+  指南讲 **如何集成**；API 参考提供请求与回调的 **精确字段 schema**。
 </Note>
+
+## 相关
+
+- [幂等](/zh/guides/idempotency) — `create-async` 必填请求头
+- [产品概览](/zh/guides/products/overview) — 各产品同步/异步对照

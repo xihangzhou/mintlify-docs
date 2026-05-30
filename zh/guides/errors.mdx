@@ -43,9 +43,9 @@ Open API 使用 JSON 字段 **`code`** 表示业务结果。HTTP 状态码用于
     同一 `X-Idempotency-Key` 在幂等 `create-async` 接口上重复提交时返回。响应可能包含 `Retry-After: 2`。见 [幂等](/zh/guides/idempotency)。
   </Accordion>
   <Accordion title="402 配额不足">
-    任务无法扣减项目积分时返回（TTS、翻译、声音克隆、媒体翻译等）。请在控制台 <a href={productUrls.pricing}>充值</a> 或 <a href={productUrls.contactUs}>联系我们</a>。
+    任务无法扣减项目积分时返回。见 [价格](/zh/guides/pricing) 或在控制台 <a href={productUrls.pricing}>充值</a>。
   </Accordion>
   <Accordion title="502 上游失败">
-    上游服务调用失败或超时。可轮询任务详情（`GET /openapi/tasks/detail`）或在 <a href={productUrls.myTasks}>我的任务</a> 查看；若已配置回调，可等待重试。
+    上游服务调用失败或超时。使用 `taskId` 轮询 `GET /openapi/tasks/detail`（Dashboard **我的任务** 不包含 Open API 任务）；若已配置 Webhook，可等待重试。
   </Accordion>
 </AccordionGroup>

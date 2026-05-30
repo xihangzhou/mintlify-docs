@@ -1,0 +1,61 @@
+---
+title: "Webhook verification"
+description: "Verify callbacks with HMAC-SHA256"
+icon: "shield-check"
+---
+
+## Headers
+
+| Header | Description |
+|--------|-------------|
+| `X-Timestamp` | Unix timestamp in **milliseconds** (string) |
+| `X-Signature` | Lowercase hex `HMAC-SHA256(webhook_secret, X-Timestamp + rawBody)` |
+
+Use the **Webhook Secret** from [API Configuration](https://www.vmeg.ai/open-api-setting) (same page as API Key management).
+
+## Verification steps
+
+1. Reject requests whose `X-Timestamp` is more than **300 seconds** from your server time (replay protection).
+2. Read the **raw request body bytes** — do not re-serialize JSON before hashing.
+3. Compute `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`.
+4. Compare `expected` to `X-Signature` with a **constant-time** comparison.
+
+Return `401` or `403` when verification fails. Still respond promptly.
+
+## Examples
+
+<CodeGroup>
+
+```python Python
+import hmac
+import hashlib
+import time
+
+def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool:
+    if abs(int(timestamp) - int(time.time() * 1000)) > 300_000:
+        return False
+    message = timestamp.encode() + raw_body
+    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+```javascript Node.js
+import crypto from "node:crypto";
+
+function verify(secret, timestamp, rawBody, signature) {
+  if (Math.abs(Number(timestamp) - Date.now()) > 300_000) return false;
+  const message = Buffer.concat([Buffer.from(timestamp), rawBody]);
+  const expected = crypto.createHmac("sha256", secret).update(message).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+```
+
+</CodeGroup>
+
+## After verification
+
+1. Parse JSON and handle `event` (typically `task.completed`).
+2. Process `data` per [Webhook request body](/guides/webhook-request).
+3. Return **2xx** immediately; queue long-running work.
+
+See [Webhooks](/guides/webhooks) for configuration and receiver requirements.

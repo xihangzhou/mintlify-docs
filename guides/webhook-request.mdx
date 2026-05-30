@@ -1,0 +1,71 @@
+---
+title: "Webhook request body"
+description: "Callback envelope and task result overview"
+icon: "file-code"
+---
+
+## Delivery
+
+VMEG POSTs JSON to your configured URL when a task completes. Signing headers are documented in [Webhook verification](/guides/webhook-verification).
+
+## Envelope
+
+Every callback shares this top-level shape:
+
+```json
+{
+  "code": 200,
+  "version": "1.0",
+  "event": "task.completed",
+  "message": "",
+  "extraData": { "your": "memo" },
+  "data": { }
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `code` | Outcome of this callback (`200` = success for the task) |
+| `version` | Protocol version (currently `1.0`) |
+| `event` | Event name, e.g. `task.completed` |
+| `message` | Detail when `code` is not success |
+| `extraData` | Echo of `extraData` from your submit request |
+| `data` | **Task-specific results** — see below |
+
+For exact types and required fields, use **API reference → Webhooks → taskCallback** or the **Callbacks** section on the matching `create-async` endpoint.
+
+## `data` by product
+
+The `data` object differs by task type. Guides summarize what to expect; schemas are authoritative in API reference.
+
+### TTS
+
+Contains `taskId`, `results` (CDN audio URLs), and `createdAt`. Same shape as synchronous TTS create.
+
+→ [Create TTS (async)](/api-reference/introduction) — **Callbacks → task.completed**
+
+### Text translation
+
+Contains `taskId`, `items` (translated segments aligned with your request), and `createdAt`.
+
+→ [Create text translation (async)](/api-reference/introduction) — **Callbacks → task.completed**
+
+### Voice clone
+
+Contains `taskId`, `voiceId` (saved to your clone library), sample audio URL, and related metadata.
+
+→ [Create voice clone (async)](/api-reference/introduction) — **Callbacks → task.completed**
+
+### Media translation
+
+Contains `taskId`, `taskType`, `status`, and `result` (sanitized deliverable URLs).
+
+→ [Create media translation (async)](/api-reference/introduction) — **Callbacks → task.completed**
+
+## Not in the webhook
+
+Fields returned immediately from `create-async` (acceptance only) are documented under **Response** on each async create endpoint — for example `taskId`, `createdAt`, or `status: "running"`. They are **not** repeated in the webhook envelope's `data` until the task finishes.
+
+## Fallback: poll task detail
+
+If a webhook is delayed or missed during integration, call `GET /openapi/tasks/detail` with the `taskId`. See [Products overview](/guides/products/overview).

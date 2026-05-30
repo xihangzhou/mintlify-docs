@@ -1,0 +1,52 @@
+---
+title: "Media translation"
+description: "Async video and audio localization"
+icon: "film"
+---
+
+import { apiKeyUrl } from "/snippets/product-urls.jsx";
+
+Localize uploaded video or audio: translation, dubbing, and related pipeline options. **Async only** — results arrive via [Webhook](/guides/webhooks).
+
+## Task types
+
+| Request `taskType` | Meaning |
+|--------------------|---------|
+| `vt` | Video translation |
+| `at` | Audio translation |
+
+If you request `at` but the material is video, the server may run **video translation (`vt`)** instead. Check `taskType` in the acceptance response and webhook.
+
+## Workflow
+
+<Steps>
+  <Step title="Upload material">
+    [Material upload](/guides/assets/material-upload) → `materialId`
+  </Step>
+  <Step title="Configure webhook">
+    Set URL and secret on <a href={apiKeyUrl}>API Configuration</a>
+  </Step>
+  <Step title="Submit task">
+    `POST /openapi/task/media-translation/create-async` with `X-Idempotency-Key`
+  </Step>
+  <Step title="Receive results">
+    [Webhook request body](/guides/webhook-request) on `task.completed`
+  </Step>
+</Steps>
+
+## Request outline
+
+Required fields include `taskType`, `source.materialId`, `language` (source/target locales), and `options` (dubbing, ASR, translation, etc.).
+
+Use [Supported languages](/guides/supported-languages) for locale codes. Full `options` tree: **API reference → Create media translation (async)**.
+
+## Responses
+
+- **HTTP Response** (immediate): acceptance — `taskId`, `status`, `createdAt`, effective `taskType`
+- **Webhook** (on completion): deliverables in `data.result` (CDN URLs)
+
+Do not expect final video/audio URLs in the `create-async` HTTP response.
+
+## Task management
+
+Poll `GET /openapi/tasks/detail` as a fallback. See [Products overview](/guides/products/overview).

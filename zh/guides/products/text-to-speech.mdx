@@ -1,0 +1,45 @@
+---
+title: "文本转语音"
+description: "文本合成语音"
+icon: "volume-high"
+---
+
+使用系统或克隆 **voiceId** 将文本合成为语音。获取 ID 见 [音色](/zh/guides/assets/voices)。
+
+## 同步与异步
+
+| 模式 | 接口 | 结果 |
+|------|------|------|
+| 同步 | `POST /openapi/task/tts/create` | HTTP `data.results[].uri`（CDN 音频） |
+| 异步 | `POST /openapi/task/tts/create-async` | [Webhook](/zh/guides/webhook-request) 中 `results` |
+
+异步须 [`X-Idempotency-Key`](/zh/guides/idempotency) 与 Webhook。
+
+## 流程（同步）
+
+完整 curl 见 [快速开始](/zh/guides/quickstart)。
+
+主要字段：
+
+- `provider` — 引擎代码（如 `V1`）
+- `language.target` — [支持的语言](/zh/guides/supported-languages)
+- `data[]` — 最多 50 条；每条需 `text` 与 `voiceId`（或 `timbreRefAudio`）
+- `outputFormat` — `wav`、`mp3`、`m4a`
+
+## 流程（异步）
+
+1. 配置 [Webhooks](/zh/guides/webhooks)
+2. 带幂等键 POST `create-async`
+3. 从 Webhook `data.results` 取音频 URL
+
+## 音色
+
+- **系统音色**：`POST /openapi/assets/voice/basic/list`
+- **克隆音色**：[声音克隆](/zh/guides/products/voice-clone) 成功后使用返回的 `voiceId`
+
+完整 schema：**API 参考 → TTS**。
+
+## 相关
+
+- [产品概览](/zh/guides/products/overview)
+- [使用限制](/zh/guides/usage-limits) — 批量上限

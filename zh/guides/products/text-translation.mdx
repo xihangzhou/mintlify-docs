@@ -1,0 +1,46 @@
+---
+title: "文本翻译"
+description: "同步或异步翻译文本片段"
+icon: "language"
+---
+
+在 [支持的语言](/zh/guides/supported-languages) 所列 locale 之间翻译一个或多个文本片段。
+
+## 同步与异步
+
+| 模式 | 接口 | 结果 |
+|------|------|------|
+| 同步 | `POST /openapi/task/translate/create` | HTTP 响应 `data.items` |
+| 异步 | `POST /openapi/task/translate/create-async` | [Webhook](/zh/guides/webhook-request) `task.completed` |
+
+异步须配置 [`X-Idempotency-Key`](/zh/guides/idempotency) 与 Webhook。
+
+## 流程（同步）
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/task/translate/create" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "language": { "source": "zh-CN", "target": "en-US" },
+    "segments": [{ "text": "你好" }]
+  }'
+```
+
+译文在 `data.items` 中，与输入 segments 对齐。
+
+## 流程（异步）
+
+1. 配置 [Webhooks](/zh/guides/webhooks)
+2. 带幂等键 POST `create-async`
+3. 保存受理响应中的 `taskId`
+4. 从 Webhook `data.items` 读取译文
+
+## 请求细节
+
+segments 结构、provider、`extraData` 等：**API 参考 → Text translation**。
+
+## 相关
+
+- [产品概览](/zh/guides/products/overview)
+- [价格](/zh/guides/pricing) — 积分消耗

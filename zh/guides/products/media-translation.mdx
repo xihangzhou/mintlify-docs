@@ -1,0 +1,52 @@
+---
+title: "音视频翻译"
+description: "异步视频与音频本地化"
+icon: "film"
+---
+
+import { apiKeyUrl } from "/snippets/product-urls.jsx";
+
+对已上传视频或音频做翻译、配音等流水线处理。**仅异步** — 结果通过 [Webhook](/zh/guides/webhooks) 送达。
+
+## 任务类型
+
+| 请求 `taskType` | 含义 |
+|-----------------|------|
+| `vt` | 视频翻译 |
+| `at` | 音频翻译 |
+
+若请求 `at` 但素材为视频，服务端可能按 **视频翻译（`vt`）** 执行。请以受理响应与 Webhook 中的 `taskType` 为准。
+
+## 流程
+
+<Steps>
+  <Step title="上传素材">
+    [素材上传](/zh/guides/assets/material-upload) → `materialId`
+  </Step>
+  <Step title="配置 Webhook">
+    在 <a href={apiKeyUrl}>API 配置</a> 设置 URL 与 Secret
+  </Step>
+  <Step title="提交任务">
+    `POST /openapi/task/media-translation/create-async`，携带 `X-Idempotency-Key`
+  </Step>
+  <Step title="接收结果">
+    `task.completed` 的 [Webhook 请求体](/zh/guides/webhook-request)
+  </Step>
+</Steps>
+
+## 请求概要
+
+必填包括 `taskType`、`source.materialId`、`language`（源/目标 locale）、`options`（配音、ASR、翻译等）。
+
+区域代码见 [支持的语言](/zh/guides/supported-languages)。完整 `options` 树：**API 参考 → Create media translation (async)**。
+
+## 响应
+
+- **HTTP Response**（立即）：受理信息 — `taskId`、`status`、`createdAt`、实际 `taskType`
+- **Webhook**（完成时）：`data.result` 中的交付物 CDN URL
+
+不要在 `create-async` 的 HTTP 响应中等待最终音视频 URL。
+
+## 任务管理
+
+可轮询 `GET /openapi/tasks/detail` 作为兜底。见 [产品概览](/zh/guides/products/overview)。

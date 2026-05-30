@@ -1,167 +1,58 @@
 ---
 title: "Webhooks"
-description: "Receive async task callbacks and verify signatures"
+description: "Configure async task callbacks"
 icon: "webhook"
 ---
 
 import { apiKeyUrl, productUrls } from "/snippets/product-urls.jsx";
 
-## Overview
+## What webhooks are
 
-When async tasks (TTS, translation, voice clone, media translation) finish, VMEG sends an **HTTP POST** to your configured URL. The body uses a unified envelope (`code`, `version`, `event`, `message`, `extraData`, `data`), with signature headers for integrity and replay protection.
+When an **async** task finishes (TTS, text translation, voice clone, or media translation), VMEG sends an **HTTP POST** to a URL you configure. This is how you receive **task results** — the `create-async` HTTP response only confirms acceptance (`taskId`, etc.).
 
-**Async `create-async` endpoints** only confirm acceptance (`taskId`, and sometimes `createdAt` or `status`). They do **not** return task results in the HTTP response.
+Webhooks are the **delivery mechanism** for async outcomes, not a separate product.
 
-On each `create-async` page in **API reference**, **Response** documents the acceptance payload; **Callbacks → task.completed** documents the [Webhook](/guides/webhooks) **request body** VMEG POSTs when the task finishes. This guide covers URL configuration, signing, retries, and deduplication.
+## Why you need them
+
+| Without webhook | With webhook |
+|-----------------|--------------|
+| You only get `taskId` from `create-async` | You receive full deliverables in the POST body |
+| You must poll `GET /openapi/tasks/detail` | Your server is notified when work completes |
+
+For production async integrations, configure a webhook before calling `*-create-async` endpoints.
 
 ## Configuration
 
-Set your callback URL and **Webhook Secret** on <a href={apiKeyUrl}>API Configuration</a> in the product (same page as API Key management). <a href={productUrls.signInToApiSettings}>Sign in</a> if needed.
+On <a href={apiKeyUrl}>API Configuration</a> in the Dashboard (<a href={productUrls.signInToApiSettings}>sign in</a> if needed):
 
-Use the ping endpoint during integration to test connectivity.
+1. Set your **Webhook URL** (HTTPS recommended).
+2. Set a **Webhook Secret** for [signature verification](/guides/webhook-verification).
 
-## Request headers
-
-| Header | Description |
-|--------|-------------|
-| `X-Timestamp` | Unix timestamp in milliseconds (string) |
-| `X-Signature` | Lowercase hex `HMAC-SHA256(secret, timestamp + rawBody)` |
-
-Verification steps:
-
-1. Ensure `X-Timestamp` is within **300 seconds** of server time
-2. Compute `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`
-3. Constant-time compare with `X-Signature`
-
-```python
-import hmac
-import hashlib
-
-def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool:
-    message = timestamp.encode() + raw_body
-    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
-```
-
-## Callback envelope
-
-Every delivery uses this top-level shape:
-
-```json
-{
-  "code": 200,
-  "version": "1.0",
-  "event": "task.completed",
-  "message": "",
-  "extraData": { "your": "memo fields" },
-  "data": { }
-}
-```
-
-| Field | Description |
-|-------|-------------|
-| `code` | Business outcome (`200` = success for this callback) |
-| `version` | Protocol version; currently `1.0` |
-| `event` | Event name, e.g. `task.completed` |
-| `message` | Human-readable detail when `code` is not success |
-| `extraData` | Echo of `extraData` / memo from the submit request |
-| `data` | Task-specific result — see below |
-
-## Async submit response (HTTP)
-
-These are the only fields returned immediately from `*-async` create endpoints (not in the webhook):
-
-| Task | Endpoint | `data` fields |
-|------|----------|----------------|
-| TTS | `POST /openapi/task/tts/create-async` | `taskId`, `createdAt` |
-| Text translation | `POST /openapi/task/translate/create-async` | `taskId`, `createdAt` |
-| Voice clone | `POST /openapi/task/clone-voice/create-async` | `taskId` |
-| Media translation | `POST /openapi/task/media-translation/create-async` | `taskId`, `taskType`, `status` (`running`), `createdAt` |
-
-Example (TTS):
-
-```json
-{
-  "code": 200,
-  "message": "",
-  "data": {
-    "taskId": "tsk_abc123",
-    "createdAt": "2026-05-29T12:00:00Z"
-  }
-}
-```
-
-## Callback `data` by task type
-
-Prefer the **Callbacks** section on each `create-async` endpoint in API reference (same schemas as below). The global **Webhooks → taskCallback** entry lists all variants in one place.
-
-### TTS (`task.completed`)
-
-Same structure as synchronous `POST /openapi/task/tts/create`:
-
-| Field | Description |
-|-------|-------------|
-| `taskId` | Task ID |
-| `results` | Array of `{ uri, duration, errorMessage? }` — CDN audio URLs |
-| `createdAt` | Submission time |
-
-```json
-{
-  "taskId": "tsk_abc123",
-  "results": [
-    { "uri": "https://cdn.example/audio.mp3", "duration": 2.4 }
-  ],
-  "createdAt": "2026-05-29T12:00:00Z"
-}
-```
-
-### Text translation (`task.completed`)
-
-| Field | Description |
-|-------|-------------|
-| `taskId` | Task ID |
-| `items` | Array of `{ text, errorMessage? }` aligned with request `segments` |
-| `createdAt` | Submission time |
-
-### Voice clone (`task.completed`)
-
-| Field | Description |
-|-------|-------------|
-| `taskId` | Task ID |
-| `voiceId` | Cloned voice ID for later TTS requests |
-| `provider` | Public provider code |
-| `exampleLanguage` | Sample language |
-| `content` | Sample text |
-| `audio` | Sample audio CDN URL |
-
-### Media translation (`task.completed`)
-
-| Field | Description |
-|-------|-------------|
-| `taskId` | Task ID |
-| `taskType` | Effective type (`VIDEO_TRANSLATION`, `AUDIO_TRANSLATION`, …) |
-| `status` | `finished` or `failed` |
-| `result` | Sanitized deliverables (CDN URLs); keys depend on pipeline |
-
-```json
-{
-  "taskId": "tsk_xyz",
-  "taskType": "VIDEO_TRANSLATION",
-  "status": "finished",
-  "result": {
-    "outputVideoUrl": "https://cdn.example/out.mp4"
-  }
-}
-```
-
-Poll `GET /openapi/tasks/detail` if you need the full stored result while integrating.
+Test connectivity from the same page when available.
 
 ## Receiver requirements
 
-- Return **2xx** promptly; otherwise VMEG retries with backoff
-- Verify signatures on the **raw body bytes** (do not re-serialize JSON)
-- Dedupe by `taskId` or your business key; retries may deliver the same payload more than once
+Your endpoint must:
+
+1. **Return 2xx quickly** (within a few seconds). Offload heavy work to a queue or background worker.
+2. **Verify signatures** on the raw request body — see [Webhook verification](/guides/webhook-verification).
+3. **Deduplicate** by `taskId` (or your business key). Retries may deliver the same payload more than once.
+
+If you return a non-2xx status or time out, VMEG retries with backoff.
+
+## Where to read payloads
+
+| Topic | Guide | API reference |
+|-------|-------|---------------|
+| Envelope and per-task `data` | [Webhook request body](/guides/webhook-request) | **Callbacks → task.completed** on each `create-async` operation |
+| All callback variants | — | **Webhooks → taskCallback** |
+| Acceptance response only | [Products overview](/guides/products/overview) | **Response** on each `create-async` operation |
 
 <Note>
-  API reference: each `create-async` has **Response** (acceptance) and **Callbacks → task.completed** (webhook request body). Signing and operations: this guide.
+  Guides explain **how to integrate**. API reference holds **exact field schemas** for request and callback bodies.
 </Note>
+
+## Related
+
+- [Idempotency](/guides/idempotency) — required header on `create-async`
+- [Products overview](/guides/products/overview) — sync vs async by product

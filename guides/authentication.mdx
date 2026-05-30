@@ -1,6 +1,6 @@
 ---
-title: "Authentication"
-description: "Access the Open API with a Bearer API Key"
+title: "Auth"
+description: "Authenticate Open API requests with an API Key"
 icon: "key"
 ---
 
@@ -8,33 +8,31 @@ import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
 
 ## API Key
 
-All public endpoints under `/openapi` (tasks, assets, task management) require an **API Key**.
-
-Send it in the `Authorization` header:
+All endpoints under `/openapi/**` require an **API Key**.
 
 ```http
 Authorization: Bearer <your_api_key>
 ```
 
-The server resolves the key to a `projId` (project ID). Query parameters such as `projId` on list and detail calls must match the project bound to the key.
+The server resolves the key to a `projId` (project ID). List and detail calls that accept `projId` must match the project bound to the key.
 
 <Warning>
-  Do not hardcode API Keys in client apps or public repositories. Use a secrets manager or environment variables in production.
+  Do not expose API Keys in client apps or public repositories. Store keys in environment variables or a secrets manager.
 </Warning>
 
 ## Create and rotate keys
 
-Create and rotate API Keys on the <a href={apiKeyUrl}>API Configuration</a> page in the product (sidebar **API**). <a href={productUrls.signInToApiSettings}>Sign in</a> if you are not logged in.
+Create and rotate keys on <a href={apiKeyUrl}>API Configuration</a> in the Dashboard (sidebar **API**). <a href={productUrls.signInToApiSettings}>Sign in</a> if needed.
 
-The page also manages **Webhook** URL and secret for async callbacks.
+The same page configures your **Webhook URL** and **Webhook Secret** for async callbacks.
 
 <Info>
-  In the product, the **API** sidebar entry (path `/open-api-setting`) is available on paid plans. Free users are prompted to upgrade before accessing API Configuration.
+  API Configuration is available on paid plans. See [Pricing](/guides/pricing).
 </Info>
 
 ## Authentication failures
 
-HTTP status is `401`. Example body:
+HTTP status `401` with a JSON body such as:
 
 ```json
 {
@@ -44,14 +42,13 @@ HTTP status is `401`. Example body:
 }
 ```
 
-See [Error codes](/guides/errors) for the full list.
+See [Error codes](/guides/errors) for the full code list.
 
-## Public API vs dashboard routes
+## What you need for integration
 
-| Path prefix | Auth | Purpose |
-|-------------|------|---------|
-| `/openapi/**` | Bearer API Key | Customer integration |
-| `/api/openapi/auth/**` | Dashboard JWT | Key management (product UI) |
-| `/api/openapi/callback/**` | Dashboard JWT | Webhook config and ping |
+| Path | Auth | Purpose |
+|------|------|---------|
+| `/openapi/**` | Bearer API Key | Your integration |
+| Dashboard `/api/openapi/**` | Session JWT | Product UI only |
 
-For integration you typically only need `/openapi/**` and your [webhook receiver](/guides/webhooks).
+For server-to-server integration you typically need `/openapi/**` plus a [Webhook receiver](/guides/webhooks).

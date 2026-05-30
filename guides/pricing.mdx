@@ -1,0 +1,28 @@
+---
+title: "Pricing"
+description: "Credits, paid access, and API billing"
+icon: "coins"
+---
+
+import { productUrls } from "/snippets/product-urls.jsx";
+
+## Who can use the API
+
+The Open API is available to **paid users**. Free accounts are prompted to upgrade before accessing <a href={productUrls.apiConfiguration}>API Configuration</a>.
+
+## Credits
+
+- You purchase or receive **credits** as part of your paid plan.
+- Each API task (TTS, translation, voice clone, media translation) **consumes credits** when accepted and processed.
+- Credits used in the **Dashboard UI** (non-API workflows) follow separate product billing rules and are **not** the same consumption line item as Open API calls.
+
+When credits are insufficient, the API returns `402 Payment Required`. See [Error codes](/guides/errors).
+
+## Add credits
+
+Visit <a href={productUrls.pricing}>Pricing</a> in the product or <a href={productUrls.contactUs}>contact us</a> for enterprise plans.
+
+## Related
+
+- [Usage limits](/guides/usage-limits) — technical quotas (payload size, batch limits)
+- [Products overview](/guides/products/overview) — which operations are billable tasks

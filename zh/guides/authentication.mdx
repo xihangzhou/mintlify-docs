@@ -1,6 +1,6 @@
 ---
-title: "认证"
-description: "使用 Bearer API Key 访问 Open API"
+title: "鉴权"
+description: "使用 API Key 鉴权 Open API 请求"
 icon: "key"
 ---
 
@@ -8,33 +8,31 @@ import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
 
 ## API Key
 
-`/openapi` 下所有公开接口（任务、资产、任务管理）均需要 **API Key**。
-
-在 `Authorization` 请求头中传递：
+所有 `/openapi/**` 接口都需要 **API Key**。
 
 ```http
 Authorization: Bearer <your_api_key>
 ```
 
-服务端将 Key 解析为 `projId`（项目 ID）。列表、详情等接口上的 `projId` 查询参数须与 Key 绑定的项目一致。
+服务端将 Key 解析为 `projId`（项目 ID）。带 `projId` 的列表与详情请求须与 Key 绑定项目一致。
 
 <Warning>
-  请勿在客户端应用或公开仓库中硬编码 API Key。生产环境请使用密钥管理服务或环境变量。
+  勿在客户端或公开仓库中暴露 API Key。请使用环境变量或密钥管理服务。
 </Warning>
 
 ## 创建与轮换
 
-在产品 <a href={apiKeyUrl}>API 配置</a> 页面（侧栏 **API**）创建或轮换 API Key。未登录时请先 <a href={productUrls.signInToApiSettings}>登录</a>。
+在 Dashboard <a href={apiKeyUrl}>API 配置</a>（侧栏 **API**）创建或轮换 Key。未登录请先 <a href={productUrls.signInToApiSettings}>登录</a>。
 
-同一页面可管理异步回调的 **Webhook** URL 与 Secret。
+同一页面可配置异步回调的 **Webhook URL** 与 **Webhook Secret**。
 
 <Info>
-  产品中 **API** 入口（路径 `/open-api-setting`）面向付费用户开放。免费用户需先升级才能进入 API 配置。
+  API 配置面向付费用户，见 [价格](/zh/guides/pricing)。
 </Info>
 
-## 认证失败
+## 鉴权失败
 
-HTTP 状态为 `401`。响应体示例：
+HTTP 状态码 `401`，响应体示例：
 
 ```json
 {
@@ -44,14 +42,13 @@ HTTP 状态为 `401`。响应体示例：
 }
 ```
 
-完整列表见 [错误码](/zh/guides/errors)。
+完整错误码见 [错误码](/zh/guides/errors)。
 
-## 公开 API 与控制台路由
+## 集成所需路径
 
-| 路径前缀 | 认证方式 | 用途 |
-|-------------|------|---------|
-| `/openapi/**` | Bearer API Key | 客户集成 |
-| `/api/openapi/auth/**` | 控制台 JWT | Key 管理（产品 UI） |
-| `/api/openapi/callback/**` | 控制台 JWT | Webhook 配置与 Ping |
+| 路径 | 鉴权 | 用途 |
+|------|------|------|
+| `/openapi/**` | Bearer API Key | 你的服务端集成 |
+| Dashboard `/api/openapi/**` | 会话 JWT | 仅产品 UI |
 
-集成场景通常只需 `/openapi/**` 与你的 [Webhook 接收端](/zh/guides/webhooks)。
+服务端集成通常只需 `/openapi/**` 与 [Webhook 接收端](/zh/guides/webhooks)。

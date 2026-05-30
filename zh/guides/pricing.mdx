@@ -1,0 +1,28 @@
+---
+title: "价格"
+description: "积分、付费开通与 API 计费"
+icon: "coins"
+---
+
+import { productUrls } from "/snippets/product-urls.jsx";
+
+## 谁可以使用 API
+
+Open API 面向 **付费用户**。免费账户访问 <a href={productUrls.apiConfiguration}>API 配置</a> 时会提示升级。
+
+## 积分
+
+- 通过付费方案购买或获得 **积分**。
+- 每次 API 任务（TTS、翻译、声音克隆、音视频翻译）在受理并处理时会 **消耗积分**。
+- **Dashboard 非 API 功能**的积分消耗遵循产品内单独规则，与 Open API 调用 **不是同一套消耗明细**。
+
+积分不足时返回 `402 Payment Required`，见 [错误码](/zh/guides/errors)。
+
+## 充值
+
+前往产品内 <a href={productUrls.pricing}>价格页</a>，或 <a href={productUrls.contactUs}>联系我们</a> 了解企业方案。
+
+## 相关
+
+- [使用限制](/zh/guides/usage-limits) — 技术配额（ payload 大小、批量上限等）
+- [产品概览](/zh/guides/products/overview) — 哪些操作会产生计费任务

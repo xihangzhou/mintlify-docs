@@ -1,0 +1,47 @@
+---
+title: "支持的语言"
+description: "Open API 源语言与目标语言区域代码"
+icon: "globe"
+---
+
+import {
+  LanguageList,
+  sourceLanguages,
+  targetLanguages,
+} from "/snippets/SupportedLanguageLists.jsx";
+
+Open API 各产品（TTS、文本翻译、音视频翻译、声音克隆）与 VMEG Dashboard **共用同一套语言表**。
+
+请求体中使用 **BCP-47 风格**区域代码，例如 `en-US`、`zh-CN`、`ja-JP`。
+
+## 源语言
+
+用于 `language.source`（音视频翻译）或在支持的场景下做自动检测。
+
+包含 **`auto`**（自动检测）。目标语言不能使用 `auto`。
+
+**数量：** {sourceLanguages.length} 个代码（含 `auto`）。
+
+<LanguageList codes={sourceLanguages} autoLabel="自动检测" />
+
+## 目标语言
+
+用于 `language.target`（TTS、文本翻译、音视频翻译）。
+
+**数量：** {targetLanguages.length} 个代码。
+
+<LanguageList codes={targetLanguages} />
+
+## 在请求中的用法
+
+| 字段 | 使用场景 |
+|------|----------|
+| `language.source` | 音视频翻译 |
+| `language.target` | TTS、文本翻译、音视频翻译 |
+| `sampleLanguage` | 声音克隆（见 [声音克隆](/zh/guides/products/voice-clone)） |
+
+精确字段类型与示例见 [API 参考](/zh/api-reference/introduction)。
+
+<Note>
+  本列表与产品语言配置同步。语言变更后运行 `node scripts/generate-supported-languages.mjs` 重新生成。
+</Note>

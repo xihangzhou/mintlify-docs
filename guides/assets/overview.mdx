@@ -1,0 +1,54 @@
+---
+title: "Assets overview"
+description: "API-scoped materials and voices"
+icon: "folder-tree"
+---
+
+Open API **assets** are resources you create and reference by ID in task requests. There are two types:
+
+| Asset | ID field | Purpose |
+|-------|----------|---------|
+| **Material** | `materialId` | Uploaded video or audio used as input (mainly media translation) |
+| **Voice** | `voiceId` | System preset or cloned voice used in TTS |
+
+## Isolated from Dashboard
+
+Open API **assets and tasks** use a separate store from the Dashboard UI — they are not interchangeable.
+
+### Assets
+
+API assets are **not shared** with Dashboard **My assets**:
+
+- Materials uploaded via `/openapi/assets/material/**` do **not** appear in the Dashboard file library.
+- Cloned voices created via the API do **not** appear in Dashboard voice management UI.
+- The reverse is also true — Dashboard uploads are **not** available as Open API `materialId` values.
+
+Manage API materials and voices only through Open API asset endpoints.
+
+### Tasks
+
+Tasks created via the Open API **do not** appear in Dashboard **My tasks**, and Dashboard tasks are **not** listed by `/openapi/tasks/**`. See [Products overview](/guides/products/overview#isolated-from-dashboard-tasks).
+
+## Typical flow
+
+```text
+Upload material → materialId → media translation task
+Voice clone task → voiceId → TTS task
+List basic voices → voiceId → TTS task
+```
+
+## Guides
+
+<CardGroup cols={2}>
+  <Card title="Materials" icon="photo-film" href="/guides/assets/materials">
+    Material types, list, and delete
+  </Card>
+  <Card title="Material upload" icon="cloud-arrow-up" href="/guides/assets/material-upload">
+    Presigned and multipart upload
+  </Card>
+  <Card title="Voices" icon="waveform-lines" href="/guides/assets/voices">
+    System and cloned voices
+  </Card>
+</CardGroup>
+
+Field schemas: **API reference → Assets - Materials** and **Assets - Voices**.

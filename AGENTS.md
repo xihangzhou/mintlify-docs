@@ -9,6 +9,8 @@
 - Pages are MDX with YAML frontmatter; site config in `docs.json`
 - OpenAPI spec: `api-reference/openapi.json` (English); `zh/api-reference/openapi.json` (Chinese, generated)
 - Run `mint dev` to preview; `mint validate` and `mint broken-links` before publishing
+- **Guides nav:** Get started (`guides/introduction`) → Auth → Idempotency → Webhooks → Assets → Products → Limits. Each tab must use **`groups` only** (no mixing tab-level `pages` + `groups`). Do **not** add root `index.mdx` when using multiple tabs — use `docs.json` redirects (`/` → `/guides/introduction`) only; a root `index` breaks tab/sidebar sync. Do **not** use `navigation.global.anchors` together with `navigation.languages[].tabs` (sidebar may show only anchors). Put external links (Dashboard) in `navbar.links`. Prefer `"openapi": "path/to/openapi.json"` on the Endpoints group; avoid tab-level `openapi` + manual duplicate endpoint lists. Guides explain workflows; API reference holds exact schemas.
+- **Supported languages:** `node scripts/generate-supported-languages.mjs` (reads `vmeg-web-mono` `translated-language.ts`)
 
 ## Language
 

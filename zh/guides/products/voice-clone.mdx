@@ -1,0 +1,45 @@
+---
+title: "声音克隆"
+description: "从样本音频克隆音色"
+icon: "microphone"
+---
+
+从样本音频创建可复用的 **克隆音色**。成功后 VMEG 分配 **`voiceId`** 并写入 [API 音色资产](/zh/guides/assets/voices)。
+
+## 同步与异步
+
+| 模式 | 接口 | 结果 |
+|------|------|------|
+| 同步 | `POST /openapi/task/clone-voice/create` | HTTP 响应含 `voiceId` 与样本信息 |
+| 异步 | `POST /openapi/task/clone-voice/create-async` | [Webhook](/zh/guides/webhook-request) 含 `voiceId` |
+
+异步须 [`X-Idempotency-Key`](/zh/guides/idempotency) 与 Webhook。
+
+## 流程
+
+<Steps>
+  <Step title="准备样本">
+    按 API 参考 schema 提供参考音频（URL 或已上传字段）。
+  </Step>
+  <Step title="提交克隆">
+    同步或异步 create；`sampleLanguage` 见 [支持的语言](/zh/guides/supported-languages)。
+  </Step>
+  <Step title="使用 voiceId">
+    在 [文本转语音](/zh/guides/products/text-to-speech) 请求中传入。
+  </Step>
+</Steps>
+
+## 克隆之后
+
+- 列表：`POST /openapi/assets/voice/clone/list`
+- 重命名：`POST /openapi/assets/voice/clone/update`
+- 删除：`POST /openapi/assets/voice/clone/delete`
+
+克隆音色 **不会** 出现在 Dashboard。见 [资产概览](/zh/guides/assets/overview)。
+
+请求与回调 schema：**API 参考 → Voice clone**。
+
+## 相关
+
+- [音色](/zh/guides/assets/voices)
+- [产品概览](/zh/guides/products/overview)
