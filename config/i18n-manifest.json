@@ -16,9 +16,9 @@
     "guides/assets/voices",
     "guides/products/overview",
     "guides/products/media-translation",
-    "guides/products/text-translation",
     "guides/products/text-to-speech",
     "guides/products/voice-clone",
+    "guides/products/text-translation",
     "guides/usage-limits",
     "guides/errors",
     "api-reference/introduction"

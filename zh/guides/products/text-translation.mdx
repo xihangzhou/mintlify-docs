@@ -11,9 +11,9 @@ icon: "language"
 | 模式 | 接口 | 结果 |
 |------|------|------|
 | 同步 | `POST /openapi/task/translate/create` | HTTP 响应 `data.items` |
-| 异步 | `POST /openapi/task/translate/create-async` | [Webhook](/zh/guides/webhook-request) `task.completed` |
+| 异步 | `POST /openapi/task/translate/create-async` | [Webhook](/zh/guides/webhook-request)，`event` 为 `openapi-translate`（`data.items`） |
 
-异步须配置 [`X-Idempotency-Key`](/zh/guides/idempotency) 与 Webhook。
+`create` 与 `create-async` 均须 [`X-Idempotency-Key`](/zh/guides/idempotency)；异步还须配置 [Webhook](/zh/guides/webhooks)。
 
 ## 流程（同步）
 
@@ -38,7 +38,7 @@ curl -X POST "https://api.vmeg.ai/openapi/task/translate/create" \
 
 ## 请求细节
 
-segments 结构、provider、`extraData` 等：**API 参考 → Text translation**。
+segments 与 `options` 见 [创建文本翻译（同步）](/api-reference/text-translation/create-text-translation-sync)。仅异步可用的 `extraData`（Webhook 回显）见 [创建文本翻译（异步）](/api-reference/text-translation/create-text-translation-async)。
 
 ## 相关
 

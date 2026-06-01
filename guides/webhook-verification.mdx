@@ -4,27 +4,45 @@ description: "Verify callbacks with HMAC-SHA256"
 icon: "shield-check"
 ---
 
-## Headers
+import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
-| Header | Description |
-|--------|-------------|
-| `X-Timestamp` | Unix timestamp in **milliseconds** (string) |
-| `X-Signature` | Lowercase hex `HMAC-SHA256(webhook_secret, X-Timestamp + rawBody)` |
+## Why verify
 
-Use the **Webhook Secret** from [API Configuration](https://www.vmeg.ai/open-api-setting) (same page as API Key management).
+Your webhook URL is public. Without checks, a forged completion POST could be mistaken for a real task result. Verify every callback before you parse the JSON.
 
-## Verification steps
+## Signing scheme
 
-1. Reject requests whose `X-Timestamp` is more than **300 seconds** from your server time (replay protection).
-2. Read the **raw request body bytes** — do not re-serialize JSON before hashing.
-3. Compute `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`.
-4. Compare `expected` to `X-Signature` with a **constant-time** comparison.
+VMEG signs each webhook POST with **HMAC-SHA256**:
 
-Return `401` or `403` when verification fails. Still respond promptly.
+1. You configure a **Webhook URL** on <a href={apiKeyUrl}>API Configuration</a>. VMEG generates a **Webhook Secret** on that page — copy it to your server; you never send it in the callback.
+2. When a task completes, VMEG POSTs the JSON body to your URL and attaches:
+   - **`X-Timestamp`** — send time in Unix **milliseconds** (string)
+   - **`X-Signature`** — lowercase hex of `HMAC-SHA256(secret, X-Timestamp + rawBody)`
+3. Your endpoint recomputes the same HMAC with your copy of the secret. If it matches `X-Signature`, the sender is VMEG and the body was not tampered with. Reject callbacks whose timestamp is more than **300 seconds** from your server clock (replay protection).
+
+## How to verify
+
+1. Read `X-Timestamp` and `X-Signature` from the request headers.
+2. Reject if `X-Timestamp` is outside the 300-second window.
+3. Hash the **raw request body bytes** — do not re-serialize JSON.
+4. Compare your HMAC to `X-Signature` using a **constant-time** comparison.
+
+Return `401` or `403` on failure. Still respond promptly.
 
 ## Examples
 
 <CodeGroup>
+
+```javascript Node.js
+import crypto from "node:crypto";
+
+function verify(secret, timestamp, rawBody, signature) {
+  if (Math.abs(Number(timestamp) - Date.now()) > 300_000) return false;
+  const message = Buffer.concat([Buffer.from(timestamp), rawBody]);
+  const expected = crypto.createHmac("sha256", secret).update(message).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+```
 
 ```python Python
 import hmac
@@ -39,14 +57,43 @@ def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool
     return hmac.compare_digest(expected, signature)
 ```
 
-```javascript Node.js
-import crypto from "node:crypto";
+```java Java
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
-function verify(secret, timestamp, rawBody, signature) {
-  if (Math.abs(Number(timestamp) - Date.now()) > 300_000) return false;
-  const message = Buffer.concat([Buffer.from(timestamp), rawBody]);
-  const expected = crypto.createHmac("sha256", secret).update(message).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+public final class WebhookVerifier {
+  private static final long MAX_SKEW_MS = 300_000L;
+
+  public static boolean verify(String secret, String timestamp, byte[] rawBody, String signature)
+      throws Exception {
+    long ts = Long.parseLong(timestamp);
+    if (Math.abs(ts - System.currentTimeMillis()) > MAX_SKEW_MS) {
+      return false;
+    }
+
+    Mac mac = Mac.getInstance("HmacSHA256");
+    mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+
+    byte[] tsBytes = timestamp.getBytes(StandardCharsets.UTF_8);
+    byte[] message = new byte[tsBytes.length + rawBody.length];
+    System.arraycopy(tsBytes, 0, message, 0, tsBytes.length);
+    System.arraycopy(rawBody, 0, message, tsBytes.length, rawBody.length);
+
+    String expected = toHex(mac.doFinal(message));
+    return MessageDigest.isEqual(
+        expected.getBytes(StandardCharsets.UTF_8),
+        signature.toLowerCase().getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static String toHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder(bytes.length * 2);
+    for (byte b : bytes) {
+      sb.append(String.format("%02x", b));
+    }
+    return sb.toString();
+  }
 }
 ```
 
@@ -54,8 +101,8 @@ function verify(secret, timestamp, rawBody, signature) {
 
 ## After verification
 
-1. Parse JSON and handle `event` (typically `task.completed`).
-2. Process `data` per [Webhook request body](/guides/webhook-request).
+1. Parse JSON and route on `event` (`openapi-tts`, `openapi-translate`, `openapi-clone-voice`, or `openapi-media-translation`) — see [Webhook request body](/guides/webhook-request).
+2. Process `data` using the **Callbacks** schema on the matching `create-async` endpoint in [API reference](/api-reference/introduction).
 3. Return **2xx** immediately; queue long-running work.
 
-See [Webhooks](/guides/webhooks) for configuration and receiver requirements.
+See [Webhooks](/guides/webhooks) for URL configuration and receiver requirements.

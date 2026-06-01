@@ -10,19 +10,50 @@ import { productUrls } from "/snippets/product-urls.jsx";
 
 The Open API is available to **paid users**. Free accounts are prompted to upgrade before accessing <a href={productUrls.apiConfiguration}>API Configuration</a>.
 
-## Credits
+<Info>
+  **Plans, prices, and credit packs** — how much money buys how many credits, subscription tiers, and top-up options are on the product <a href={productUrls.pricing}>Pricing</a> page. This guide only explains **how Open API tasks consume credits**.
+</Info>
 
-- You purchase or receive **credits** as part of your paid plan.
-- Each API task (TTS, translation, voice clone, media translation) **consumes credits** when accepted and processed.
-- Credits used in the **Dashboard UI** (non-API workflows) follow separate product billing rules and are **not** the same consumption line item as Open API calls.
+## Open API credit consumption
+
+Credits are deducted when a billable task is **accepted and processed** (sync `create` or async `create-async`). Rates below apply to Open API products; they follow the same product billing rules as the VMEG app unless noted otherwise.
+
+| Open API product | Endpoints | Charging unit | Credits |
+|------------------|-----------|-----------------|---------|
+| [Media translation](/guides/products/media-translation) | `POST /openapi/task/media-translation/create-async` | Per minute of source media duration | **60 credits / min** |
+| [Text to speech](/guides/products/text-to-speech) | `POST /openapi/task/tts/create`, `.../create-async` | Per character length of input text | **~2 credits per 200 characters** |
+| [Voice clone](/guides/products/voice-clone) | `POST /openapi/task/clone-voice/create`, `.../create-async` | Per successful clone | **10 credits per voice** |
+| [Text translation](/guides/products/text-translation) | `POST /openapi/task/translate/create`, `.../create-async` | Per billed minute (from request size / duration rules) | **1 credit / min** |
+
+### Per-minute products
+
+For **media translation** and **text translation**, duration **under one minute is billed as one full minute**, consistent with other VMEG per-minute features.
+
+**Media translation** (`vt` / `at`) charges from the uploaded material length. Optional pipeline features (for example **lip sync**) can add credits on top of the base translation rate — for example, lip sync is commonly **+60 credits / min** in addition to translation. The exact total depends on your `options` in the create request; insufficient balance returns `402` before or at acceptance.
+
+**Text to speech** totals scale with character count (roughly 2 credits per 200 characters; partial blocks follow product rounding).
+
+**Voice clone** charges once per successful clone job (sync or async), not per subsequent TTS use of that `voiceId`.
+
+### What does not consume task credits here
+
+Open API **asset** calls (material upload URLs, material list/delete, voice list/update/delete) are supporting operations for tasks above. They are not listed as separate per-call credit lines in this table.
+
+## Insufficient credits
 
 When credits are insufficient, the API returns `402 Payment Required`. See [Error codes](/guides/errors).
 
-## Add credits
+## Website and API billing
 
-Visit <a href={productUrls.pricing}>Pricing</a> in the product or <a href={productUrls.contactUs}>contact us</a> for enterprise plans.
+Your account shares one credit balance. Usage from the website and from the Open API may appear on separate lines in history. Track API tasks only via [task APIs](/guides/products/overview) — they are not listed in your task history on vmeg.ai.
+
+## Buy credits and view prices
+
+To see **subscription prices**, **how many credits you get per plan**, and **how to purchase more credits**, go to <a href={productUrls.pricing}>Pricing</a> on the product site. For enterprise plans, <a href={productUrls.contactUs}>contact us</a>.
+
+More examples (lip sync totals, subtitle-style rates, and feature notes) are in the <a href={`${productUrls.helpCenter}credit-pricing`}>help center — How credits work</a>.
 
 ## Related
 
 - [Usage limits](/guides/usage-limits) — technical quotas (payload size, batch limits)
-- [Products overview](/guides/products/overview) — which operations are billable tasks
+- [Products overview](/guides/products/overview) — which operations create billable tasks

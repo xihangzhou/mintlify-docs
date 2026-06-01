@@ -3,8 +3,6 @@ title: "API 概览"
 description: "VMEG Open API 接口组织方式"
 ---
 
-API 参考页面由已发布的 [OpenAPI 3.1](https://mintlify.com/docs/api-playground/openapi/setup) 规范自动生成。
-
 ## 地址
 
 | 用途 | URL |
@@ -16,7 +14,13 @@ API 参考页面由已发布的 [OpenAPI 3.1](https://mintlify.com/docs/api-play
 
 ## 认证
 
-所有 `/openapi/**` 接口使用 Bearer API Key。在 Playground 中填入 Key 即可试调。
+所有 `/openapi/**` 接口须在 **`Authorization` 请求头** 中携带 API Key：
+
+```http
+Authorization: Bearer <api_key>
+```
+
+在 Playground 的 **Authorization** 字段填入 Key 即可试调。
 
 ## 接口分组
 
@@ -29,5 +33,7 @@ API 参考页面由已发布的 [OpenAPI 3.1](https://mintlify.com/docs/api-play
 | 任务管理 | 列表、详情、删除 |
 | 资产 - 素材 | 上传与素材库 |
 | 资产 - 音色 | 系统音色与克隆音色 |
+
+各 **`create-async`** 接口在同一页 **Callbacks** 中说明 Webhook 回调请求体（含任务专属的 `data` 结构）。
 
 概念说明（幂等、Webhook、错误码）见 **指南** 标签页。

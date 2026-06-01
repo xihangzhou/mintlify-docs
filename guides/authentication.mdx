@@ -1,5 +1,5 @@
 ---
-title: "Auth"
+title: "API Key"
 description: "Authenticate Open API requests with an API Key"
 icon: "key"
 ---
@@ -10,11 +10,22 @@ import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
 
 All endpoints under `/openapi/**` require an **API Key**.
 
+## Request header
+
+Send your key on **every** request in the HTTP **Authorization** header (not in the query string or request body):
+
 ```http
 Authorization: Bearer <your_api_key>
 ```
 
-The server resolves the key to a `projId` (project ID). List and detail calls that accept `projId` must match the project bound to the key.
+Example with `curl`:
+
+```bash
+curl "https://api.vmeg.ai/openapi/tasks/list" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Replace `YOUR_API_KEY` with the key from <a href={apiKeyUrl}>API Configuration</a>.
 
 <Warning>
   Do not expose API Keys in client apps or public repositories. Store keys in environment variables or a secrets manager.
@@ -22,9 +33,9 @@ The server resolves the key to a `projId` (project ID). List and detail calls th
 
 ## Create and rotate keys
 
-Create and rotate keys on <a href={apiKeyUrl}>API Configuration</a> in the Dashboard (sidebar **API**). <a href={productUrls.signInToApiSettings}>Sign in</a> if needed.
+Create and rotate keys on <a href={apiKeyUrl}>API Configuration</a> on vmeg.ai (sidebar **API** after you sign in). <a href={productUrls.signInToApiSettings}>Sign in</a> if needed.
 
-The same page configures your **Webhook URL** and **Webhook Secret** for async callbacks.
+The same page is where you set your **Webhook URL** and view the **Webhook Secret** VMEG generates for async callbacks.
 
 <Info>
   API Configuration is available on paid plans. See [Pricing](/guides/pricing).
@@ -43,12 +54,3 @@ HTTP status `401` with a JSON body such as:
 ```
 
 See [Error codes](/guides/errors) for the full code list.
-
-## What you need for integration
-
-| Path | Auth | Purpose |
-|------|------|---------|
-| `/openapi/**` | Bearer API Key | Your integration |
-| Dashboard `/api/openapi/**` | Session JWT | Product UI only |
-
-For server-to-server integration you typically need `/openapi/**` plus a [Webhook receiver](/guides/webhooks).

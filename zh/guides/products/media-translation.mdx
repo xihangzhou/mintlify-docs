@@ -24,13 +24,13 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
     [素材上传](/zh/guides/assets/material-upload) → `materialId`
   </Step>
   <Step title="配置 Webhook">
-    在 <a href={apiKeyUrl}>API 配置</a> 设置 URL 与 Secret
+    在 <a href={apiKeyUrl}>API 配置</a> 设置 Webhook URL，并复制页面展示的 Secret 用于验签
   </Step>
   <Step title="提交任务">
     `POST /openapi/task/media-translation/create-async`，携带 `X-Idempotency-Key`
   </Step>
   <Step title="接收结果">
-    `task.completed` 的 [Webhook 请求体](/zh/guides/webhook-request)
+    `event` 为 `openapi-media-translation` 的 [Webhook 请求体](/zh/guides/webhook-request)
   </Step>
 </Steps>
 
@@ -38,7 +38,7 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
 必填包括 `taskType`、`source.materialId`、`language`（源/目标 locale）、`options`（配音、ASR、翻译等）。
 
-区域代码见 [支持的语言](/zh/guides/supported-languages)。完整 `options` 树：**API 参考 → Create media translation (async)**。
+区域代码见 [支持的语言](/zh/guides/supported-languages)。完整 `options` 树见 [创建媒体翻译（异步）](/api-reference/media-translation/create-media-translation-async) 的请求体。
 
 ## 响应
 

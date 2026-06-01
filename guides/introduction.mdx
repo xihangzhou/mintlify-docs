@@ -4,55 +4,46 @@ description: "Integrate TTS, translation, media localization, voice cloning, and
 icon: "waveform"
 ---
 
-import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
+Use VMEG Open API to run speech and translation workloads from your own backend: submit jobs, work with API-side files and voices, and get long-running results through webhooks when needed.
 
-The VMEG Open API lets you run speech and translation workloads programmatically: submit tasks, manage API-scoped assets, and receive async results via webhooks.
-
-## Capabilities
+## What you can do
 
 <CardGroup cols={2}>
-  <Card title="Text to speech" icon="volume-high" href="/guides/products/text-to-speech">
-    Synthesize speech from text. Sync or async.
-  </Card>
-  <Card title="Text translation" icon="language" href="/guides/products/text-translation">
-    Translate text segments. Sync or async.
-  </Card>
   <Card title="Media translation" icon="film" href="/guides/products/media-translation">
-    Localize video or audio via uploaded materials. Async only.
+    Localize video or audio you upload.
+  </Card>
+  <Card title="Text to speech" icon="volume-high" href="/guides/products/text-to-speech">
+    Turn text into speech.
   </Card>
   <Card title="Voice clone" icon="microphone" href="/guides/products/voice-clone">
-    Clone a voice from a sample. Sync or async; clones become reusable assets.
+    Clone a voice from a sample and reuse it.
+  </Card>
+  <Card title="Text translation" icon="language" href="/guides/products/text-translation">
+    Translate text in batches.
   </Card>
   <Card title="Materials" icon="photo-film" href="/guides/assets/materials">
-    Upload and manage video/audio source files for media translation.
+    Store video and audio files for translation jobs.
   </Card>
   <Card title="Voices" icon="waveform-lines" href="/guides/assets/voices">
-    List system voices and cloned voices for TTS.
+    Pick preset or cloned voices for speech synthesis.
   </Card>
 </CardGroup>
 
-Each capability maps to endpoints in [API reference](/api-reference/introduction).
+Field-level request and response shapes live in [API reference](/api-reference/introduction).
 
-## Conventions
+## Where to start
 
-| Topic | Detail |
-|-------|--------|
-| Base URL | `https://api.vmeg.ai` |
-| Authentication | `Authorization: Bearer <api_key>` on every `/openapi/**` request — see [Auth](/guides/authentication) |
-| Response envelope | `{ "code", "message", "data" }` — business success when `code === 200` |
-| `extraData` | Optional object on task requests; echoed in webhook callbacks for your correlation IDs |
-| Languages | Locale codes such as `en-US`, `zh-CN` — see [Supported languages](/guides/supported-languages) |
-| API scope | Open API tasks and assets are separate from Dashboard **My tasks** and **My assets** — see [Products overview](/guides/products/overview) and [Assets overview](/guides/assets/overview) |
-
-## Integration path
-
-```text
-Auth → Pricing (credits) → Quickstart (sync TTS)
-     → Idempotency + Webhooks (async)
-     → Assets (materialId / voiceId)
-     → Products
-```
-
-<Card title="API reference" icon="code" href="/api-reference/introduction">
-  Request schemas, response fields, callbacks, and the interactive playground.
-</Card>
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/guides/quickstart">
+    Your first API call (synchronous TTS).
+  </Card>
+  <Card title="Pricing" icon="coins" href="/guides/pricing">
+    Paid access and credits.
+  </Card>
+  <Card title="API Key" icon="key" href="/guides/authentication">
+    Create a key and call the API.
+  </Card>
+  <Card title="Products overview" icon="layer-group" href="/guides/products/overview">
+    Tasks, sync vs async, and how results are delivered.
+  </Card>
+</CardGroup>

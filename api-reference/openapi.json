@@ -35,15 +35,15 @@
     },
     {
       "name": "Task management",
-      "description": "List, detail, and delete submitted tasks"
+      "description": "List, detail, and delete Open API tasks across all products. See [Products overview](/guides/products/overview) for sync vs async, task types, and integration flow."
     },
     {
       "name": "Assets - Materials",
-      "description": "CDN direct upload, multipart upload, list, and delete"
+      "description": "Upload, list, and delete API-scoped video/audio. See [Assets overview](/guides/assets/overview), [Materials](/guides/assets/materials), and [Material upload](/guides/assets/material-upload)."
     },
     {
       "name": "Assets - Voices",
-      "description": "System and cloned voices"
+      "description": "System presets and cloned voices for TTS. See [Assets overview](/guides/assets/overview) and [Voices](/guides/assets/voices). Clones come from [Voice clone](/guides/products/voice-clone)."
     }
   ],
   "paths": {
@@ -53,11 +53,11 @@
           "TTS"
         ],
         "summary": "Create TTS task (sync)",
-        "description": "Invokes vmeg-tts Lambda (RequestResponse) and returns synthesis results inline.",
+        "description": "Synchronous TTS. Synthesis results are returned in the HTTP response.",
         "operationId": "ttsCreateSync",
         "parameters": [
           {
-            "$ref": "#/components/parameters/IdempotencyKey"
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
           }
         ],
         "requestBody": {
@@ -92,9 +92,6 @@
         "summary": "Create TTS task (async)",
         "description": "Async TTS submission.",
         "operationId": "ttsCreateAsync",
-        "x-mint": {
-          "content": "<Note>\n**Response:** immediate acceptance (`taskId`, `createdAt`). Does not include synthesis results.\n\n**Callbacks → task.completed:** the [Webhook](/guides/webhooks) **request body** VMEG POSTs to your server when the task finishes. The `data` field below carries synthesis results.\n</Note>"
-        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -105,14 +102,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OpenApiTtsCreateRequest"
+                "$ref": "#/components/schemas/OpenApiTtsCreateAsyncRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Acceptance only (`taskId`, `createdAt`). Synthesis results are in the webhook callback request body under **Callbacks → task.completed**.",
+            "description": "Acceptance only (`taskId`, `createdAt`). Final results are in the [Webhook](/guides/webhooks) callback request body.",
             "content": {
               "application/json": {
                 "schema": {
@@ -126,8 +123,8 @@
           "taskCompleted": {
             "https://{yourWebhookUrl}": {
               "post": {
-                "summary": "Webhook request: task.completed",
-                "description": "HTTP **request body** of the POST VMEG sends to your [Webhook](/guides/webhooks) URL when synthesis finishes. Not part of the create-async **Response** above.",
+                "summary": "Webhook when async task finishes (`event`: `openapi-tts`)",
+                "description": "HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL when a Text to speech async task finishes. The JSON field `event` is `openapi-tts` (see [Webhook request body](/guides/webhook-request)). Not part of the create-async **Response** above. Full schema: [Create TTS (async)](/api-reference/tts/create-tts-async) → **Callbacks**.",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -164,9 +161,16 @@
         ],
         "summary": "Create text translation (sync)",
         "operationId": "translateCreateSync",
+        "x-mint": {
+          "href": "/api-reference/text-translation/create-text-translation-sync",
+          "metadata": {
+            "sidebarTitle": "Create text translation (sync)",
+            "title": "Create text translation (sync)"
+          }
+        },
         "parameters": [
           {
-            "$ref": "#/components/parameters/IdempotencyKey"
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
           }
         ],
         "requestBody": {
@@ -191,7 +195,7 @@
             }
           }
         },
-        "description": "Invokes translate Lambda (RequestResponse) and returns translated items."
+        "description": "Synchronous text translation. Translated segments are returned in the HTTP response."
       }
     },
     "/openapi/task/translate/create-async": {
@@ -203,7 +207,11 @@
         "operationId": "translateCreateAsync",
         "description": "Async text translation submission.",
         "x-mint": {
-          "content": "<Note>\n**Response:** immediate acceptance (`taskId`, `createdAt`). Does not include translated text.\n\n**Callbacks → task.completed:** the [Webhook](/guides/webhooks) **request body** VMEG POSTs to your server when the task finishes. The `data` field below carries translation results.\n</Note>"
+          "href": "/api-reference/text-translation/create-text-translation-async",
+          "metadata": {
+            "sidebarTitle": "Create text translation (async)",
+            "title": "Create text translation (async)"
+          }
         },
         "parameters": [
           {
@@ -215,14 +223,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OpenApiTranslateCreateRequest"
+                "$ref": "#/components/schemas/OpenApiTranslateCreateAsyncRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Acceptance only (`taskId`, `createdAt`). Translation results are in the webhook callback request body under **Callbacks → task.completed**.",
+            "description": "Acceptance only (`taskId`, `createdAt`). Final results are in the [Webhook](/guides/webhooks) callback request body.",
             "content": {
               "application/json": {
                 "schema": {
@@ -236,8 +244,8 @@
           "taskCompleted": {
             "https://{yourWebhookUrl}": {
               "post": {
-                "summary": "Webhook request: task.completed",
-                "description": "HTTP **request body** of the POST VMEG sends to your [Webhook](/guides/webhooks) URL when translation finishes. Not part of the create-async **Response** above.",
+                "summary": "Webhook when async task finishes (`event`: `openapi-translate`)",
+                "description": "HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL when a Text translation async task finishes. The JSON field `event` is `openapi-translate` (see [Webhook request body](/guides/webhook-request)). Not part of the create-async **Response** above. Full schema: [Create text translation (async)](/api-reference/text-translation/create-text-translation-async) → **Callbacks**.",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -276,7 +284,7 @@
         "operationId": "cloneVoiceCreateSync",
         "parameters": [
           {
-            "$ref": "#/components/parameters/IdempotencyKey"
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
           }
         ],
         "requestBody": {
@@ -301,7 +309,7 @@
             }
           }
         },
-        "description": "Invokes clone-voice Lambda; on success returns voiceId and persists to t_openapi_voice."
+        "description": "Synchronous voice clone. On success, returns `voiceId` for use in TTS."
       }
     },
     "/openapi/task/clone-voice/create-async": {
@@ -312,9 +320,6 @@
         "summary": "Create voice clone (async)",
         "operationId": "cloneVoiceCreateAsync",
         "description": "Async voice clone submission.",
-        "x-mint": {
-          "content": "<Note>\n**Response:** immediate acceptance (`taskId` only). Does not include `voiceId` or audio.\n\n**Callbacks → task.completed:** the [Webhook](/guides/webhooks) **request body** VMEG POSTs to your server when cloning finishes. The `data` field below carries clone results.\n</Note>"
-        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -325,14 +330,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateRequest"
+                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateAsyncRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Acceptance only (`taskId`). Clone results are in the webhook callback request body under **Callbacks → task.completed**.",
+            "description": "Acceptance only (`taskId`). Final results are in the [Webhook](/guides/webhooks) callback request body.",
             "content": {
               "application/json": {
                 "schema": {
@@ -346,8 +351,8 @@
           "taskCompleted": {
             "https://{yourWebhookUrl}": {
               "post": {
-                "summary": "Webhook request: task.completed",
-                "description": "HTTP **request body** of the POST VMEG sends to your [Webhook](/guides/webhooks) URL when cloning finishes. Not part of the create-async **Response** above.",
+                "summary": "Webhook when async task finishes (`event`: `openapi-clone-voice`)",
+                "description": "HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL when a Voice clone async task finishes. The JSON field `event` is `openapi-clone-voice` (see [Webhook request body](/guides/webhook-request)). Not part of the create-async **Response** above. Full schema: [Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async) → **Callbacks**.",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -386,7 +391,11 @@
         "description": "Async media translation. If request `taskType` is `at` but the material is video, the server may run `vt` instead (see `taskType` in the acceptance response).",
         "operationId": "mediaTranslationCreateAsync",
         "x-mint": {
-          "content": "<Note>\n**Response:** immediate acceptance (`taskId`, `taskType`, `status`, `createdAt`). Does not include deliverables.\n\n**Callbacks → task.completed:** the [Webhook](/guides/webhooks) **request body** VMEG POSTs to your server when localization finishes. The `data` field below carries deliverables.\n</Note>"
+          "href": "/api-reference/media-translation/create-media-translation-async",
+          "metadata": {
+            "sidebarTitle": "Create media translation (async)",
+            "title": "Create media translation (async)"
+          }
         },
         "parameters": [
           {
@@ -405,7 +414,7 @@
         },
         "responses": {
           "200": {
-            "description": "Acceptance only (`taskId`, `taskType`, `status`, `createdAt`). Deliverables are in the webhook callback request body under **Callbacks → task.completed**.",
+            "description": "Acceptance only (`taskId`, `taskType`, `status`, `createdAt`). Final results are in the [Webhook](/guides/webhooks) callback request body.",
             "content": {
               "application/json": {
                 "schema": {
@@ -419,8 +428,8 @@
           "taskCompleted": {
             "https://{yourWebhookUrl}": {
               "post": {
-                "summary": "Webhook request: task.completed",
-                "description": "HTTP **request body** of the POST VMEG sends to your [Webhook](/guides/webhooks) URL when localization finishes. Not part of the create-async **Response** above.",
+                "summary": "Webhook when async task finishes (`event`: `openapi-media-translation`)",
+                "description": "HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL when a Media translation async task finishes. The JSON field `event` is `openapi-media-translation` (see [Webhook request body](/guides/webhook-request)). Not part of the create-async **Response** above. Full schema: [Create media translation (async)](/api-reference/media-translation/create-media-translation-async) → **Callbacks**.",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -457,6 +466,13 @@
         ],
         "summary": "List tasks",
         "operationId": "tasksList",
+        "x-mint": {
+          "href": "/api-reference/tasks/list-tasks",
+          "metadata": {
+            "sidebarTitle": "List tasks",
+            "title": "List tasks"
+          }
+        },
         "parameters": [
           {
             "name": "projId",
@@ -472,14 +488,16 @@
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/OpenApiTaskType"
-            }
+            },
+            "description": "Filter by task type"
           },
           {
             "name": "status",
             "in": "query",
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Filter by task status"
           },
           {
             "name": "currentPage",
@@ -487,7 +505,8 @@
             "schema": {
               "type": "integer",
               "default": 1
-            }
+            },
+            "description": "Page number (1-based)"
           },
           {
             "name": "pageSize",
@@ -495,7 +514,8 @@
             "schema": {
               "type": "integer",
               "default": 20
-            }
+            },
+            "description": "Page size"
           }
         ],
         "responses": {
@@ -509,7 +529,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Paginated list of tasks created via product APIs (TTS, text translation, voice clone, media translation). See [Products overview](/guides/products/overview); async deliverables arrive via [Webhooks](/guides/webhooks)."
       }
     },
     "/openapi/tasks/detail": {
@@ -519,6 +540,13 @@
         ],
         "summary": "Get task detail",
         "operationId": "tasksDetail",
+        "x-mint": {
+          "href": "/api-reference/tasks/get-task-detail",
+          "metadata": {
+            "sidebarTitle": "Get task detail",
+            "title": "Get task detail"
+          }
+        },
         "parameters": [
           {
             "name": "projId",
@@ -526,7 +554,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Project ID (from API Key scope)"
           },
           {
             "name": "taskId",
@@ -534,7 +563,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Open API task ID"
           }
         ],
         "responses": {
@@ -548,7 +578,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Status and `result` for one `taskId` — use after `create-async` or when polling instead of webhooks. See [Products overview](/guides/products/overview)."
       }
     },
     "/openapi/tasks/delete": {
@@ -558,6 +589,18 @@
         ],
         "summary": "Delete task",
         "operationId": "tasksDelete",
+        "x-mint": {
+          "href": "/api-reference/tasks/delete-task",
+          "metadata": {
+            "sidebarTitle": "Delete task",
+            "title": "Delete task"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -579,7 +622,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Delete a task record. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Products overview](/guides/products/overview)."
       }
     },
     "/openapi/assets/material/upload/gen-upload-url": {
@@ -589,6 +633,18 @@
         ],
         "summary": "Generate presigned upload URL",
         "operationId": "materialGenUploadUrl",
+        "x-mint": {
+          "href": "/api-reference/assets/materials/gen-upload-url",
+          "metadata": {
+            "sidebarTitle": "Generate presigned upload URL",
+            "title": "Generate presigned upload URL"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -610,7 +666,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Single-file upload **step 1**: presigned PUT URL (and `materialId`). Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload) · [Assets overview](/guides/assets/overview)."
       }
     },
     "/openapi/assets/material/upload/complete": {
@@ -620,6 +677,18 @@
         ],
         "summary": "Complete single-file upload",
         "operationId": "materialUploadComplete",
+        "x-mint": {
+          "href": "/api-reference/assets/materials/complete-upload",
+          "metadata": {
+            "sidebarTitle": "Complete single-file upload",
+            "title": "Complete single-file upload"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -641,7 +710,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Single-file upload **step 3**: register the file after CDN PUT. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload)."
       }
     },
     "/openapi/assets/material/upload/multipart/initiate": {
@@ -651,6 +721,18 @@
         ],
         "summary": "Initiate multipart upload",
         "operationId": "materialMultipartInitiate",
+        "x-mint": {
+          "href": "/api-reference/assets/materials/multipart-initiate",
+          "metadata": {
+            "sidebarTitle": "Initiate multipart upload",
+            "title": "Initiate multipart upload"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -672,7 +754,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Multipart upload **step 1**: start upload and get `materialId` / `uploadId`. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload)."
       }
     },
     "/openapi/assets/material/upload/multipart/presign-parts": {
@@ -682,6 +765,18 @@
         ],
         "summary": "Presign multipart parts",
         "operationId": "materialMultipartPresign",
+        "x-mint": {
+          "href": "/api-reference/assets/materials/multipart-presign-parts",
+          "metadata": {
+            "sidebarTitle": "Presign multipart parts",
+            "title": "Presign multipart parts"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -703,7 +798,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Multipart upload **step 2**: presigned URL per part. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload)."
       }
     },
     "/openapi/assets/material/upload/multipart/complete": {
@@ -713,6 +809,18 @@
         ],
         "summary": "Complete multipart upload",
         "operationId": "materialMultipartComplete",
+        "x-mint": {
+          "href": "/api-reference/assets/materials/multipart-complete",
+          "metadata": {
+            "sidebarTitle": "Complete multipart upload",
+            "title": "Complete multipart upload"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -734,7 +842,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Multipart upload **final step**: commit parts and register the material. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload)."
       }
     },
     "/openapi/assets/material/upload/multipart/abort": {
@@ -744,6 +853,11 @@
         ],
         "summary": "Abort multipart upload",
         "operationId": "materialMultipartAbort",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -765,7 +879,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Cancel an in-progress multipart upload. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Material upload](/guides/assets/material-upload)."
       }
     },
     "/openapi/assets/material/list": {
@@ -775,6 +890,13 @@
         ],
         "summary": "List materials",
         "operationId": "materialList",
+        "x-mint": {
+          "href": "/api-reference/assets/materials/list-materials",
+          "metadata": {
+            "sidebarTitle": "List materials",
+            "title": "List materials"
+          }
+        },
         "parameters": [
           {
             "name": "projId",
@@ -782,7 +904,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Project ID (from API Key scope)"
           },
           {
             "name": "currentPage",
@@ -790,7 +913,8 @@
             "schema": {
               "type": "integer",
               "default": 1
-            }
+            },
+            "description": "Page number (1-based)"
           },
           {
             "name": "pageSize",
@@ -798,7 +922,8 @@
             "schema": {
               "type": "integer",
               "default": 20
-            }
+            },
+            "description": "Page size"
           }
         ],
         "responses": {
@@ -812,7 +937,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Paginated material library for your project. Use `materialId` in [Media translation](/guides/products/media-translation). See [Materials](/guides/assets/materials) and [Assets overview](/guides/assets/overview)."
       }
     },
     "/openapi/assets/material/delete": {
@@ -822,6 +948,18 @@
         ],
         "summary": "Delete material (logical)",
         "operationId": "materialDelete",
+        "x-mint": {
+          "href": "/api-reference/assets/materials/delete-material",
+          "metadata": {
+            "sidebarTitle": "Delete material (logical)",
+            "title": "Delete material (logical)"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -843,7 +981,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Logical delete of a material. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Materials](/guides/assets/materials)."
       }
     },
     "/openapi/assets/voice/basic/list": {
@@ -853,6 +992,13 @@
         ],
         "summary": "List system voices (read-only)",
         "operationId": "voiceBasicList",
+        "x-mint": {
+          "href": "/api-reference/assets/voices/list-system-voices",
+          "metadata": {
+            "sidebarTitle": "List system voices (read-only)",
+            "title": "List system voices (read-only)"
+          }
+        },
         "requestBody": {
           "content": {
             "application/json": {
@@ -873,7 +1019,8 @@
               }
             }
           }
-        }
+        },
+        "description": "List read-only system preset voices; pick a `voiceId` for [Text to speech](/guides/products/text-to-speech). See [Voices](/guides/assets/voices) and [Assets overview](/guides/assets/overview)."
       }
     },
     "/openapi/assets/voice/clone/list": {
@@ -883,6 +1030,13 @@
         ],
         "summary": "List cloned voices",
         "operationId": "voiceCloneList",
+        "x-mint": {
+          "href": "/api-reference/assets/voices/list-cloned-voices",
+          "metadata": {
+            "sidebarTitle": "List cloned voices",
+            "title": "List cloned voices"
+          }
+        },
         "requestBody": {
           "content": {
             "application/json": {
@@ -903,7 +1057,8 @@
               }
             }
           }
-        }
+        },
+        "description": "List cloned voices created by [Voice clone](/guides/products/voice-clone). See [Voices](/guides/assets/voices)."
       }
     },
     "/openapi/assets/voice/clone/update": {
@@ -913,6 +1068,18 @@
         ],
         "summary": "Rename cloned voice",
         "operationId": "voiceCloneUpdate",
+        "x-mint": {
+          "href": "/api-reference/assets/voices/rename-cloned-voice",
+          "metadata": {
+            "sidebarTitle": "Rename cloned voice",
+            "title": "Rename cloned voice"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -934,7 +1101,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Rename a cloned voice display name. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Voices](/guides/assets/voices)."
       }
     },
     "/openapi/assets/voice/clone/delete": {
@@ -944,6 +1112,18 @@
         ],
         "summary": "Delete cloned voice (logical)",
         "operationId": "voiceCloneDelete",
+        "x-mint": {
+          "href": "/api-reference/assets/voices/delete-cloned-voice",
+          "metadata": {
+            "sidebarTitle": "Delete cloned voice (logical)",
+            "title": "Delete cloned voice (logical)"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -965,33 +1145,8 @@
               }
             }
           }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "taskCallback": {
-      "post": {
-        "tags": [
-          "Webhooks"
-        ],
-        "summary": "Task completion callback (sent by VMEG to your URL)",
-        "description": "After async tasks complete, VMEG POSTs to your configured webhook URL. Per-task `data` schemas are documented under Callbacks on each `create-async` operation. Envelope signing: Webhooks guide.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OpenApiCallbackDispatchBody"
-              }
-            }
-          }
         },
-        "responses": {
-          "200": {
-            "description": "Received successfully (return 2xx)"
-          }
-        }
+        "description": "Logical delete of a cloned voice. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Voices](/guides/assets/voices)."
       }
     }
   },
@@ -1000,14 +1155,14 @@
       "apiKeyAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Project API Key: `Authorization: Bearer <api_key>`"
+        "description": "Send your API Key in the **`Authorization`** header (`Bearer <api_key>`). See [Authentication](/guides/authentication)."
       }
     },
     "parameters": {
       "IdempotencyKey": {
         "name": "X-Idempotency-Key",
         "in": "header",
-        "description": "Idempotency key (required on async create, max 64 characters)",
+        "description": "Required on mutating `POST` requests that create tasks or change persisted data (max 64 characters). See [Idempotency](/guides/idempotency).",
         "schema": {
           "type": "string",
           "maxLength": 64
@@ -1017,7 +1172,7 @@
         "name": "X-Idempotency-Key",
         "in": "header",
         "required": true,
-        "description": "Idempotency key (required, max 64 characters)",
+        "description": "Required on mutating `POST` requests that create tasks or change persisted data (max 64 characters). See [Idempotency](/guides/idempotency).",
         "schema": {
           "type": "string",
           "maxLength": 64
@@ -1053,7 +1208,8 @@
           },
           "message": {
             "type": "string",
-            "example": ""
+            "example": "",
+            "description": "Human-readable detail when `code` is not success"
           }
         },
         "required": [
@@ -1069,7 +1225,8 @@
             "type": "object",
             "properties": {
               "data": {
-                "nullable": true
+                "nullable": true,
+                "description": "Always `null` for void responses"
               }
             }
           }
@@ -1077,14 +1234,16 @@
       },
       "OpenApiTaskType": {
         "type": "string",
+        "description": "Open API task type code. For media translation create request, use `taskType` codes `vt` (video translation) or `at` (audio translation).",
         "enum": [
-          "VIDEO_TRANSLATION",
-          "AUDIO_TRANSLATION",
-          "SUBTITLE_TRANSLATION",
-          "TTS",
-          "CLONE_VOICE",
-          "TEXT_TRANSLATION"
-        ]
+          "vt",
+          "at",
+          "st",
+          "tts",
+          "cloneVoice",
+          "textTranslation"
+        ],
+        "example": "vt"
       },
       "OpenApiTtsCreateRequest": {
         "type": "object",
@@ -1094,28 +1253,39 @@
         "properties": {
           "provider": {
             "type": "string",
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
             "example": "V1",
-            "description": "Engine code: V1-V5, or MM/V2/CB/IT/CVC, etc."
+            "description": "Synthesis engine version. Use `V1` through `V5`."
           },
           "language": {
             "type": "object",
             "properties": {
               "target": {
                 "type": "string",
-                "example": "en-US"
+                "example": "en-US",
+                "description": "Target locale (BCP-47). See [Supported languages](/guides/supported-languages)."
               }
-            }
+            },
+            "description": "Target language for synthesis"
           },
           "trim": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "When `true`, trim leading and trailing silence from output audio"
           },
           "data": {
             "type": "array",
             "maxItems": 50,
             "items": {
               "$ref": "#/components/schemas/OpenApiTtsDataItem"
-            }
+            },
+            "description": "Lines to synthesize (max 50). Each item needs `text` and a [Voices](/guides/assets/voices) `voiceId` or `timbreRefAudio`"
           },
           "outputFormat": {
             "type": "string",
@@ -1124,13 +1294,25 @@
               "mp3",
               "m4a"
             ],
-            "default": "m4a"
-          },
-          "extraData": {
-            "type": "object",
-            "additionalProperties": true
+            "default": "m4a",
+            "description": "Output audio container: `wav`, `mp3`, or `m4a`"
           }
         }
+      },
+      "OpenApiTtsCreateAsyncRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiTtsCreateRequest"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "extraData": {
+                "$ref": "#/components/schemas/OpenApiExtraData"
+              }
+            }
+          }
+        ]
       },
       "OpenApiTtsDataItem": {
         "type": "object",
@@ -1139,26 +1321,30 @@
         ],
         "properties": {
           "text": {
-            "type": "string"
+            "type": "string",
+            "description": "Text to synthesize"
           },
           "voiceId": {
             "type": "string",
-            "description": "Use either voiceId or timbreRefAudio"
+            "description": "System or cloned voice ID for this line. See [Voices](/guides/assets/voices); or use `timbreRefAudio` instead"
           },
           "timbreRefAudio": {
             "type": "string",
-            "description": "Timbre reference audio S3 URL"
+            "description": "HTTPS reference audio when not using a [Voices](/guides/assets/voices) `voiceId`"
           },
           "emoWeight": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1
+            "maximum": 1,
+            "description": "Emotion strength from `emoRefAudio` / `emoPrompt` (0–1)"
           },
           "emoRefAudio": {
-            "type": "string"
+            "type": "string",
+            "description": "HTTPS URL of reference audio for emotion or delivery style"
           },
           "emoPrompt": {
-            "type": "string"
+            "type": "string",
+            "description": "Text hint for desired emotion or speaking style"
           },
           "duration": {
             "type": "number",
@@ -1171,7 +1357,7 @@
         "properties": {
           "uri": {
             "type": "string",
-            "description": "Audio URL (CDN HTTPS in API responses; S3 URI from Lambda)"
+            "description": "Synthesized audio URL (HTTPS)"
           },
           "duration": {
             "type": "number",
@@ -1185,20 +1371,21 @@
       },
       "OpenApiTtsCreateData": {
         "type": "object",
-        "description": "Synchronous create response and task.completed webhook `data` for TTS",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API task ID"
           },
           "results": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiTtsResultItem"
             },
-            "description": "Present on synchronous create and in the task.completed webhook `data`"
+            "description": "Synthesis result items"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "Task creation time (ISO 8601)"
           }
         }
       },
@@ -1210,7 +1397,8 @@
         ],
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API task ID; use for polling or correlation"
           },
           "createdAt": {
             "type": "string",
@@ -1242,7 +1430,12 @@
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiTtsCreateData"
+                "description": "Synthesis results returned in the synchronous HTTP response.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiTtsCreateData"
+                  }
+                ]
               }
             }
           }
@@ -1264,30 +1457,45 @@
             "properties": {
               "source": {
                 "type": "string",
-                "example": "zh-CN"
+                "example": "zh-CN",
+                "description": "Source locale (BCP-47). See [Supported languages](/guides/supported-languages)."
               },
               "target": {
                 "type": "string",
-                "example": "en-US"
+                "example": "en-US",
+                "description": "Target locale (BCP-47). See [Supported languages](/guides/supported-languages)."
               }
-            }
+            },
+            "description": "Source and target locales for translation"
           },
           "segments": {
             "type": "array",
             "maxItems": 50,
             "items": {
               "$ref": "#/components/schemas/OpenApiTranslateSegment"
-            }
+            },
+            "description": "Text segments to translate (max 50)"
           },
           "options": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "extraData": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/OpenApiTranslateOptions",
+            "description": "Optional translation settings (context, scene, glossary, prompt)"
           }
         }
+      },
+      "OpenApiTranslateCreateAsyncRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiTranslateCreateRequest"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "extraData": {
+                "$ref": "#/components/schemas/OpenApiExtraData"
+              }
+            }
+          }
+        ]
       },
       "OpenApiTranslateSegment": {
         "type": "object",
@@ -1296,29 +1504,113 @@
         ],
         "properties": {
           "text": {
-            "type": "string"
+            "type": "string",
+            "description": "Source text for this segment"
           },
           "gender": {
             "type": "string",
-            "example": "male"
+            "example": "male",
+            "description": "Speaker gender hint for this segment (e.g. `male`, `female`)"
           },
           "speaker": {
-            "type": "string"
+            "type": "string",
+            "example": "Speaker A",
+            "description": "Speaker label for multi-speaker content; helps keep pronouns and voice consistent across segments"
           },
           "locale": {
-            "type": "string"
+            "type": "string",
+            "example": "zh-CN",
+            "description": "Per-segment locale when it differs from `language.source`"
           },
           "context": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Per-segment neighbor lines. Takes priority over `options.sourceContext`; useful with `provided_only` when segments are not time-contiguous"
           },
           "start": {
-            "type": "number"
+            "type": "number",
+            "description": "Start time in seconds on the source timeline. Pair with `end` to mark this segment's time span for neighbor context"
           },
           "end": {
-            "type": "number"
+            "type": "number",
+            "description": "End time in seconds on the source timeline. Must be provided with `start` and be greater than or equal to `start`"
+          }
+        }
+      },
+      "OpenApiTranslateOptions": {
+        "type": "object",
+        "description": "Optional translation settings",
+        "properties": {
+          "sourceContext": {
+            "$ref": "#/components/schemas/OpenApiTranslateSourceContext",
+            "description": "How to use surrounding source text. Defaults to `independent` when omitted"
+          },
+          "sceneCustomized": {
+            "$ref": "#/components/schemas/OpenApiTranslateSceneCustomized",
+            "description": "Scene and delivery style hints"
+          },
+          "glossary": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Term glossary map (source term → preferred translation)"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Custom prompt appended to the translation instruction"
+          },
+          "skipMissingTranslationCheck": {
+            "type": "boolean",
+            "default": false,
+            "description": "When `true`, skip validation that every segment received a translation"
+          }
+        }
+      },
+      "OpenApiTranslateSourceContext": {
+        "type": "object",
+        "description": "Global strategy for using neighbor context. Lower priority than per-segment `context`",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "independent",
+              "provided_only",
+              "neighbor"
+            ],
+            "default": "independent",
+            "description": "`independent` — translate each segment alone. `provided_only` — use neighbor text supplied in segment `context`. `neighbor` — auto-pick neighbors from ordered segments using `contextWindow`"
+          },
+          "contextWindow": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 5,
+            "description": "Only when `mode` is `neighbor`: number of segments before and after the current one to include (1–20)"
+          }
+        }
+      },
+      "OpenApiTranslateSceneCustomized": {
+        "type": "object",
+        "description": "Scene-specific translation behavior",
+        "properties": {
+          "scene": {
+            "type": "string",
+            "enum": [
+              "video",
+              "audio",
+              "subtitle",
+              "voiceover"
+            ],
+            "default": "video",
+            "description": "Content type hint for the translation model"
+          },
+          "allowStutter": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether disfluencies (stutters) in the source may be preserved in the translation"
           }
         }
       },
@@ -1337,20 +1629,21 @@
       },
       "OpenApiTranslateCreateData": {
         "type": "object",
-        "description": "Synchronous create response and task.completed webhook `data` for text translation",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API task ID"
           },
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiTranslateResultItem"
             },
-            "description": "Aligned with request segments by index; present on synchronous create and in the task.completed webhook `data`"
+            "description": "Translated segments, aligned with request segments by index"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "Task creation time (ISO 8601)"
           }
         }
       },
@@ -1363,7 +1656,12 @@
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+                "description": "Translated segments returned in the synchronous HTTP response.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+                  }
+                ]
               }
             }
           }
@@ -1373,11 +1671,20 @@
         "type": "object",
         "properties": {
           "voiceName": {
-            "type": "string"
+            "type": "string",
+            "description": "Display name for the cloned voice in your asset library"
           },
           "provider": {
             "type": "string",
-            "example": "V1"
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
+            "example": "V1",
+            "description": "Clone engine version. Use `V1` through `V5`."
           },
           "refAudio": {
             "type": "string",
@@ -1385,29 +1692,44 @@
           },
           "sampleLanguage": {
             "type": "string",
-            "example": "zh-CN"
+            "example": "zh-CN",
+            "description": "Sample language locale (BCP-47). See [Supported languages](/guides/supported-languages)."
           },
           "sampleText": {
-            "type": "string"
-          },
-          "extraData": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "string",
+            "description": "Optional transcript of `refAudio` to improve clone quality"
           }
         }
       },
+      "OpenApiCloneVoiceCreateAsyncRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCloneVoiceCreateRequest"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "extraData": {
+                "$ref": "#/components/schemas/OpenApiExtraData"
+              }
+            }
+          }
+        ]
+      },
       "OpenApiCloneVoiceCreateData": {
         "type": "object",
-        "description": "Synchronous create response and task.completed webhook `data` for voice clone (voiceId and audio populated on completion)",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API task ID (async clone)"
           },
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "New cloned voice ID for TTS. See [Voices](/guides/assets/voices)"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "Task creation time (ISO 8601)"
           }
         }
       },
@@ -1420,11 +1742,247 @@
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+                "description": "Clone result returned in the synchronous HTTP response.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+                  }
+                ]
               }
             }
           }
         ]
+      },
+      "OpenApiMediaTranslationSource": {
+        "type": "object",
+        "required": [
+          "materialId"
+        ],
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Input material ID. See [Materials](/guides/assets/materials) (from [Material upload](/guides/assets/material-upload))"
+          }
+        },
+        "description": "Input material for this translation job"
+      },
+      "OpenApiMediaTranslationLanguage": {
+        "type": "object",
+        "required": [
+          "target"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "Source locale (BCP-47) or `auto` for detection. See [Supported languages](/guides/supported-languages)."
+          },
+          "target": {
+            "type": "string",
+            "example": "zh-CN",
+            "description": "Target locale (BCP-47). See [Supported languages](/guides/supported-languages)."
+          }
+        },
+        "description": "Source and target locales for localization"
+      },
+      "OpenApiMediaTranslationVoiceClone": {
+        "type": "object",
+        "description": "Dubbing / voice clone settings (required inside `options`)",
+        "properties": {
+          "style": {
+            "type": "string",
+            "enum": [
+              "emotional",
+              "consistent"
+            ],
+            "default": "emotional",
+            "description": "Clone style: `emotional` (expressive) or `consistent` (accent-consistent)"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "role",
+              "mix",
+              "sentence"
+            ],
+            "example": "role",
+            "description": "How voices are assigned across speakers"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
+            "description": "Clone engine version (`V1`–`V5`), same mapping as [TTS](/api-reference/tts/create-tts-sync)"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranscribe": {
+        "type": "object",
+        "description": "Automatic speech recognition (ASR) settings",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "fast",
+              "normal"
+            ],
+            "default": "fast",
+            "description": "ASR speed vs accuracy trade-off"
+          },
+          "type": {
+            "type": "string",
+            "default": "default",
+            "description": "ASR profile (product default when omitted)"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranslate": {
+        "type": "object",
+        "description": "Text translation step inside the media pipeline",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "default",
+              "machine"
+            ],
+            "default": "default",
+            "description": "`default` — standard localization. `machine` — machine translation mode"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Custom prompt for the translation step"
+          }
+        }
+      },
+      "OpenApiMediaTranslationSeparation": {
+        "type": "object",
+        "description": "Source separation (vocals vs background)",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "Separation mode (e.g. `auto`)"
+          }
+        }
+      },
+      "OpenApiMediaTranslationEnhance": {
+        "type": "object",
+        "description": "Audio enhancement options",
+        "properties": {
+          "tts": {
+            "type": "boolean",
+            "description": "Enable TTS output enhancement"
+          }
+        }
+      },
+      "OpenApiMediaTranslationDynamicVideoLength": {
+        "type": "object",
+        "description": "Dynamic video length adjustment (video translation)",
+        "properties": {
+          "enable": {
+            "type": "boolean",
+            "description": "Enable dynamic length matching between source and dubbed video"
+          }
+        }
+      },
+      "OpenApiMediaTranslationLipsync": {
+        "type": "object",
+        "description": "Lip sync (video translation only; may add credits). See [Pricing](/guides/pricing)",
+        "properties": {
+          "enable": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable lip sync on the output video"
+          }
+        }
+      },
+      "OpenApiMediaTranslationSelectedVoice": {
+        "type": "object",
+        "description": "A preset or cloned voice selected for dubbing",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "example": "Microsoft",
+            "description": "Voice provider identifier"
+          },
+          "voice_id": {
+            "type": "string",
+            "description": "Voice ID from [List system voices](/api-reference/assets/voices/list-system-voices) or your cloned voices"
+          }
+        }
+      },
+      "OpenApiMediaTranslationVoiceSpeakers": {
+        "type": "object",
+        "description": "Speaker and timbre configuration for dubbing",
+        "properties": {
+          "selected_voices_list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationSelectedVoice"
+            },
+            "description": "Explicit voice picks per speaker slot"
+          },
+          "speaker_num": {
+            "type": "string",
+            "example": "auto",
+            "description": "Number of speakers to detect (`auto` or a numeric string)"
+          },
+          "timbre_method": {
+            "type": "string",
+            "enum": [
+              "clone",
+              "smart"
+            ],
+            "example": "clone",
+            "description": "`clone` — clone from source audio. `smart` — smart voice matching"
+          }
+        }
+      },
+      "OpenApiMediaTranslationOptions": {
+        "type": "object",
+        "required": [
+          "voiceClone"
+        ],
+        "description": "Pipeline options: dubbing, ASR, translation, separation, lip sync, and captions",
+        "properties": {
+          "voiceClone": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceClone"
+          },
+          "transcribe": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranscribe"
+          },
+          "translate": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranslate"
+          },
+          "separation": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationSeparation"
+          },
+          "enhance": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationEnhance"
+          },
+          "dynamicVideoLength": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationDynamicVideoLength"
+          },
+          "lipsync": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync"
+          },
+          "text": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Title and subtitle styling / burn-in configuration (product-specific object)"
+          },
+          "voice_speakers": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceSpeakers"
+          }
+        }
       },
       "OpenApiMediaTranslationCreateRequest": {
         "type": "object",
@@ -1441,42 +1999,26 @@
               "vt",
               "at"
             ],
-            "description": "vt = video translation, at = audio translation"
+            "description": "vt = video translation, at = audio translation. If `at` is used with a video material, the job may run as video translation"
           },
           "source": {
-            "type": "object",
-            "required": [
-              "materialId"
-            ],
-            "properties": {
-              "materialId": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/components/schemas/OpenApiMediaTranslationSource"
           },
           "language": {
-            "type": "object",
-            "properties": {
-              "source": {
-                "type": "string"
-              },
-              "target": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage"
           },
           "options": {
-            "type": "object",
-            "description": "Dubbing, ASR, translation, etc. See media translation guide"
-          },
-          "output": {
-            "type": "object"
+            "$ref": "#/components/schemas/OpenApiMediaTranslationOptions"
           },
           "extraData": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/OpenApiExtraData"
           }
         }
+      },
+      "OpenApiExtraData": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Optional client metadata on async submit; echoed in the completion webhook (`extraData` in callback body). Not used on sync create endpoints."
       },
       "OpenApiMediaTranslationAcceptedData": {
         "type": "object",
@@ -1486,7 +2028,8 @@
         ],
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API task ID"
           },
           "taskType": {
             "$ref": "#/components/schemas/OpenApiTaskType",
@@ -1499,10 +2042,12 @@
               "failed",
               "finished"
             ],
-            "example": "running"
+            "example": "running",
+            "description": "Task status after acceptance (`running`, `failed`, or `finished`)"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "Task creation time (ISO 8601)"
           }
         }
       },
@@ -1523,10 +2068,11 @@
       },
       "OpenApiMediaTranslationCallbackData": {
         "type": "object",
-        "description": "Webhook `data` for media translation task.completed",
+        "description": "Task payload inside webhook `data` when `event` is `openapi-media-translation`. `data.result` with CDN deliverables.",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API task ID"
           },
           "taskType": {
             "$ref": "#/components/schemas/OpenApiTaskType"
@@ -1537,12 +2083,467 @@
               "running",
               "failed",
               "finished"
-            ]
+            ],
+            "description": "Final task status (`finished` or `failed`)"
           },
           "result": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationCustomerResult",
+            "description": "Fixed, sanitized customer result (CDN URLs + trimmed fields)."
+          }
+        }
+      },
+      "OpenApiMediaTranslationCustomerResult": {
+        "type": "object",
+        "description": "Media translation customer result (fixed shape). CDN URLs are HTTPS.",
+        "properties": {
+          "compress": {
             "type": "object",
-            "description": "Sanitized deliverables (CDN URLs and selected fields); structure varies by taskType",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationMediaFile"
+            },
+            "description": "Transcode/compress outputs keyed by profile (e.g. `480p`, `360p`)."
+          },
+          "asrScripts": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationAsrScripts"
+          },
+          "audioSeparation": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationAudioSeparation"
+          },
+          "speechEnhance": {
+            "type": "string",
+            "description": "Enhanced speech audio URL (HTTPS)."
+          },
+          "translatedScripts": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranslatedScripts"
+          },
+          "voiceClone": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceCloneResult"
+          },
+          "voiceMatch": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceMatch"
+            },
+            "description": "Speaker-to-voice matching list."
+          },
+          "tts": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTtsResult"
+          },
+          "alignment": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationAlignment"
+          },
+          "project": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationProject"
+          },
+          "build": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationBuild"
+          }
+        }
+      },
+      "OpenApiMediaTranslationMediaFile": {
+        "type": "object",
+        "description": "Media file (video/audio/image).",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "CDN URL (HTTPS)."
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration in seconds."
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "description": "File size in bytes."
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationResolution"
+          },
+          "fps": {
+            "type": "integer",
+            "description": "Frames per second (when applicable)."
+          }
+        }
+      },
+      "OpenApiMediaTranslationResolution": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAsrScripts": {
+        "type": "object",
+        "description": "ASR script summary (sanitized).",
+        "properties": {
+          "asrResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationAsrResultLine"
+            }
+          },
+          "monoAudio": {
+            "type": "string",
+            "description": "Mono audio URL (HTTPS)."
+          },
+          "speakerNum": {
+            "type": "integer",
+            "description": "Detected speaker count."
+          },
+          "language": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguagePair"
+          },
+          "category": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ctcEnabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OpenApiMediaTranslationLanguagePair": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAsrResultLine": {
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "type": "string"
+          },
+          "start": {
+            "type": "number"
+          },
+          "end": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "emotion": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "age": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "textWithBracket": {
+            "type": "string"
+          },
+          "textWithBreak": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAudioSeparation": {
+        "type": "object",
+        "description": "Separated audio stems (CDN URLs).",
+        "properties": {
+          "sfxUrl": {
+            "type": "string"
+          },
+          "musicUrl": {
+            "type": "string"
+          },
+          "vocalUrl": {
+            "type": "string"
+          },
+          "speechUrl": {
+            "type": "string"
+          },
+          "otherUrl": {
+            "type": "string"
+          },
+          "mnsUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranslatedScripts": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationTranslatedScriptLine"
+            }
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranslatedScriptLine": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "number"
+          },
+          "end": {
+            "type": "number"
+          },
+          "sourceText": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "speaker": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "voiceId": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "speakerDisplayName": {
+            "type": "string"
+          },
+          "emotion": {
+            "type": "string"
+          },
+          "age": {
+            "type": "string"
+          },
+          "sourceSyllable": {
+            "type": "integer"
+          },
+          "targetSyllable": {
+            "type": "integer"
+          },
+          "mode": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationVoiceCloneResult": {
+        "type": "object",
+        "description": "Voice clone configuration (input + echoed output).",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "refAudio": {
+            "type": "string",
+            "description": "Reference audio URL (HTTPS)."
+          }
+        }
+      },
+      "OpenApiMediaTranslationVoiceMatch": {
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "type": "string"
+          },
+          "voiceId": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "exampleLanguage": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "audio": {
+            "type": "string",
+            "description": "Example audio URL (HTTPS)."
+          }
+        }
+      },
+      "OpenApiMediaTranslationTtsResult": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationTtsLine"
+            }
+          }
+        }
+      },
+      "OpenApiMediaTranslationTtsLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "ttsFile": {
+            "type": "string",
+            "description": "TTS audio URL (HTTPS)."
+          },
+          "provider": {
+            "type": "string"
+          },
+          "voiceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cloneMode": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAlignment": {
+        "type": "object",
+        "properties": {
+          "audio": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationAlignmentTrack"
+            }
+          },
+          "subtitle": {
+            "type": "array",
+            "items": {}
+          },
+          "video": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationAlignmentTrack"
+            }
+          }
+        }
+      },
+      "OpenApiMediaTranslationAlignmentTrack": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "Track file URL (HTTPS)."
+          },
+          "templateId": {
+            "type": "integer"
+          },
+          "tracksTimes": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "timeRange": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "volumeScale": {
+            "type": "number"
+          }
+        }
+      },
+      "OpenApiMediaTranslationProject": {
+        "type": "object",
+        "description": "Project artifacts (algorithm-defined objects).",
+        "properties": {
+          "project": {
+            "type": "object",
             "additionalProperties": true
+          },
+          "projectWoBgm": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "OpenApiMediaTranslationBuild": {
+        "type": "object",
+        "description": "Final build outputs (CDN URLs).",
+        "properties": {
+          "video": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationMediaFile"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationImageFile"
+            }
+          },
+          "audio": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationAudioFile"
+          }
+        }
+      },
+      "OpenApiMediaTranslationImageFile": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationResolution"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAudioFile": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fps": {
+            "type": "integer"
           }
         }
       },
@@ -1550,19 +2551,23 @@
         "type": "object",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API task ID"
           },
           "taskType": {
             "$ref": "#/components/schemas/OpenApiTaskType"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "description": "Task status"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "Task creation time (ISO 8601)"
           },
           "updatedAt": {
-            "type": "string"
+            "type": "string",
+            "description": "Last update time (ISO 8601)"
           }
         }
       },
@@ -1573,11 +2578,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiTaskSummary"
-            }
+            },
+            "description": "Tasks on this page"
           },
           "total": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Total tasks matching the query"
           }
         }
       },
@@ -1585,13 +2592,15 @@
         "type": "object",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API task ID"
           },
           "taskType": {
             "$ref": "#/components/schemas/OpenApiTaskType"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "description": "Current task status"
           },
           "result": {
             "type": "object",
@@ -1638,10 +2647,12 @@
         ],
         "properties": {
           "projId": {
-            "type": "string"
+            "type": "string",
+            "description": "Project ID (from API Key scope)"
           },
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Task ID to delete (logical delete)"
           }
         }
       },
@@ -1676,13 +2687,16 @@
             "description": "Upload target S3 URI from gen-upload-url or multipart initiate"
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "Original file name including extension"
           },
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "Material ID from presigned upload. See [Materials](/guides/assets/materials)"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "MD5 hash of the uploaded file (must match upload request)"
           }
         }
       },
@@ -1690,16 +2704,20 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "Material ID from multipart initiate. See [Materials](/guides/assets/materials)"
           },
           "uploadId": {
-            "type": "string"
+            "type": "string",
+            "description": "Multipart upload session ID from initiate"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "MD5 hash of the full file"
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "Original file name including extension"
           },
           "partNumbers": {
             "type": "array",
@@ -1714,7 +2732,8 @@
         "type": "object",
         "properties": {
           "partNumber": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Part index (1-based)"
           },
           "eTag": {
             "type": "string",
@@ -1726,22 +2745,27 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "Material ID from multipart initiate. See [Materials](/guides/assets/materials)"
           },
           "uploadId": {
-            "type": "string"
+            "type": "string",
+            "description": "Multipart upload session ID"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "MD5 hash of the full file"
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "Original file name including extension"
           },
           "parts": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiMaterialMultipartCompletePart"
-            }
+            },
+            "description": "Uploaded parts with `partNumber` and `eTag` from each PUT"
           }
         }
       },
@@ -1749,16 +2773,20 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "Material ID from multipart initiate. See [Materials](/guides/assets/materials)"
           },
           "uploadId": {
-            "type": "string"
+            "type": "string",
+            "description": "Multipart upload session ID to abort"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "MD5 hash of the file (must match initiate)"
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "Original file name including extension"
           }
         }
       },
@@ -1766,7 +2794,8 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "Material ID to delete. See [Materials](/guides/assets/materials)"
           }
         }
       },
@@ -1774,7 +2803,8 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "Material ID. See [Materials](/guides/assets/materials)"
           },
           "category": {
             "type": "string",
@@ -1799,13 +2829,16 @@
           },
           "resolution": {
             "type": "string",
-            "example": "1920x1080"
+            "example": "1920x1080",
+            "description": "Video resolution when applicable (e.g. `1920x1080`)"
           },
           "mimeType": {
-            "type": "string"
+            "type": "string",
+            "description": "MIME type of the main file"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "MD5 hash of the main file"
           },
           "filesize": {
             "type": "integer",
@@ -1818,10 +2851,12 @@
             "description": "Duration in milliseconds"
           },
           "createTime": {
-            "type": "string"
+            "type": "string",
+            "description": "Registration time (ISO 8601)"
           },
           "updateTime": {
-            "type": "string"
+            "type": "string",
+            "description": "Last update time (ISO 8601)"
           }
         }
       },
@@ -1841,7 +2876,8 @@
             "description": "Upload target S3 URI; pass to complete"
           },
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "Material ID for this upload. See [Materials](/guides/assets/materials)"
           }
         }
       },
@@ -1849,17 +2885,21 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "Material ID for this multipart upload. See [Materials](/guides/assets/materials)"
           },
           "s3Uri": {
-            "type": "string"
+            "type": "string",
+            "description": "Upload target URI; pass to complete-upload"
           },
           "uploadId": {
-            "type": "string"
+            "type": "string",
+            "description": "Multipart upload session ID"
           },
           "expiresInSeconds": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Seconds until presigned URLs expire"
           },
           "recommendedPartSize": {
             "type": "integer",
@@ -1872,7 +2912,8 @@
         "type": "object",
         "properties": {
           "partNumber": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Part index (1-based)"
           },
           "url": {
             "type": "string",
@@ -1887,11 +2928,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignPartUrl"
-            }
+            },
+            "description": "Presigned PUT URLs for requested parts"
           },
           "expiresInSeconds": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Seconds until these URLs expire"
           }
         }
       },
@@ -1902,11 +2945,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiMaterialDto"
-            }
+            },
+            "description": "Materials on this page"
           },
           "total": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Total materials matching the query"
           }
         }
       },
@@ -1989,80 +3034,103 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "System preset voice ID. See [Voices](/guides/assets/voices)"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Internal voice name"
           },
           "localName": {
-            "type": "string"
+            "type": "string",
+            "description": "Localized voice name"
           },
           "displayName": {
-            "type": "string"
+            "type": "string",
+            "description": "Display name in the voice picker"
           },
           "locale": {
             "type": "string",
-            "example": "en-US"
+            "example": "en-US",
+            "description": "Primary locale (BCP-47) for this preset"
           },
           "localeName": {
-            "type": "string"
+            "type": "string",
+            "description": "Human-readable locale label"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "Engine version tag for this preset (`V1`–`V5`)"
           },
           "gender": {
-            "type": "string"
+            "type": "string",
+            "description": "Gender label (e.g. male, female)"
           },
           "style": {
-            "type": "string"
+            "type": "string",
+            "description": "Speaking style tag"
           },
           "rolePlay": {
-            "type": "string"
+            "type": "string",
+            "description": "Role-play or character tag"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Marketing or catalog description"
           },
           "personalities": {
-            "type": "string"
+            "type": "string",
+            "description": "Comma-separated personality tags"
           },
           "personalityList": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Personality tags as a list"
           },
           "scenarios": {
-            "type": "string"
+            "type": "string",
+            "description": "Recommended use-case tags"
           },
           "scenarioList": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Use-case tags as a list"
           },
           "isHd": {
-            "type": "integer"
+            "type": "integer",
+            "description": "`1` if this is an HD voice"
           },
           "isPreferred": {
-            "type": "integer"
+            "type": "integer",
+            "description": "`1` if marked preferred in the catalog"
           },
           "score": {
-            "type": "number"
+            "type": "number",
+            "description": "Ranking score in list results"
           },
           "model": {
-            "type": "string"
+            "type": "string",
+            "description": "Catalog model tag (not a request `provider` value)"
           },
           "cover": {
-            "type": "string"
+            "type": "string",
+            "description": "Cover image URL"
           },
           "audio": {
-            "type": "string"
+            "type": "string",
+            "description": "Sample preview audio URL"
           },
           "createTime": {
-            "type": "string"
+            "type": "string",
+            "description": "Record creation time"
           },
           "updateTime": {
-            "type": "string"
+            "type": "string",
+            "description": "Record last update time"
           }
         }
       },
@@ -2070,31 +3138,40 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "Cloned voice ID. See [Voices](/guides/assets/voices)"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Display name of the clone"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "Engine version used when cloning (`V1`–`V5`)"
           },
           "exampleLanguage": {
-            "type": "string"
+            "type": "string",
+            "description": "Sample language locale (BCP-47)"
           },
           "content": {
-            "type": "string"
+            "type": "string",
+            "description": "Sample text or transcript associated with the clone"
           },
           "audio": {
-            "type": "string"
+            "type": "string",
+            "description": "Sample or reference audio URL"
           },
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Voice clone task ID that created this voice"
           },
           "createTime": {
-            "type": "string"
+            "type": "string",
+            "description": "Record creation time"
           },
           "updateTime": {
-            "type": "string"
+            "type": "string",
+            "description": "Record last update time"
           }
         }
       },
@@ -2105,11 +3182,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiBasicVoiceDto"
-            }
+            },
+            "description": "Voices on this page"
           },
           "total": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Total voices matching filters"
           }
         }
       },
@@ -2120,11 +3199,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiCloneVoiceDto"
-            }
+            },
+            "description": "Cloned voices on this page"
           },
           "total": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Total clones matching filters"
           }
         }
       },
@@ -2132,28 +3213,33 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "Filter by preset `voiceId`. See [Voices](/guides/assets/voices)"
           },
           "searchName": {
-            "type": "string"
+            "type": "string",
+            "description": "Search by display or local name"
           },
           "locale": {
             "type": "string",
-            "example": "en-US"
+            "example": "en-US",
+            "description": "Filter by locale (BCP-47). See [Supported languages](/guides/supported-languages)"
           },
           "age": {
             "type": "string",
             "description": "young / adult / senior"
           },
           "gender": {
-            "type": "string"
+            "type": "string",
+            "description": "Filter by gender"
           },
           "quality": {
             "type": "string",
             "description": "any / high"
           },
           "category": {
-            "type": "string"
+            "type": "string",
+            "description": "Filter by voice category"
           },
           "emotionPrompt": {
             "type": "string",
@@ -2163,15 +3249,18 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Pin these preset `voiceId` values to the top. See [Voices](/guides/assets/voices)"
           },
           "currentPage": {
             "type": "integer",
-            "default": 1
+            "default": 1,
+            "description": "Page number (1-based)"
           },
           "pageSize": {
             "type": "integer",
-            "default": 10
+            "default": 10,
+            "description": "Page size"
           },
           "orderBy": {
             "type": "string",
@@ -2179,7 +3268,8 @@
           },
           "order": {
             "type": "string",
-            "default": "desc"
+            "default": "desc",
+            "description": "Sort direction: `asc` or `desc`"
           }
         }
       },
@@ -2202,24 +3292,29 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "Filter by cloned `voiceId`. See [Voices](/guides/assets/voices)"
           },
           "voiceIds": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Filter by cloned voice IDs. See [Voices](/guides/assets/voices)"
           },
           "searchName": {
-            "type": "string"
+            "type": "string",
+            "description": "Search by clone name"
           },
           "currentPage": {
             "type": "integer",
-            "default": 1
+            "default": 1,
+            "description": "Page number (1-based)"
           },
           "pageSize": {
             "type": "integer",
-            "default": 10
+            "default": 10,
+            "description": "Page size"
           },
           "orderBy": {
             "type": "string",
@@ -2227,7 +3322,8 @@
           },
           "order": {
             "type": "string",
-            "default": "desc"
+            "default": "desc",
+            "description": "Sort direction: `asc` or `desc`"
           }
         }
       },
@@ -2250,10 +3346,12 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "Cloned `voiceId` to rename. See [Voices](/guides/assets/voices)"
           },
           "voiceName": {
-            "type": "string"
+            "type": "string",
+            "description": "New display name"
           }
         }
       },
@@ -2261,13 +3359,14 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "Cloned `voiceId` to delete. See [Voices](/guides/assets/voices)"
           }
         }
       },
       "OpenApiCallbackEnvelope": {
         "type": "object",
-        "description": "Shared fields of the HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL on `task.completed`. Configure the URL, signing headers, and retries in the Webhooks guide.",
+        "description": "Shared top-level fields of the webhook POST body when an async task finishes. See [Webhook request body](/guides/webhook-request) for the `event` field and per-product values.",
         "properties": {
           "code": {
             "type": "integer",
@@ -2276,24 +3375,33 @@
           },
           "version": {
             "type": "string",
-            "example": "1.0"
+            "example": "1.0",
+            "description": "Callback protocol version (currently `1.0`)"
           },
           "event": {
             "type": "string",
-            "example": "task.completed"
+            "enum": [
+              "openapi-tts",
+              "openapi-translate",
+              "openapi-clone-voice",
+              "openapi-media-translation"
+            ],
+            "example": "openapi-tts",
+            "description": "Which product completed. Route your handler by this value: `openapi-tts` (TTS), `openapi-translate` (text translation), `openapi-clone-voice` (voice clone), `openapi-media-translation` (media translation). Listed in [Webhook request body](/guides/webhook-request)."
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Detail when `code` is not success"
           },
           "extraData": {
             "type": "object",
-            "description": "Echo of extraData / memo from the submit request",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "Echo of `extraData` from your async submit request"
           }
         }
       },
       "OpenApiTtsTaskCompletedCallback": {
-        "description": "Complete webhook callback **request body** for TTS `task.completed`. See [Webhooks](/guides/webhooks) for URL configuration and signature verification.",
+        "description": "Webhook callback **request body** for Text to speech when `event` is `openapi-tts`. `data` includes synthesis `results` and `taskId`. See [Webhook request body](/guides/webhook-request) and [Create TTS (async)](/api-reference/tts/create-tts-async) → **Callbacks**.",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -2305,14 +3413,19 @@
             ],
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiTtsCreateData"
+                "description": "Product-specific results when `event` is `openapi-tts`. `data` includes synthesis `results` and `taskId`.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiTtsCreateData"
+                  }
+                ]
               }
             }
           }
         ]
       },
       "OpenApiTranslateTaskCompletedCallback": {
-        "description": "Complete webhook callback **request body** for text translation `task.completed`. See [Webhooks](/guides/webhooks) for URL configuration and signature verification.",
+        "description": "Webhook callback **request body** for Text translation when `event` is `openapi-translate`. `data.items` holds translated segments aligned with your request. See [Webhook request body](/guides/webhook-request) and [Create text translation (async)](/api-reference/text-translation/create-text-translation-async) → **Callbacks**.",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -2324,14 +3437,19 @@
             ],
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+                "description": "Product-specific results when `event` is `openapi-translate`. `data.items` holds translated segments aligned with your request.",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+                  }
+                ]
               }
             }
           }
         ]
       },
       "OpenApiCloneVoiceTaskCompletedCallback": {
-        "description": "Complete webhook callback **request body** for voice clone `task.completed`. See [Webhooks](/guides/webhooks) for URL configuration and signature verification.",
+        "description": "Webhook callback **request body** for Voice clone when `event` is `openapi-clone-voice`. `data.voiceId` (and related fields when successful). See [Webhook request body](/guides/webhook-request) and [Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async) → **Callbacks**.",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -2343,14 +3461,19 @@
             ],
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+                "description": "Product-specific results when `event` is `openapi-clone-voice`. `data.voiceId` (and related fields when successful).",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+                  }
+                ]
               }
             }
           }
         ]
       },
       "OpenApiMediaTranslationTaskCompletedCallback": {
-        "description": "Complete webhook callback **request body** for media translation `task.completed`. See [Webhooks](/guides/webhooks) for URL configuration and signature verification.",
+        "description": "Webhook callback **request body** for Media translation when `event` is `openapi-media-translation`. `data.result` with CDN deliverables. See [Webhook request body](/guides/webhook-request) and [Create media translation (async)](/api-reference/media-translation/create-media-translation-async) → **Callbacks**.",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -2365,23 +3488,6 @@
                 "$ref": "#/components/schemas/OpenApiMediaTranslationCallbackData"
               }
             }
-          }
-        ]
-      },
-      "OpenApiCallbackDispatchBody": {
-        "description": "Union of all task.completed payloads (see per-endpoint Callbacks on create-async operations)",
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/OpenApiTtsTaskCompletedCallback"
-          },
-          {
-            "$ref": "#/components/schemas/OpenApiTranslateTaskCompletedCallback"
-          },
-          {
-            "$ref": "#/components/schemas/OpenApiCloneVoiceTaskCompletedCallback"
-          },
-          {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationTaskCompletedCallback"
           }
         ]
       }

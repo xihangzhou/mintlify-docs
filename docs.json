@@ -36,9 +36,14 @@
                 ]
               },
               {
-                "group": "Auth",
+                "group": "Authentication",
                 "icon": "key",
-                "pages": ["guides/authentication", "guides/idempotency"]
+                "pages": ["guides/authentication"]
+              },
+              {
+                "group": "Idempotency",
+                "icon": "rotate",
+                "pages": ["guides/idempotency"]
               },
               {
                 "group": "Webhooks",
@@ -62,9 +67,9 @@
                 "pages": [
                   "guides/products/overview",
                   "guides/products/media-translation",
-                  "guides/products/text-translation",
                   "guides/products/text-to-speech",
-                  "guides/products/voice-clone"
+                  "guides/products/voice-clone",
+                  "guides/products/text-translation"
                 ]
               },
               {
@@ -106,7 +111,12 @@
               {
                 "group": "鉴权",
                 "icon": "key",
-                "pages": ["zh/guides/authentication", "zh/guides/idempotency"]
+                "pages": ["zh/guides/authentication"]
+              },
+              {
+                "group": "幂等",
+                "icon": "rotate",
+                "pages": ["zh/guides/idempotency"]
               },
               {
                 "group": "Webhooks",
@@ -130,9 +140,9 @@
                 "pages": [
                   "zh/guides/products/overview",
                   "zh/guides/products/media-translation",
-                  "zh/guides/products/text-translation",
                   "zh/guides/products/text-to-speech",
-                  "zh/guides/products/voice-clone"
+                  "zh/guides/products/voice-clone",
+                  "zh/guides/products/text-translation"
                 ]
               },
               {
@@ -158,7 +168,7 @@
         "navbar": {
           "links": [
             {
-              "label": "控制台",
+              "label": "VMEG 网站",
               "href": "https://www.vmeg.ai/home"
             },
             {
@@ -183,7 +193,7 @@
   "navbar": {
     "links": [
       {
-        "label": "Dashboard",
+        "label": "VMEG",
         "href": "https://www.vmeg.ai/home"
       },
       {

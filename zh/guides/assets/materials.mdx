@@ -8,7 +8,7 @@ icon: "photo-film"
 
 **素材**是已注册的音视频文件，供 Open API 任务引用。上传完成后 API 返回 **`materialId`**，用于 [音视频翻译](/zh/guides/products/media-translation) 等场景。
 
-素材为 **API 专用资产**，不会出现在 Dashboard **我的素材** 中。见 [资产概览](/zh/guides/assets/overview)。
+素材仅属 API 侧，与 vmeg.ai 网页上传的文件不互通。见 [资产概览](/zh/guides/assets/overview)。
 
 ## 素材类型
 
@@ -19,7 +19,7 @@ icon: "photo-film"
 | `video` | 视频翻译（`taskType: vt`） |
 | `audio` | 音频翻译（`taskType: at`） |
 
-其他字段包括 `name`、CDN 地址（`addressUrl`、`thumbnailUrl`、`audioUrl`）、`mimeType`、`duration`、`filesize` 等。完整 schema：**API 参考 → OpenApiMaterialDto**。
+其他字段包括 `name`、CDN 地址（`addressUrl`、`thumbnailUrl`、`audioUrl`）、`mimeType`、`duration`、`filesize` 等。完整字段说明见 [列表查询](/api-reference/assets/materials/list-materials) 的响应体。
 
 ## 生命周期
 
@@ -36,4 +36,4 @@ icon: "photo-film"
 
 上传流程见 [素材上传](/zh/guides/assets/material-upload)。
 
-请求与响应字段：**API 参考 → Assets - Materials**。
+请求与响应字段：[列表查询](/api-reference/assets/materials/list-materials)、[删除素材](/api-reference/assets/materials/delete-material)，以及 [API 参考](/zh/api-reference/introduction) 中 **Assets - Materials** 下的其他接口。

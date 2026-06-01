@@ -9,8 +9,8 @@
 - Pages are MDX with YAML frontmatter; site config in `docs.json`
 - OpenAPI spec: `api-reference/openapi.json` (English); `zh/api-reference/openapi.json` (Chinese, generated)
 - Run `mint dev` to preview; `mint validate` and `mint broken-links` before publishing
-- **Guides nav:** Get started (`guides/introduction`) → Auth → Idempotency → Webhooks → Assets → Products → Limits. Each tab must use **`groups` only** (no mixing tab-level `pages` + `groups`). Do **not** add root `index.mdx` when using multiple tabs — use `docs.json` redirects (`/` → `/guides/introduction`) only; a root `index` breaks tab/sidebar sync. Do **not** use `navigation.global.anchors` together with `navigation.languages[].tabs` (sidebar may show only anchors). Put external links (Dashboard) in `navbar.links`. Prefer `"openapi": "path/to/openapi.json"` on the Endpoints group; avoid tab-level `openapi` + manual duplicate endpoint lists. Guides explain workflows; API reference holds exact schemas.
-- **Supported languages:** `node scripts/generate-supported-languages.mjs` (reads `vmeg-web-mono` `translated-language.ts`)
+- **Guides nav:** Get started (`guides/introduction`) → Authentication (`guides/authentication`, page title **API Key**) → Idempotency → Webhooks → Assets → Products → Limits. Each tab must use **`groups` only** (no mixing tab-level `pages` + `groups`). Do **not** add root `index.mdx` when using multiple tabs — use `docs.json` redirects (`/` → `/guides/introduction`) only; a root `index` breaks tab/sidebar sync. Do **not** use `navigation.global.anchors` together with `navigation.languages[].tabs` (sidebar may show only anchors). Put external links to vmeg.ai (navbar label **VMEG** / **VMEG 网站**, not "Dashboard") in `navbar.links`. Prefer `"openapi": "path/to/openapi.json"` on the Endpoints group; avoid tab-level `openapi` + manual duplicate endpoint lists. Guides explain workflows; API reference holds exact schemas.
+- **Supported languages:** `node scripts/generate-supported-languages.mjs` regenerates `guides/supported-languages.mdx` and `zh/guides/supported-languages.mdx` from `vmeg-web-mono` — do not put script paths or regen instructions in user-facing guide pages
 
 ## Language
 
@@ -91,8 +91,10 @@ Update `snippets/product-urls.jsx` (JSON.parse string only, no raw `{` object li
 
 - Second person ("you"); active voice
 - Sentence case for headings
-- Bold for UI: **API Key**, **Dashboard**
+- Bold for UI: **API Key**, **API Configuration**
+- Do **not** use "Dashboard" in user-facing guides; say **vmeg.ai**, **the website**, or **网页端** (ZH) when contrasting with the Open API
 - Code formatting for paths, headers, and commands
+- **Multi-language examples:** When a guide includes implementation samples (not one-off `curl` snippets), use a Mintlify `<CodeGroup>` with **Node.js**, **Python**, and **Java** in that order. Shell-only HTTP examples may stay as `bash` alone.
 
 ## Product URLs (www.vmeg.ai)
 
@@ -100,7 +102,7 @@ Centralize web app links in `snippets/product-urls.jsx`.
 
 | Purpose | URL |
 |---------|-----|
-| Dashboard | `https://www.vmeg.ai/home` |
+| vmeg.ai home (navbar) | `https://www.vmeg.ai/home` |
 | API Configuration (API Key + Webhook) | `https://www.vmeg.ai/open-api-setting` |
 | Get API Key (CTA, with login redirect) | `https://www.vmeg.ai/signIn?redirect=%2Fopen-api-setting` |
 | Help center | `https://www.vmeg.ai/help-center/` |

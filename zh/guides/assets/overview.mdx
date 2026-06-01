@@ -11,23 +11,9 @@ Open API **资产**是你在任务请求中通过 ID 引用的资源。两类：
 | **素材（Material）** | `materialId` | 上传的音视频输入（主要用于媒体翻译） |
 | **音色（Voice）** | `voiceId` | 系统预设或克隆音色，用于 TTS |
 
-## 与 Dashboard 隔离
+## 仅 API 侧存储
 
-Open API 的 **资产与任务** 使用独立存储，与 Dashboard UI **不互通**。
-
-### 资产
-
-API 资产 **不与** Dashboard **我的素材** 互通：
-
-- 通过 `/openapi/assets/material/**` 上传的素材 **不会** 出现在 Dashboard 文件库。
-- API 声音克隆产生的音色 **不会** 出现在 Dashboard 音色管理。
-- 反之亦然 — Dashboard 上传的内容 **不能** 作为 Open API 的 `materialId` 使用。
-
-请仅通过 Open API 资产接口管理素材与音色。
-
-### 任务
-
-通过 Open API 创建的任务 **不会** 出现在 Dashboard **我的任务** 中；Dashboard 任务也无法用 `/openapi/tasks/**` 查询。见 [产品概览](/zh/guides/products/overview)。
+通过 API 上传或创建的素材、音色，与你在 [vmeg.ai](https://www.vmeg.ai/home) 网页上管理的文件、音色不互通，不能混用 `materialId` / `voiceId`。请仅用 `/openapi/assets/**` 管理。API 任务同样独立，见 [产品概览](/zh/guides/products/overview)。
 
 ## 典型流程
 
@@ -51,4 +37,4 @@ API 资产 **不与** Dashboard **我的素材** 互通：
   </Card>
 </CardGroup>
 
-字段 schema：**API 参考 → Assets - Materials** 与 **Assets - Voices**。
+请求与响应字段：见 [API 参考](/zh/api-reference/introduction) 中 [Assets - Materials](/api-reference/assets/materials/list-materials) 与 [Assets - Voices](/api-reference/assets/voices/list-system-voices)。

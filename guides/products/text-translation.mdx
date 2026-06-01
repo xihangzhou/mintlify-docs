@@ -11,9 +11,9 @@ Translate one or more text segments between locales supported in [Supported lang
 | Mode | Endpoint | Results |
 |------|----------|---------|
 | Sync | `POST /openapi/task/translate/create` | `data.items` in HTTP response |
-| Async | `POST /openapi/task/translate/create-async` | [Webhook](/guides/webhook-request) on `task.completed` |
+| Async | `POST /openapi/task/translate/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-translate` (`data.items`) |
 
-Async requires [`X-Idempotency-Key`](/guides/idempotency) and a configured webhook.
+Every `create` and `create-async` call requires [`X-Idempotency-Key`](/guides/idempotency). Async also needs a configured [Webhook](/guides/webhooks).
 
 ## Workflow (sync)
 
@@ -38,7 +38,7 @@ Translated text appears in `data.items`, aligned with input segments.
 
 ## Request details
 
-Segment structure, provider options, and `extraData`: **API reference → Text translation** operations.
+For segment structure and `options`, see [Create text translation (sync)](/api-reference/text-translation/create-text-translation-sync). For async-only `extraData` (echoed in webhooks), see [Create text translation (async)](/api-reference/text-translation/create-text-translation-async).
 
 ## Related
 

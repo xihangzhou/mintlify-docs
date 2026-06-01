@@ -1,22 +1,24 @@
 ---
 title: "Webhook request body"
-description: "Callback envelope and task result overview"
+description: "Callback envelope, event field, and per-product payloads"
 icon: "file-code"
 ---
 
-## Delivery
+## What it is
 
-VMEG POSTs JSON to your configured URL when a task completes. Signing headers are documented in [Webhook verification](/guides/webhook-verification).
+When an **async** task finishes, VMEG sends an **HTTP POST** with a JSON body to your configured webhook URL. Verify `X-Timestamp` and `X-Signature` as described in [Webhook verification](/guides/webhook-verification).
 
-## Envelope
+The `create-async` HTTP response only confirms acceptance (`taskId`, etc.). **Deliverables arrive in this webhook body**, not in that response.
 
-Every callback shares this top-level shape:
+## Common envelope
+
+All async completion callbacks share the same top-level shape. Product-specific fields live in `data`:
 
 ```json
 {
   "code": 200,
   "version": "1.0",
-  "event": "task.completed",
+  "event": "openapi-tts",
   "message": "",
   "extraData": { "your": "memo" },
   "data": { }
@@ -25,47 +27,45 @@ Every callback shares this top-level shape:
 
 | Field | Meaning |
 |-------|---------|
-| `code` | Outcome of this callback (`200` = success for the task) |
-| `version` | Protocol version (currently `1.0`) |
-| `event` | Event name, e.g. `task.completed` |
+| `code` | Outcome of this delivery (`200` = task succeeded) |
+| `version` | Callback protocol version (currently `1.0`) |
+| `event` | **Which product finished** — see table below |
 | `message` | Detail when `code` is not success |
-| `extraData` | Echo of `extraData` from your submit request |
-| `data` | **Task-specific results** — see below |
+| `extraData` | Echo of `extraData` from your async submit request (if you sent it) |
+| `data` | Task results; schema depends on `event` |
 
-For exact types and required fields, use **API reference → Webhooks → taskCallback** or the **Callbacks** section on the matching `create-async` endpoint.
+## The `event` field
 
-## `data` by product
+`event` is a **string in the JSON body** that tells your server which Open API product completed. Use it to route parsing logic (switch on `event`, then read `data`).
 
-The `data` object differs by task type. Guides summarize what to expect; schemas are authoritative in API reference.
+<Note>
+  In [API reference](/api-reference/introduction), the **Callbacks** block on each `create-async` page is named for OpenAPI tooling. The value you must implement against is the **`event` field inside the POST JSON**, not that section title.
+</Note>
 
-### TTS
+### Event values by product
 
-Contains `taskId`, `results` (CDN audio URLs), and `createdAt`. Same shape as synchronous TTS create.
+| Product | `event` value | Async create endpoint | What to read in `data` |
+|---------|---------------|----------------------|-------------------------|
+| [Text to speech](/guides/products/text-to-speech) | `openapi-tts` | [Create TTS (async)](/api-reference/tts/create-tts-async) | Synthesis `results`, `taskId` — see **Callbacks** on that page |
+| [Text translation](/guides/products/text-translation) | `openapi-translate` | [Create text translation (async)](/api-reference/text-translation/create-text-translation-async) | `items` (translated segments), `taskId` |
+| [Voice clone](/guides/products/voice-clone) | `openapi-clone-voice` | [Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async) | `voiceId` and related clone fields when successful |
+| [Media translation](/guides/products/media-translation) | `openapi-media-translation` | [Create media translation (async)](/api-reference/media-translation/create-media-translation-async) | `result` with CDN URLs for deliverables |
 
-→ [Create TTS (async)](/api-reference/introduction) — **Callbacks → task.completed**
+Today, async task completion uses **only** these four `event` values. If we add more callback types later, they will be documented here and in the matching **Callbacks** schema.
 
-### Text translation
+### Example handler routing
 
-Contains `taskId`, `items` (translated segments aligned with your request), and `createdAt`.
+```text
+POST /your-webhook
+  → verify signature
+  → parse JSON
+  → switch (event):
+       openapi-tts              → parse TTS data
+       openapi-translate        → parse translation data
+       openapi-clone-voice      → parse clone data
+       openapi-media-translation → parse media result
+```
 
-→ [Create text translation (async)](/api-reference/introduction) — **Callbacks → task.completed**
+## Per-endpoint request schema
 
-### Voice clone
-
-Contains `taskId`, `voiceId` (saved to your clone library), sample audio URL, and related metadata.
-
-→ [Create voice clone (async)](/api-reference/introduction) — **Callbacks → task.completed**
-
-### Media translation
-
-Contains `taskId`, `taskType`, `status`, and `result` (sanitized deliverable URLs).
-
-→ [Create media translation (async)](/api-reference/introduction) — **Callbacks → task.completed**
-
-## Not in the webhook
-
-Fields returned immediately from `create-async` (acceptance only) are documented under **Response** on each async create endpoint — for example `taskId`, `createdAt`, or `status: "running"`. They are **not** repeated in the webhook envelope's `data` until the task finishes.
-
-## Fallback: poll task detail
-
-If a webhook is delayed or missed during integration, call `GET /openapi/tasks/detail` with the `taskId`. See [Products overview](/guides/products/overview).
+Field-level types and nested properties are defined under **Callbacks** on each `create-async` operation in API reference (linked in the table above).

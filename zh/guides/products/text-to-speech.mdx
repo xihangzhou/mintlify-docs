@@ -11,9 +11,9 @@ icon: "volume-high"
 | 模式 | 接口 | 结果 |
 |------|------|------|
 | 同步 | `POST /openapi/task/tts/create` | HTTP `data.results[].uri`（CDN 音频） |
-| 异步 | `POST /openapi/task/tts/create-async` | [Webhook](/zh/guides/webhook-request) 中 `results` |
+| 异步 | `POST /openapi/task/tts/create-async` | [Webhook](/zh/guides/webhook-request)，`event` 为 `openapi-tts`（`data.results`） |
 
-异步须 [`X-Idempotency-Key`](/zh/guides/idempotency) 与 Webhook。
+`create` 与 `create-async` 均须 [`X-Idempotency-Key`](/zh/guides/idempotency)；异步还须配置 [Webhook](/zh/guides/webhooks)。
 
 ## 流程（同步）
 
@@ -21,7 +21,7 @@ icon: "volume-high"
 
 主要字段：
 
-- `provider` — 引擎代码（如 `V1`）
+- `provider` — 合成引擎版本（`V1`–`V5`）
 - `language.target` — [支持的语言](/zh/guides/supported-languages)
 - `data[]` — 最多 50 条；每条需 `text` 与 `voiceId`（或 `timbreRefAudio`）
 - `outputFormat` — `wav`、`mp3`、`m4a`

@@ -9,7 +9,7 @@ import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
 ## 前置条件
 
 - 已付费账户且有余量 — 见 [价格](/zh/guides/pricing)
-- 已创建 **API Key** — 见 [鉴权](/zh/guides/authentication) 与 <a href={apiKeyUrl}>API 配置</a>（未登录请先 <a href={productUrls.signInToApiSettings}>登录</a>）
+- 已创建 **API Key** — 见 [API 密钥](/zh/guides/authentication) 与 <a href={apiKeyUrl}>API 配置</a>（未登录请先 <a href={productUrls.signInToApiSettings}>登录</a>）
 
 ## 同步 TTS 示例
 
@@ -36,9 +36,9 @@ curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
 
 ## 异步任务
 
-调用 `create-async` 时：
+异步任务：
 
-1. 携带 [`X-Idempotency-Key`](/zh/guides/idempotency)（必填，最长 64 字符）。
+1. 每个 `POST` 都须携带 [`X-Idempotency-Key`](/zh/guides/idempotency)（必填，最长 64 字符）。
 2. 在 <a href={apiKeyUrl}>API 配置</a> 设置 [Webhook](/zh/guides/webhooks)。
 3. HTTP 响应仅确认受理（`taskId` 等）— 成品在 [Webhook 请求体](/zh/guides/webhook-request) 中送达。
 
@@ -47,7 +47,7 @@ curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
 ## 下一步
 
 <CardGroup cols={2}>
-  <Card title="鉴权" icon="key" href="/zh/guides/authentication">
+  <Card title="API 密钥" icon="key" href="/zh/guides/authentication">
     API Key 与 Bearer 头
   </Card>
   <Card title="文本转语音" icon="volume-high" href="/zh/guides/products/text-to-speech">

@@ -6,16 +6,15 @@ icon: "layer-group"
 
 每个 Open API **产品**都会创建带 `taskId` 的 **任务**。无论产品类型，都可通过统一任务接口查询与管理。
 
-## 与 Dashboard 任务隔离
+## 与网站任务分离
 
-Open API 任务与 Dashboard 内提交的任务 **分开管理**，规则与 [API 资产](/zh/guides/assets/overview) 一致。
+Open API 任务与在 [vmeg.ai](https://www.vmeg.ai/home) 网页上发起的任务 **不是同一套**，规则与 [API 资产](/zh/guides/assets/overview) 一致。
 
-- 通过 `/openapi/task/**` 创建、或用 `/openapi/tasks/**` 查询的任务 **不会** 出现在 Dashboard **我的任务** 中。
-- Dashboard 中的任务 **不能** 通过 Open API 的任务列表或详情接口查看。
-- 请仅使用 Open API 任务接口（及 Webhook）跟踪 API 侧任务。
+- 请仅用 `/openapi/tasks/**` 与 Webhook 跟踪 API 任务。
+- 网站上的任务记录不包含 API 任务；网站任务也不能用 Open API 查询。
 
 <Info>
-  **API 范围** = API Key 绑定的 `projId` 及其下的 Open API 任务与资产；Dashboard UI 使用另一套任务与资产存储。
+  API Key 只对应 **Open API 的任务与资产**；网页端操作使用另一套存储。
 </Info>
 
 ## 任务 API
@@ -26,39 +25,41 @@ Open API 任务与 Dashboard 内提交的任务 **分开管理**，规则与 [AP
 | 详情 | `GET /openapi/tasks/detail` |
 | 删除 | `POST /openapi/tasks/delete` |
 
-Schema：**API 参考 → Tasks**。
+请求与响应字段：[任务列表](/api-reference/tasks/list-tasks)、[任务详情](/api-reference/tasks/get-task-detail)、[删除任务](/api-reference/tasks/delete-task)。
 
 ## 同步与异步
 
 | 产品 | 同步创建 | 异步创建 | 如何拿结果 |
 |------|----------|----------|------------|
-| [文本转语音](/zh/guides/products/text-to-speech) | `POST .../tts/create` | `POST .../tts/create-async` | 同步：HTTP `data.results`；异步：[Webhook](/zh/guides/webhooks) |
-| [文本翻译](/zh/guides/products/text-translation) | `POST .../translate/create` | `POST .../translate/create-async` | 同步：`data.items`；异步：Webhook |
-| [声音克隆](/zh/guides/products/voice-clone) | `POST .../clone-voice/create` | `POST .../clone-voice/create-async` | 同步：响应中 `voiceId`；异步：Webhook |
 | [音视频翻译](/zh/guides/products/media-translation) | — | `POST .../media-translation/create-async` | 仅异步：Webhook |
+| [文本转语音](/zh/guides/products/text-to-speech) | `POST .../tts/create` | `POST .../tts/create-async` | 同步：HTTP `data.results`；异步：[Webhook](/zh/guides/webhooks) |
+| [声音克隆](/zh/guides/products/voice-clone) | `POST .../clone-voice/create` | `POST .../clone-voice/create-async` | 同步：响应中 `voiceId`；异步：Webhook |
+| [文本翻译](/zh/guides/products/text-translation) | `POST .../translate/create` | `POST .../translate/create-async` | 同步：`data.items`；异步：Webhook |
 
 ### 异步集成清单
 
-1. [鉴权](/zh/guides/authentication) — API Key
-2. [幂等](/zh/guides/idempotency) — 每次 `create-async` 携带 `X-Idempotency-Key`
-3. [Webhooks](/zh/guides/webhooks) — URL + Secret；快速返回 2xx
+1. [API 密钥](/zh/guides/authentication)
+2. [幂等](/zh/guides/idempotency) — 每个 `POST` 都携带 `X-Idempotency-Key`
+3. [Webhooks](/zh/guides/webhooks) — 在 API 配置填写 URL，复制自动生成的 Secret；快速返回 2xx
 4. 调用 `create-async` → 保存 `taskId`
-5. 处理 `task.completed` 的 [Webhook 请求体](/zh/guides/webhook-request)
+5. 处理 [Webhook 请求体](/zh/guides/webhook-request) — 先看 `event`（`openapi-tts`、`openapi-translate` 等），再解析 `data`
 
 ### 同步集成
 
-调用非 async 的 `create`，从 HTTP `data` 读取结果。同步接口可选携带幂等头，但不强制。
+调用非 async 的 `create` 时携带 `X-Idempotency-Key`，从 HTTP `data` 读取结果。
 
 ## 任务类型
 
+`taskType` 使用短代码：
+
 | `taskType` | 产品 |
 |------------|------|
-| `TTS` | 文本转语音 |
-| `TEXT_TRANSLATION` | 文本翻译 |
-| `CLONE_VOICE` | 声音克隆 |
-| `VIDEO_TRANSLATION` / `AUDIO_TRANSLATION` | 音视频翻译 |
+| `vt` / `at` | 音视频翻译 |
+| `tts` | 文本转语音 |
+| `cloneVoice` | 声音克隆 |
+| `textTranslation` | 文本翻译 |
 
-枚举中有 `SUBTITLE_TRANSLATION`，当前 **未** 作为独立 Open API 产品开放。
+枚举中有 `st`（字幕翻译），当前 **未** 作为独立 Open API 产品开放。
 
 ## 产品指南
 
@@ -66,13 +67,13 @@ Schema：**API 参考 → Tasks**。
   <Card title="音视频翻译" icon="film" href="/zh/guides/products/media-translation">
     视频/音频本地化
   </Card>
-  <Card title="文本翻译" icon="language" href="/zh/guides/products/text-translation">
-    片段翻译
-  </Card>
   <Card title="文本转语音" icon="volume-high" href="/zh/guides/products/text-to-speech">
     语音合成
   </Card>
   <Card title="声音克隆" icon="microphone" href="/zh/guides/products/voice-clone">
     从样本克隆
+  </Card>
+  <Card title="文本翻译" icon="language" href="/zh/guides/products/text-translation">
+    片段翻译
   </Card>
 </CardGroup>

@@ -4,27 +4,45 @@ description: "使用 HMAC-SHA256 验证回调"
 icon: "shield-check"
 ---
 
-## 请求头
+import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
-| 请求头 | 说明 |
-|--------|------|
-| `X-Timestamp` | Unix 时间戳，**毫秒**（字符串） |
-| `X-Signature` | 小写 hex：`HMAC-SHA256(webhook_secret, X-Timestamp + rawBody)` |
+## 为什么需要校验
 
-**Webhook Secret** 在 [API 配置](https://www.vmeg.ai/open-api-setting) 设置（与 API Key 同一页）。
+Webhook URL 对外可访问。未校验时，伪造的完成回调可能被当成真实结果。请先验签，再解析 JSON。
 
-## 校验步骤
+## 签名方案
 
-1. 若 `X-Timestamp` 与服务器时间相差超过 **300 秒**，拒绝（防重放）。
-2. 使用 **原始请求体字节** 计算 — 不要重新序列化 JSON。
-3. 计算 `expected = HMAC_SHA256(secret, X-Timestamp + rawBody)`。
-4. 用 **常数时间** 比较 `expected` 与 `X-Signature`。
+VMEG 对每次 Webhook POST 使用 **HMAC-SHA256** 签名：
 
-校验失败返回 `401` 或 `403`，仍须快速响应。
+1. 在 <a href={apiKeyUrl}>API 配置</a> 填写 **Webhook URL** 后，页面会生成 **Webhook Secret**，复制到服务端保存，回调请求中无需也不应带上 Secret。
+2. 任务完成时，VMEG 向该 URL POST JSON，并附带：
+   - **`X-Timestamp`** — 发送时刻的 Unix **毫秒**时间戳（字符串）
+   - **`X-Signature`** — `HMAC-SHA256(secret, X-Timestamp + rawBody)` 的小写 hex
+3. 服务端用同一 Secret 重算 HMAC，与 `X-Signature` 一致则视为 VMEG 发出且 body 未被篡改。若时间戳与服务器时间相差超过 **300 秒**，应拒绝（防重放）。
+
+## 如何校验
+
+1. 从请求头读取 `X-Timestamp`、`X-Signature`。
+2. 超出 300 秒时间窗则拒绝。
+3. 对**原始请求体字节**计算 HMAC，不要重新序列化 JSON。
+4. 与 `X-Signature` 做**常数时间**比较。
+
+失败返回 `401` 或 `403`，仍须快速响应。
 
 ## 示例
 
 <CodeGroup>
+
+```javascript Node.js
+import crypto from "node:crypto";
+
+function verify(secret, timestamp, rawBody, signature) {
+  if (Math.abs(Number(timestamp) - Date.now()) > 300_000) return false;
+  const message = Buffer.concat([Buffer.from(timestamp), rawBody]);
+  const expected = crypto.createHmac("sha256", secret).update(message).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+```
 
 ```python Python
 import hmac
@@ -39,14 +57,43 @@ def verify(secret: str, timestamp: str, raw_body: bytes, signature: str) -> bool
     return hmac.compare_digest(expected, signature)
 ```
 
-```javascript Node.js
-import crypto from "node:crypto";
+```java Java
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
-function verify(secret, timestamp, rawBody, signature) {
-  if (Math.abs(Number(timestamp) - Date.now()) > 300_000) return false;
-  const message = Buffer.concat([Buffer.from(timestamp), rawBody]);
-  const expected = crypto.createHmac("sha256", secret).update(message).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+public final class WebhookVerifier {
+  private static final long MAX_SKEW_MS = 300_000L;
+
+  public static boolean verify(String secret, String timestamp, byte[] rawBody, String signature)
+      throws Exception {
+    long ts = Long.parseLong(timestamp);
+    if (Math.abs(ts - System.currentTimeMillis()) > MAX_SKEW_MS) {
+      return false;
+    }
+
+    Mac mac = Mac.getInstance("HmacSHA256");
+    mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+
+    byte[] tsBytes = timestamp.getBytes(StandardCharsets.UTF_8);
+    byte[] message = new byte[tsBytes.length + rawBody.length];
+    System.arraycopy(tsBytes, 0, message, 0, tsBytes.length);
+    System.arraycopy(rawBody, 0, message, tsBytes.length, rawBody.length);
+
+    String expected = toHex(mac.doFinal(message));
+    return MessageDigest.isEqual(
+        expected.getBytes(StandardCharsets.UTF_8),
+        signature.toLowerCase().getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static String toHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder(bytes.length * 2);
+    for (byte b : bytes) {
+      sb.append(String.format("%02x", b));
+    }
+    return sb.toString();
+  }
 }
 ```
 
@@ -54,8 +101,8 @@ function verify(secret, timestamp, rawBody, signature) {
 
 ## 校验通过后
 
-1. 解析 JSON，处理 `event`（通常为 `task.completed`）。
-2. 按 [Webhook 请求体](/zh/guides/webhook-request) 处理 `data`。
+1. 解析 JSON，按 `event` 路由（`openapi-tts`、`openapi-translate`、`openapi-clone-voice`、`openapi-media-translation`）— 见 [Webhook 请求体](/zh/guides/webhook-request)。
+2. 按 [API 参考](/zh/api-reference/introduction) 中对应 `create-async` 接口 **Callbacks** 的请求 schema 处理 `data`。
 3. **立即返回 2xx**；耗时逻辑入队。
 
-配置与接收要求见 [Webhooks](/zh/guides/webhooks)。
+URL 配置与接收要求见 [Webhooks](/zh/guides/webhooks)。

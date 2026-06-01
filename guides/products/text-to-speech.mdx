@@ -11,9 +11,9 @@ Convert text to speech using a system or cloned **voiceId**. See [Voices](/guide
 | Mode | Endpoint | Results |
 |------|----------|---------|
 | Sync | `POST /openapi/task/tts/create` | `data.results[].uri` (CDN audio) in HTTP response |
-| Async | `POST /openapi/task/tts/create-async` | [Webhook](/guides/webhook-request) with `results` on `task.completed` |
+| Async | `POST /openapi/task/tts/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-tts` (`data.results`) |
 
-Async requires [`X-Idempotency-Key`](/guides/idempotency) and a configured webhook.
+Every `create` and `create-async` call requires [`X-Idempotency-Key`](/guides/idempotency). Async also needs a configured [Webhook](/guides/webhooks).
 
 ## Workflow (sync)
 
@@ -21,7 +21,7 @@ See [Quickstart](/guides/quickstart) for a complete curl example.
 
 Key request fields:
 
-- `provider` — engine code (e.g. `V1`)
+- `provider` — synthesis engine version (`V1`–`V5`)
 - `language.target` — locale from [Supported languages](/guides/supported-languages)
 - `data[]` — up to 50 lines; each needs `text` and `voiceId` (or `timbreRefAudio`)
 - `outputFormat` — `wav`, `mp3`, or `m4a`

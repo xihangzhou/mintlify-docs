@@ -11,23 +11,9 @@ Open API **assets** are resources you create and reference by ID in task request
 | **Material** | `materialId` | Uploaded video or audio used as input (mainly media translation) |
 | **Voice** | `voiceId` | System preset or cloned voice used in TTS |
 
-## Isolated from Dashboard
+## API-only storage
 
-Open API **assets and tasks** use a separate store from the Dashboard UI — they are not interchangeable.
-
-### Assets
-
-API assets are **not shared** with Dashboard **My assets**:
-
-- Materials uploaded via `/openapi/assets/material/**` do **not** appear in the Dashboard file library.
-- Cloned voices created via the API do **not** appear in Dashboard voice management UI.
-- The reverse is also true — Dashboard uploads are **not** available as Open API `materialId` values.
-
-Manage API materials and voices only through Open API asset endpoints.
-
-### Tasks
-
-Tasks created via the Open API **do not** appear in Dashboard **My tasks**, and Dashboard tasks are **not** listed by `/openapi/tasks/**`. See [Products overview](/guides/products/overview#isolated-from-dashboard-tasks).
+Materials and voices created through the API are not shared with files or voices you manage on [vmeg.ai](https://www.vmeg.ai/home). Use `/openapi/assets/**` only. API tasks are separate too; see [Products overview](/guides/products/overview).
 
 ## Typical flow
 
@@ -51,4 +37,4 @@ List basic voices → voiceId → TTS task
   </Card>
 </CardGroup>
 
-Field schemas: **API reference → Assets - Materials** and **Assets - Voices**.
+Request and response fields: [Assets - Materials](/api-reference/assets/materials/list-materials) and [Assets - Voices](/api-reference/assets/voices/list-system-voices) in API reference.

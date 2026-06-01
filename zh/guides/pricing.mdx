@@ -10,17 +10,48 @@ import { productUrls } from "/snippets/product-urls.jsx";
 
 Open API 面向 **付费用户**。免费账户访问 <a href={productUrls.apiConfiguration}>API 配置</a> 时会提示升级。
 
-## 积分
+<Info>
+  **套餐价格与积分包** — 多少钱能买多少积分、订阅档位、充值方式，请到产品 <a href={productUrls.pricing}>价格页（Pricing）</a> 查看。本文只说明 **Open API 各产品如何消耗积分**。
+</Info>
 
-- 通过付费方案购买或获得 **积分**。
-- 每次 API 任务（TTS、翻译、声音克隆、音视频翻译）在受理并处理时会 **消耗积分**。
-- **Dashboard 非 API 功能**的积分消耗遵循产品内单独规则，与 Open API 调用 **不是同一套消耗明细**。
+## Open API 积分消耗
+
+积分在计费任务 **受理并处理** 时扣除（同步 `create` 或异步 `create-async`）。下表为 Open API 产品；计费规则与 VMEG 产品内一致，除非另有说明。
+
+| Open API 产品 | 接口 | 计费单位 | 积分 |
+|---------------|------|----------|------|
+| [音视频翻译](/zh/guides/products/media-translation) | `POST /openapi/task/media-translation/create-async` | 按源媒资时长（分钟） | **60 积分 / 分钟** |
+| [文本转语音](/zh/guides/products/text-to-speech) | `POST /openapi/task/tts/create`、`.../create-async` | 按输入文本字符数 | **约 2 积分 / 200 字符** |
+| [声音克隆](/zh/guides/products/voice-clone) | `POST /openapi/task/clone-voice/create`、`.../create-async` | 每次克隆成功 | **10 积分 / 个音色** |
+| [文本翻译](/zh/guides/products/text-translation) | `POST /openapi/task/translate/create`、`.../create-async` | 按计费分钟（由请求体量/时长规则换算） | **1 积分 / 分钟** |
+
+### 按分钟计费的产品
+
+**音视频翻译**、**文本翻译** 不足 1 分钟按 **1 分钟** 计费，与产品内其他按分钟功能一致。
+
+**音视频翻译**（`vt` / `at`）按上传素材时长计费。流水线可选项（例如 **唇形同步**）会在基础翻译费用上 **叠加** 积分 — 例如唇形同步常见为在翻译基础上 **+60 积分 / 分钟**。实际扣费取决于 `create` 请求中的 `options`；余额不足会在受理阶段返回 `402`。
+
+**文本转语音** 按字符数累计（约每 200 字符 2 积分；不足部分按产品规则取整）。
+
+**声音克隆** 按每次成功的克隆任务扣费（同步或异步），后续 TTS 使用该 `voiceId` 不再重复收取克隆费用。
+
+### 本节未单独列出的消耗
+
+Open API **素材** 相关接口（上传 URL、列表、删除等）与 **音色** 管理接口为任务支撑能力，不在上表中单列「按次扣费」。
+
+## 积分不足
 
 积分不足时返回 `402 Payment Required`，见 [错误码](/zh/guides/errors)。
 
-## 充值
+## 网站与 API 计费
 
-前往产品内 <a href={productUrls.pricing}>价格页</a>，或 <a href={productUrls.contactUs}>联系我们</a> 了解企业方案。
+账户 **积分余额** 共用；网页端与 Open API 的消耗可能在明细中分开展示。API 任务请用 [任务 API](/zh/guides/products/overview) 跟踪，不会出现在 vmeg.ai 网页上的任务记录里。
+
+## 购买积分与查看价格
+
+要了解 **订阅价格**、**各档位包含多少积分**、**如何充值**，请前往产品 <a href={productUrls.pricing}>价格页（Pricing）</a>。企业方案请 <a href={productUrls.contactUs}>联系我们</a>。
+
+更多示例（唇形同步合计、字幕类费率等）见 <a href={`${productUrls.helpCenter}credit-pricing`}>帮助中心 — 积分如何计费</a>。
 
 ## 相关
 

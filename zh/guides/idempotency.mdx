@@ -1,37 +1,22 @@
 ---
-title: "幂等"
-description: "用 X-Idempotency-Key 防止重复的异步任务提交"
+title: "幂等键"
+description: "在 POST 请求上通过 X-Idempotency-Key 防止重复提交"
 icon: "rotate"
 ---
 
-## 为什么需要幂等
+## 为什么需要
 
-异步 `create-async` 接口会创建**计费、耗时**的任务（TTS、翻译、声音克隆、媒体翻译等）。线上常见情况是：请求因**超时、断网、5xx 不确定是否成功**而被客户端**自动重试**，但服务端可能早已接单并开始处理。
+超时或不确定的 `5xx` 后常会重试。若没有幂等键，服务端可能把每次重试当成**新请求** — 产生重复任务、多扣积分或重复 Webhook。
 
-若没有幂等机制，每次重试都可能再创建**一条相同意图的任务**，带来：
-
-- 重复执行你并不想要的工作
-- 配额或积分被多扣
-- 重复的 Webhook 与 `taskId`，难以对账
-
-`X-Idempotency-Key` 表示「这是同一次业务提交」。服务端会记录该 Key，**同一 Key 的第二次提交会被拒绝**，从而避免重复的无效请求。首次成功接单仍按正常流程返回；安全重试应**沿用同一 Key**，避免一次用户操作被计费两次。
+`X-Idempotency-Key` 标识同一次业务提交。在同一 API Key 下，相同路径 + Key 在 TTL 内（默认 **24 小时**）只接受一次。**相同意图的重试用同一个 Key**；新任务用**新 Key**。
 
 <Info>
-  幂等防的是**同一次提交的重复投递**，不是禁止你发起两次不同的任务。要创建新任务时，请使用**新的 Key**。
+  幂等防的是**同一次提交的重复投递**，不是禁止发起两次不同的任务。
 </Info>
 
-## 适用范围
+## 怎么用
 
-以下接口需要幂等键：
-
-- `POST /openapi/task/tts/create-async`
-- `POST /openapi/task/translate/create-async`
-- `POST /openapi/task/clone-voice/create-async`
-- `POST /openapi/task/media-translation/create-async`
-
-同步 `create` 接口可接受相同请求头以保持一致，但不强制。
-
-## 请求头
+对 Open API 的**每一个 `POST` 请求**（`/openapi/**`）都加上该请求头：
 
 ```http
 X-Idempotency-Key: <unique-string>
@@ -40,11 +25,10 @@ X-Idempotency-Key: <unique-string>
 规则：
 
 - 去空格后非空，最长 **64** 字符
-- 同一 `projId` + 路径 + Key 在 TTL 内（默认 24 小时）仅接受一次
+- 在**第一次请求前**生成 Key，并随本次尝试保存，便于安全重试
+- 不要用同一 Key 提交不同内容的请求 — 会返回 `409 Conflict`
 
-## 冲突行为
-
-Key 已被占用时：
+## Key 已被占用时
 
 - HTTP `409 Conflict`
 - 响应头 `Retry-After: 2`
@@ -52,20 +36,18 @@ Key 已被占用时：
 
 ## 安全重试 vs 新任务
 
-| 场景 | 使用的 Key | 结果 |
-|------|------------|------|
-| 首次提交 | 新的唯一 Key | 只创建一条任务 |
-| 超时后重试（相同载荷、相同意图） | **相同 Key** | 不会重复建任务；以首次接单为准 |
-| 用户再次点击「提交」发起新任务 | **新 Key** | 新建任务（符合预期） |
-| 相同 Key 但改了请求体 | 相同 Key | `409 Conflict` — Key 已被占用 |
+| 场景 | Key |
+|------|-----|
+| 首次提交 | 新的唯一 Key |
+| 超时后重试（相同意图） | **相同 Key** |
+| 新任务或新写入 | **新 Key** |
 
-## 推荐用法
+## 示例
 
 ```bash
-# 新业务提交 → 使用新 Key
-export IDEM_KEY="tts-$(date +%s)-$RANDOM"
+export IDEM_KEY="job-$(date +%s)-$RANDOM"
 
-curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \
+curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
   -H "Authorization: Bearer $API_KEY" \
   -H "X-Idempotency-Key: $IDEM_KEY" \
   -H "Content-Type: application/json" \
@@ -73,5 +55,5 @@ curl -X POST "https://api.vmeg.ai/openapi/task/tts/create-async" \
 ```
 
 <Tip>
-  在**第一次请求之前**就生成幂等 Key，并和本次尝试一起持久化（数据库、缓存或客户端状态）。若调用结果不确定，用**同一个 Key** 重试——不要在每次重试时换新 Key，否则可能产生重复任务。
+  若结果不确定，用**同一个 Key** 重试。不要在每次重试时换新 Key，否则可能重复写入。
 </Tip>

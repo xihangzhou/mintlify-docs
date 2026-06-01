@@ -4,55 +4,46 @@ description: "集成 TTS、翻译、媒体本地化、声音克隆与素材管�
 icon: "waveform"
 ---
 
-import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
-
-VMEG Open API 支持以编程方式运行语音与翻译任务：提交任务、管理 API 侧资产，并通过 Webhook 接收异步结果。
+通过 VMEG Open API，你可以在自己的服务端发起语音与翻译类任务：提交作业、使用 API 侧的素材与音色，并在需要时通过 Webhook 接收耗时较长的结果。
 
 ## 能力概览
 
 <CardGroup cols={2}>
-  <Card title="文本转语音" icon="volume-high" href="/zh/guides/products/text-to-speech">
-    文本合成语音，支持同步或异步。
-  </Card>
-  <Card title="文本翻译" icon="language" href="/zh/guides/products/text-translation">
-    翻译文本片段，支持同步或异步。
-  </Card>
   <Card title="音视频翻译" icon="film" href="/zh/guides/products/media-translation">
-    基于上传素材本地化视频或音频，仅异步。
+    上传视频或音频后进行本地化。
+  </Card>
+  <Card title="文本转语音" icon="volume-high" href="/zh/guides/products/text-to-speech">
+    将文本合成为语音。
   </Card>
   <Card title="声音克隆" icon="microphone" href="/zh/guides/products/voice-clone">
-    从样本克隆音色，同步或异步；克隆结果可复用。
+    从样本克隆音色并复用。
+  </Card>
+  <Card title="文本翻译" icon="language" href="/zh/guides/products/text-translation">
+    批量翻译文本。
   </Card>
   <Card title="素材" icon="photo-film" href="/zh/guides/assets/materials">
-    上传与管理音视频源文件，供媒体翻译使用。
+    保存用于翻译任务的音视频文件。
   </Card>
   <Card title="音色" icon="waveform-lines" href="/zh/guides/assets/voices">
-    查询系统音色与克隆音色，供 TTS 使用。
+    为语音合成选择系统或克隆音色。
   </Card>
 </CardGroup>
 
-各能力对应 [API 参考](/zh/api-reference/introduction) 中的接口。
+各接口的请求与响应字段见 [API 参考](/zh/api-reference/introduction)。
 
-## 约定
+## 从哪里开始
 
-| 主题 | 说明 |
-|------|------|
-| Base URL | `https://api.vmeg.ai` |
-| 鉴权 | 每个 `/openapi/**` 请求携带 `Authorization: Bearer <api_key>` — 见 [鉴权](/zh/guides/authentication) |
-| 响应结构 | `{ "code", "message", "data" }` — 业务成功时 `code === 200` |
-| `extraData` | 任务请求中的可选对象；Webhook 回调中原样回传，便于业务关联 |
-| 语言 | 区域代码如 `en-US`、`zh-CN` — 见 [支持的语言](/zh/guides/supported-languages) |
-| API 范围 | Open API 任务与资产与 Dashboard **我的任务**、**我的素材** 隔离 — 见 [产品概览](/zh/guides/products/overview) 与 [资产概览](/zh/guides/assets/overview) |
-
-## 集成路径
-
-```text
-鉴权 → 价格（积分）→ 快速开始（同步 TTS）
-     → 幂等 + Webhook（异步）
-     → 资产（materialId / voiceId）
-     → 产品
-```
-
-<Card title="API 参考" icon="code" href="/zh/api-reference/introduction">
-  请求 schema、响应字段、Callbacks 与交互式 Playground。
-</Card>
+<CardGroup cols={2}>
+  <Card title="快速开始" icon="rocket" href="/zh/guides/quickstart">
+    完成第一次 API 调用（同步 TTS 示例）。
+  </Card>
+  <Card title="价格" icon="coins" href="/zh/guides/pricing">
+    付费与积分说明。
+  </Card>
+  <Card title="API 密钥" icon="key" href="/zh/guides/authentication">
+    创建密钥并发起请求。
+  </Card>
+  <Card title="产品概览" icon="layer-group" href="/zh/guides/products/overview">
+    任务、同步与异步、结果如何返回。
+  </Card>
+</CardGroup>

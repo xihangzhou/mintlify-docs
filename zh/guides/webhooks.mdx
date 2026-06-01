@@ -23,10 +23,10 @@ Webhook 是异步结果的 **投递机制**，不是独立产品。
 
 ## 配置
 
-在 Dashboard <a href={apiKeyUrl}>API 配置</a>（<a href={productUrls.signInToApiSettings}>登录</a>）：
+在 vmeg.ai 的 <a href={apiKeyUrl}>API 配置</a> 页（<a href={productUrls.signInToApiSettings}>登录</a>）：
 
 1. 设置 **Webhook URL**（建议使用 HTTPS）。
-2. 设置 **Webhook Secret**，用于 [签名校验](/zh/guides/webhook-verification)。
+2. 保存 URL 后，VMEG 会**自动生成 Webhook Secret** 并在同一页面展示。复制该 Secret 用于 [签名校验](/zh/guides/webhook-verification) — 无需自行设置。
 
 可在同一页面测试连通性（若产品提供）。
 
@@ -40,19 +40,13 @@ Webhook 是异步结果的 **投递机制**，不是独立产品。
 
 非 2xx 或超时时，VMEG 会按退避策略重试。
 
-## 在哪里看 payload
+## Webhook 请求体
 
-| 主题 | 指南 | API 参考 |
-|------|------|----------|
-| 信封与各任务 `data` | [Webhook 请求体](/zh/guides/webhook-request) | 各 `create-async` 的 **Callbacks → task.completed** |
-| 全部回调变体 | — | **Webhooks → taskCallback** |
-| 仅受理响应 | [产品概览](/zh/guides/products/overview) | 各 `create-async` 的 **Response** |
+任务完成时 POST JSON 带有 **`event`** 字段（如 `openapi-tts`），表示哪类产品结束。事件表与公共结构见 [Webhook 请求体](/zh/guides/webhook-request)。
 
-<Note>
-  指南讲 **如何集成**；API 参考提供请求与回调的 **精确字段 schema**。
-</Note>
+各产品字段定义见 [API 参考](/zh/api-reference/introduction) 中对应 `create-async` 的 **Callbacks**。
 
 ## 相关
 
-- [幂等](/zh/guides/idempotency) — `create-async` 必填请求头
+- [幂等](/zh/guides/idempotency) — 所有会改库的 POST 必填（含 `create-async`）
 - [产品概览](/zh/guides/products/overview) — 各产品同步/异步对照

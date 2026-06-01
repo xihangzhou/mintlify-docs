@@ -40,12 +40,12 @@ Open API 使用 JSON 字段 **`code`** 表示业务结果。HTTP 状态码用于
 
 <AccordionGroup>
   <Accordion title="409 幂等冲突">
-    同一 `X-Idempotency-Key` 在幂等 `create-async` 接口上重复提交时返回。响应可能包含 `Retry-After: 2`。见 [幂等](/zh/guides/idempotency)。
+    同一 `X-Idempotency-Key` 在幂等 POST 接口的 TTL 内重复使用时返回。响应可能包含 `Retry-After: 2`。见 [幂等](/zh/guides/idempotency)。
   </Accordion>
   <Accordion title="402 配额不足">
-    任务无法扣减项目积分时返回。见 [价格](/zh/guides/pricing) 或在控制台 <a href={productUrls.pricing}>充值</a>。
+    任务无法扣减项目积分时返回。见 [价格](/zh/guides/pricing) 或在 vmeg.ai <a href={productUrls.pricing}>价格页</a> 充值。
   </Accordion>
   <Accordion title="502 上游失败">
-    上游服务调用失败或超时。使用 `taskId` 轮询 `GET /openapi/tasks/detail`（Dashboard **我的任务** 不包含 Open API 任务）；若已配置 Webhook，可等待重试。
+    上游服务调用失败或超时。使用 `taskId` 轮询 `GET /openapi/tasks/detail`（vmeg.ai 网页任务记录不包含 Open API 任务）；若已配置 Webhook，可等待重试。
   </Accordion>
 </AccordionGroup>

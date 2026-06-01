@@ -34,6 +34,40 @@ function translateValue(value) {
   return Object.prototype.hasOwnProperty.call(STRINGS, value) ? STRINGS[value] : value;
 }
 
+function localizeHref(href) {
+  if (locale !== "zh" || typeof href !== "string") return href;
+  if (href.startsWith("/zh/")) return href;
+  if (href.startsWith("/api-reference/") || href.startsWith("/guides/")) {
+    return `/zh${href}`;
+  }
+  return href;
+}
+
+function localizeXMint(mint, summary) {
+  const out = { ...mint };
+  if (typeof out.href === "string") {
+    out.href = localizeHref(out.href);
+  }
+  if (typeof out.content === "string") {
+    out.content = translateValue(out.content);
+  }
+  const metadata = { ...(out.metadata ?? {}) };
+  const translatedSummary = typeof summary === "string" ? translateValue(summary) : summary;
+  if (translatedSummary) {
+    if (!metadata.sidebarTitle) metadata.sidebarTitle = translatedSummary;
+    if (!metadata.title) metadata.title = translatedSummary;
+  }
+  for (const field of ["title", "sidebarTitle", "description"]) {
+    if (typeof metadata[field] === "string") {
+      metadata[field] = translateValue(metadata[field]);
+    }
+  }
+  if (Object.keys(metadata).length > 0) {
+    out.metadata = metadata;
+  }
+  return out;
+}
+
 function walk(node) {
   if (Array.isArray(node)) return node.map(walk);
   if (node && typeof node === "object") {
@@ -44,11 +78,7 @@ function walk(node) {
       } else if (key === "tags" && Array.isArray(value)) {
         out[key] = value.map(translateValue);
       } else if (key === "x-mint" && value && typeof value === "object") {
-        const mint = { ...value };
-        if (typeof mint.content === "string") {
-          mint.content = translateValue(mint.content);
-        }
-        out[key] = walk(mint);
+        out[key] = walk(localizeXMint(value, node.summary));
       } else {
         out[key] = walk(value);
       }
@@ -59,9 +89,35 @@ function walk(node) {
 }
 
 const spec = JSON.parse(fs.readFileSync(srcPath, "utf8"));
-spec.info.description = translateValue(spec.info.description);
+
+const missing = new Set();
+function collectMissing(node) {
+  if (Array.isArray(node)) return node.forEach(collectMissing);
+  if (node && typeof node === "object") {
+    for (const [key, value] of Object.entries(node)) {
+      if (
+        (key === "description" || key === "summary" || key === "name") &&
+        typeof value === "string" &&
+        !Object.prototype.hasOwnProperty.call(STRINGS, value)
+      ) {
+        missing.add(value);
+      } else {
+        collectMissing(value);
+      }
+    }
+  }
+}
+collectMissing(spec);
 
 const localized = walk(spec);
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, JSON.stringify(localized, null, 2) + "\n");
 console.log(`Wrote ${outPath}`);
+if (missing.size > 0) {
+  console.warn(
+    `Warning: ${missing.size} string(s) in OpenAPI have no entry in scripts/locales/${locale}.json`
+  );
+  for (const s of [...missing].sort()) {
+    console.warn(`  - ${s.slice(0, 120)}${s.length > 120 ? "…" : ""}`);
+  }
+}

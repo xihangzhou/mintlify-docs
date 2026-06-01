@@ -23,10 +23,10 @@ For production async integrations, configure a webhook before calling `*-create-
 
 ## Configuration
 
-On <a href={apiKeyUrl}>API Configuration</a> in the Dashboard (<a href={productUrls.signInToApiSettings}>sign in</a> if needed):
+On <a href={apiKeyUrl}>API Configuration</a> on vmeg.ai (<a href={productUrls.signInToApiSettings}>sign in</a> if needed):
 
 1. Set your **Webhook URL** (HTTPS recommended).
-2. Set a **Webhook Secret** for [signature verification](/guides/webhook-verification).
+2. After you save the URL, VMEG **generates a Webhook Secret** and displays it on the same page. Copy it for [signature verification](/guides/webhook-verification) — you do not set the secret yourself.
 
 Test connectivity from the same page when available.
 
@@ -40,19 +40,13 @@ Your endpoint must:
 
 If you return a non-2xx status or time out, VMEG retries with backoff.
 
-## Where to read payloads
+## Webhook payload
 
-| Topic | Guide | API reference |
-|-------|-------|---------------|
-| Envelope and per-task `data` | [Webhook request body](/guides/webhook-request) | **Callbacks → task.completed** on each `create-async` operation |
-| All callback variants | — | **Webhooks → taskCallback** |
-| Acceptance response only | [Products overview](/guides/products/overview) | **Response** on each `create-async` operation |
+When a task finishes, the POST JSON includes an **`event`** field (for example `openapi-tts`) so you know which product completed. See the event table and envelope in [Webhook request body](/guides/webhook-request).
 
-<Note>
-  Guides explain **how to integrate**. API reference holds **exact field schemas** for request and callback bodies.
-</Note>
+Per-product field definitions are under **Callbacks** on each `create-async` page in [API reference](/api-reference/introduction).
 
 ## Related
 
-- [Idempotency](/guides/idempotency) — required header on `create-async`
+- [Idempotency](/guides/idempotency) — required on all mutating POST requests (including `create-async`)
 - [Products overview](/guides/products/overview) — sync vs async by product

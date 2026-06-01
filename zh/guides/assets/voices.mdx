@@ -4,7 +4,7 @@ description: "TTS 用的系统音色与克隆音色"
 icon: "waveform-lines"
 ---
 
-音色是 TTS 请求中通过 **`voiceId`** 引用的 **API 侧资产**，与 Dashboard 音色库不同步。见 [资产概览](/zh/guides/assets/overview)。
+音色仅属 API 侧，TTS 通过 `voiceId` 引用，与 vmeg.ai 网页上的音色不互通。见 [资产概览](/zh/guides/assets/overview)。
 
 ## 两类音色
 
@@ -17,13 +17,13 @@ icon: "waveform-lines"
 
 列出可用预设，选取 `voiceId` 用于 [文本转语音](/zh/guides/products/text-to-speech)。
 
-筛选与响应字段：**API 参考 → List system voices**。
+筛选与响应字段：[列出系统音色](/api-reference/assets/voices/list-system-voices)。
 
 ## 克隆音色
 
 声音克隆成功（同步响应或异步 Webhook）后，VMEG 持久化克隆并分配新 **`voiceId`**，可用于后续 TTS。
 
-可通过 clone 资产接口重命名或逻辑删除。Schema：**API 参考 → Assets - Voices**。
+可通过 clone 资产接口重命名或逻辑删除。请求与响应字段：[列出克隆音色](/api-reference/assets/voices/list-cloned-voices)、[重命名克隆音色](/api-reference/assets/voices/rename-cloned-voice)、[删除克隆音色](/api-reference/assets/voices/delete-cloned-voice)。
 
 ## 典型流程
 

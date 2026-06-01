@@ -4,33 +4,329 @@ description: "Open API 源语言与目标语言区域代码"
 icon: "globe"
 ---
 
-import {
-  LanguageList,
-  sourceLanguages,
-  targetLanguages,
-} from "/snippets/SupportedLanguageLists.jsx";
-
-Open API 各产品（TTS、文本翻译、音视频翻译、声音克隆）与 VMEG Dashboard **共用同一套语言表**。
-
 请求体中使用 **BCP-47 风格**区域代码，例如 `en-US`、`zh-CN`、`ja-JP`。
 
 ## 源语言
 
-用于 `language.source`（音视频翻译）或在支持的场景下做自动检测。
+用于音视频翻译等请求中的 `language.source`。
 
-包含 **`auto`**（自动检测）。目标语言不能使用 `auto`。
-
-**数量：** {sourceLanguages.length} 个代码（含 `auto`）。
-
-<LanguageList codes={sourceLanguages} autoLabel="自动检测" />
+| 区域代码 | 语言 |
+| --- | --- |
+| `en-GB` | English (United Kingdom) |
+| `en-US` | English (United States) |
+| `es-ES` | Spanish (Spain) |
+| `fr-FR` | French (France) |
+| `de-DE` | German (Germany) |
+| `ja-JP` | Japanese (Japan) |
+| `ko-KR` | Korean (Korea) |
+| `pt-PT` | Portuguese (Portugal) |
+| `zh-CN` | Chinese (Mandarin, Simplified) |
+| `af-ZA` | Afrikaans (South Africa) |
+| `sq-AL` | Albanian (Albania) |
+| `am-ET` | Amharic (Ethiopia) |
+| `ar-DZ` | Arabic (Algeria) |
+| `ar-BH` | Arabic (Bahrain) |
+| `ar-EG` | Arabic (Egypt) |
+| `ar-IQ` | Arabic (Iraq) |
+| `ar-IL` | Arabic (Israel) |
+| `ar-JO` | Arabic (Jordan) |
+| `ar-KW` | Arabic (Kuwait) |
+| `ar-LB` | Arabic (Lebanon) |
+| `ar-LY` | Arabic (Libya) |
+| `ar-MA` | Arabic (Morocco) |
+| `ar-OM` | Arabic (Oman) |
+| `ar-PS` | Arabic (Palestinian Authority) |
+| `ar-QA` | Arabic (Qatar) |
+| `ar-SA` | Arabic (Saudi Arabia) |
+| `ar-SY` | Arabic (Syria) |
+| `ar-TN` | Arabic (Tunisia) |
+| `ar-AE` | Arabic (United Arab Emirates) |
+| `ar-XA` | Arabic (Modern Standard) |
+| `ar-YE` | Arabic (Yemen) |
+| `hy-AM` | Armenian (Armenia) |
+| `az-AZ` | Azerbaijani (Latin, Azerbaijan) |
+| `eu-ES` | Basque(Spain) |
+| `bn-IN` | Bengali (India) |
+| `bn-BD` | Bangla (Bangladesh) |
+| `bs-BA` | Bosnian (Bosnia and Herzegovina) |
+| `be-BY` | Belarusian (Belarus) |
+| `bho-IN` | Bhojpuri (India) |
+| `bg-BG` | Bulgarian (Bulgaria) |
+| `my-MM` | Burmese (Myanmar) |
+| `ca-ES` | Catalan(Spain) |
+| `yue-CN` | Chinese (Cantonese, Simplified) |
+| `zh-HK` | Chinese (Cantonese, Traditional) |
+| `zh-CN-shandong` | Chinese (Jilu Mandarin, Simplified) |
+| `zh-CN-sichuan` | Chinese (Southwestern Mandarin, Simplified) |
+| `zh-TW` | Chinese (Taiwanese Mandarin, Traditional) |
+| `wuu-CN` | Chinese (Wu, Simplified) |
+| `ug-CN` | Uyghur (China) |
+| `yue-CN` | Chinese (Cantonese, Simplified) |
+| `nan-CN` | Chinese (Southern Min, Simplified) |
+| `hr-HR` | Croatian (Croatia) |
+| `cs-CZ` | Czech (Czechia) |
+| `da-DK` | Danish (Denmark) |
+| `nl-BE` | Dutch (Belgium) |
+| `nl-NL` | Dutch (Netherlands) |
+| `en-AU` | English (Australia) |
+| `en-CA` | English (Canada) |
+| `en-GH` | English (Ghana) |
+| `en-HK` | English (Hong Kong SAR) |
+| `en-IN` | English (India) |
+| `en-IE` | English (Ireland) |
+| `en-KE` | English (Kenya) |
+| `en-NZ` | English (New Zealand) |
+| `en-NG` | English (Nigeria) |
+| `en-PH` | English (Philippines) |
+| `en-SG` | English (Singapore) |
+| `en-ZA` | English (South Africa) |
+| `en-TZ` | English (Tanzania) |
+| `et-EE` | Estonian (Estonia) |
+| `fil-PH` | Filipino (Philippines) |
+| `fi-FI` | Finnish (Finland) |
+| `fr-BE` | French (Belgium) |
+| `fr-CA` | French (Canada) |
+| `fr-CH` | French (Switzerland) |
+| `gl-ES` | Galician(Spain) |
+| `ka-GE` | Georgian (Georgia) |
+| `de-AT` | German (Austria) |
+| `de-CH` | German (Switzerland) |
+| `el-GR` | Greek (Greece) |
+| `gu-IN` | Gujarati (India) |
+| `he-IL` | Hebrew (Israel) |
+| `hi-IN` | Hindi (India) |
+| `ht-HT` | Haitian Creole (Haiti) |
+| `hu-HU` | Hungarian (Hungary) |
+| `is-IS` | Icelandic (Iceland) |
+| `id-ID` | Indonesian (Indonesia) |
+| `ga-IE` | Irish (Ireland) |
+| `it-IT` | Italian (Italy) |
+| `it-CH` | Italian (Switzerland) |
+| `jv-ID` | Javanese (Latin, Indonesia) |
+| `kn-IN` | Kannada (India) |
+| `kk-KZ` | Kazakh (Kazakhstan) |
+| `km-KH` | Khmer (Cambodia) |
+| `kmr-Arab` | Northern Kurdish - Kurmanji (Arabic Script) |
+| `kmr-Latn` | Northern Kurdish - Kurmanji (Latin Script) |
+| `sw-KE` | Kiswahili (Kenya) |
+| `sw-TZ` | Kiswahili (Tanzania) |
+| `lo-LA` | Lao (Laos) |
+| `lv-LV` | Latvian (Latvia) |
+| `lt-LT` | Lithuanian (Lithuania) |
+| `mk-MK` | Macedonian (North Macedonia) |
+| `ms-MY` | Malay (Malaysia) |
+| `ml-IN` | Malayalam (India) |
+| `mt-MT` | Maltese (Malta) |
+| `mr-IN` | Marathi (India) |
+| `mn-MN` | Mongolian (Mongolia) |
+| `ne-NP` | Nepali (Nepal) |
+| `nb-NO` | Norwegian Bokmål (Norway) |
+| `or-IN` | Odia (India) |
+| `ps-AF` | Pashto (Afghanistan) |
+| `fa-IR` | Persian (Iran) |
+| `pl-PL` | Polish (Poland) |
+| `pt-BR` | Portuguese (Brazil) |
+| `pa-IN` | Punjabi (India) |
+| `ro-RO` | Romanian (Romania) |
+| `ru-RU` | Russian (Russia) |
+| `sr-Latn-RS` | Serbian (Serbia) |
+| `si-LK` | Sinhala (Sri Lanka) |
+| `sk-SK` | Slovak (Slovakia) |
+| `sl-SI` | Slovenian (Slovenia) |
+| `so-SO` | Somali (Somalia) |
+| `es-AR` | Spanish (Argentina) |
+| `es-BO` | Spanish (Bolivia) |
+| `es-CL` | Spanish (Chile) |
+| `es-CO` | Spanish (Colombia) |
+| `es-CR` | Spanish (Costa Rica) |
+| `es-CU` | Spanish (Cuba) |
+| `es-DO` | Spanish (Dominican Republic) |
+| `es-EC` | Spanish (Ecuador) |
+| `es-SV` | Spanish (El Salvador) |
+| `es-GQ` | Spanish (Equatorial Guinea) |
+| `es-GT` | Spanish (Guatemala) |
+| `es-HN` | Spanish (Honduras) |
+| `es-MX` | Spanish (Mexico) |
+| `es-NI` | Spanish (Nicaragua) |
+| `es-PA` | Spanish (Panama) |
+| `es-PY` | Spanish (Paraguay) |
+| `es-PE` | Spanish (Peru) |
+| `es-PR` | Spanish (Puerto Rico) |
+| `es-US` | Spanish (United States) |
+| `es-UY` | Spanish (Uruguay) |
+| `es-VE` | Spanish (Venezuela) |
+| `sv-SE` | Swedish (Sweden) |
+| `ta-IN` | Tamil (India) |
+| `te-IN` | Telugu (India) |
+| `th-TH` | Thai (Thailand) |
+| `tr-TR` | Turkish (Türkiye) |
+| `uk-UA` | Ukrainian (Ukraine) |
+| `ur-IN` | Urdu (India) |
+| `ur-PK` | Urdu (Pakistan) |
+| `uz-UZ` | Uzbek (Latin, Uzbekistan) |
+| `vi-VN` | Vietnamese (Vietnam) |
+| `cy-GB` | Welsh (United Kingdom) |
+| `zu-ZA` | Zulu (South Africa) |
 
 ## 目标语言
 
-用于 `language.target`（TTS、文本翻译、音视频翻译）。
+用于 TTS、文本翻译、音视频翻译的 `language.target`。
 
-**数量：** {targetLanguages.length} 个代码。
-
-<LanguageList codes={targetLanguages} />
+| 区域代码 | 语言 |
+| --- | --- |
+| `en-GB` | English (United Kingdom) |
+| `en-US` | English (United States) |
+| `es-ES` | Spanish (Spain) |
+| `fr-FR` | French (France) |
+| `de-DE` | German (Germany) |
+| `ja-JP` | Japanese (Japan) |
+| `ko-KR` | Korean (Korea) |
+| `pt-PT` | Portuguese (Portugal) |
+| `zh-CN` | Chinese (Mandarin, Simplified) |
+| `af-ZA` | Afrikaans (South Africa) |
+| `sq-AL` | Albanian (Albania) |
+| `am-ET` | Amharic (Ethiopia) |
+| `ar-AE` | Arabic (United Arab Emirates) |
+| `ar-BH` | Arabic (Bahrain) |
+| `ar-DZ` | Arabic (Algeria) |
+| `ar-EG` | Arabic (Egypt) |
+| `ar-IQ` | Arabic (Iraq) |
+| `ar-JO` | Arabic (Jordan) |
+| `ar-KW` | Arabic (Kuwait) |
+| `ar-LB` | Arabic (Lebanon) |
+| `ar-LY` | Arabic (Libya) |
+| `ar-MA` | Arabic (Morocco) |
+| `ar-OM` | Arabic (Oman) |
+| `ar-QA` | Arabic (Qatar) |
+| `ar-SA` | Arabic (Saudi Arabia) |
+| `ar-SY` | Arabic (Syria) |
+| `ar-TN` | Arabic (Tunisia) |
+| `ar-YE` | Arabic (Yemen) |
+| `ar-XA` | Arabic (Modern Standard) |
+| `az-AZ` | Azerbaijani (Latin, Azerbaijan) |
+| `bg-BG` | Bulgarian (Bulgaria) |
+| `bn-BD` | Bangla (Bangladesh) |
+| `bn-IN` | Bengali (India) |
+| `bs-BA` | Bosnian (Bosnia and Herzegovina) |
+| `ca-ES` | Catalan(Spain) |
+| `cs-CZ` | Czech (Czechia) |
+| `cy-GB` | Welsh (United Kingdom) |
+| `da-DK` | Danish (Denmark) |
+| `de-AT` | German (Austria) |
+| `de-CH` | German (Switzerland) |
+| `el-GR` | Greek (Greece) |
+| `en-AU` | English (Australia) |
+| `en-CA` | English (Canada) |
+| `en-HK` | English (Hong Kong SAR) |
+| `en-IE` | English (Ireland) |
+| `en-IN` | English (India) |
+| `en-KE` | English (Kenya) |
+| `en-NG` | English (Nigeria) |
+| `en-NZ` | English (New Zealand) |
+| `en-PH` | English (Philippines) |
+| `en-SG` | English (Singapore) |
+| `en-TZ` | English (Tanzania) |
+| `en-ZA` | English (South Africa) |
+| `es-AR` | Spanish (Argentina) |
+| `es-BO` | Spanish (Bolivia) |
+| `es-CL` | Spanish (Chile) |
+| `es-CO` | Spanish (Colombia) |
+| `es-CR` | Spanish (Costa Rica) |
+| `es-CU` | Spanish (Cuba) |
+| `es-DO` | Spanish (Dominican Republic) |
+| `es-EC` | Spanish (Ecuador) |
+| `es-GQ` | Spanish (Equatorial Guinea) |
+| `es-GT` | Spanish (Guatemala) |
+| `es-HN` | Spanish (Honduras) |
+| `es-MX` | Spanish (Mexico) |
+| `es-NI` | Spanish (Nicaragua) |
+| `es-PA` | Spanish (Panama) |
+| `es-PE` | Spanish (Peru) |
+| `es-PR` | Spanish (Puerto Rico) |
+| `es-PY` | Spanish (Paraguay) |
+| `es-SV` | Spanish (El Salvador) |
+| `es-US` | Spanish (United States) |
+| `es-UY` | Spanish (Uruguay) |
+| `es-VE` | Spanish (Venezuela) |
+| `et-EE` | Estonian (Estonia) |
+| `eu-ES` | Basque(Spain) |
+| `fa-IR` | Persian (Iran) |
+| `fi-FI` | Finnish (Finland) |
+| `fil-PH` | Filipino (Philippines) |
+| `fr-BE` | French (Belgium) |
+| `fr-CA` | French (Canada) |
+| `fr-CH` | French (Switzerland) |
+| `ga-IE` | Irish (Ireland) |
+| `gl-ES` | Galician(Spain) |
+| `gu-IN` | Gujarati (India) |
+| `he-IL` | Hebrew (Israel) |
+| `ht-HT` | Haitian Creole (Haiti) |
+| `hi-IN` | Hindi (India) |
+| `hr-HR` | Croatian (Croatia) |
+| `hu-HU` | Hungarian (Hungary) |
+| `hy-AM` | Armenian (Armenia) |
+| `id-ID` | Indonesian (Indonesia) |
+| `is-IS` | Icelandic (Iceland) |
+| `it-IT` | Italian (Italy) |
+| `jv-ID` | Javanese (Latin, Indonesia) |
+| `ka-GE` | Georgian (Georgia) |
+| `kk-KZ` | Kazakh (Kazakhstan) |
+| `kmr-Arab` | Northern Kurdish - Kurmanji (Arabic Script) |
+| `kmr-Latn` | Northern Kurdish - Kurmanji (Latin Script) |
+| `kmr-Cyrl` | Northern Kurdish - Kurmanji (Cyrillic Script) |
+| `km-KH` | Khmer (Cambodia) |
+| `kn-IN` | Kannada (India) |
+| `lo-LA` | Lao (Laos) |
+| `lt-LT` | Lithuanian (Lithuania) |
+| `lv-LV` | Latvian (Latvia) |
+| `mk-MK` | Macedonian (North Macedonia) |
+| `ml-IN` | Malayalam (India) |
+| `mn-MN` | Mongolian (Mongolia) |
+| `mr-IN` | Marathi (India) |
+| `ms-MY` | Malay (Malaysia) |
+| `mt-MT` | Maltese (Malta) |
+| `my-MM` | Burmese (Myanmar) |
+| `nb-NO` | Norwegian Bokmål (Norway) |
+| `ne-NP` | Nepali (Nepal) |
+| `nl-BE` | Dutch (Belgium) |
+| `nl-NL` | Dutch (Netherlands) |
+| `pa-IN` | Punjabi (India) |
+| `pl-PL` | Polish (Poland) |
+| `ps-AF` | Pashto (Afghanistan) |
+| `pt-BR` | Portuguese (Brazil) |
+| `ro-RO` | Romanian (Romania) |
+| `ru-RU` | Russian (Russia) |
+| `si-LK` | Sinhala (Sri Lanka) |
+| `sk-SK` | Slovak (Slovakia) |
+| `sl-SI` | Slovenian (Slovenia) |
+| `so-SO` | Somali (Somalia) |
+| `sr-Latn-RS` | Serbian (Serbia) |
+| `sv-SE` | Swedish (Sweden) |
+| `sw-KE` | Kiswahili (Kenya) |
+| `sw-TZ` | Kiswahili (Tanzania) |
+| `ta-IN` | Tamil (India) |
+| `te-IN` | Telugu (India) |
+| `bho-IN` | Bhojpuri (India) |
+| `be-BY` | Belarusian (Belarus) |
+| `th-TH` | Thai (Thailand) |
+| `tr-TR` | Turkish (Türkiye) |
+| `uk-UA` | Ukrainian (Ukraine) |
+| `ur-IN` | Urdu (India) |
+| `uz-UZ` | Uzbek (Latin, Uzbekistan) |
+| `vi-VN` | Vietnamese (Vietnam) |
+| `wuu-CN` | Chinese (Wu, Simplified) |
+| `yue-CN` | Chinese (Cantonese, Simplified) |
+| `nan-CN` | Chinese (Southern Min, Simplified) |
+| `zh-CN-guangxi` | Chinese (Guangxi Accent Mandarin, Simplified) |
+| `zh-CN-henan` | Chinese (Zhongyuan Mandarin Henan, Simplified) |
+| `zh-CN-liaoning` | Chinese (Northeastern Mandarin, Simplified) |
+| `zh-CN-shaanxi` | Chinese (Zhongyuan Mandarin Shaanxi, Simplified) |
+| `zh-CN-shandong` | Chinese (Jilu Mandarin, Simplified) |
+| `zh-CN-sichuan` | Chinese (Southwestern Mandarin, Simplified) |
+| `zh-HK` | Chinese (Cantonese, Traditional) |
+| `zh-TW` | Chinese (Taiwanese Mandarin, Traditional) |
+| `ug-CN` | Uyghur (China) |
+| `zu-ZA` | Zulu (South Africa) |
 
 ## 在请求中的用法
 
@@ -40,8 +336,4 @@ Open API 各产品（TTS、文本翻译、音视频翻译、声音克隆）与 V
 | `language.target` | TTS、文本翻译、音视频翻译 |
 | `sampleLanguage` | 声音克隆（见 [声音克隆](/zh/guides/products/voice-clone)） |
 
-精确字段类型与示例见 [API 参考](/zh/api-reference/introduction)。
-
-<Note>
-  本列表与产品语言配置同步。语言变更后运行 `node scripts/generate-supported-languages.mjs` 重新生成。
-</Note>
+字段类型与示例见 [API 参考](/zh/api-reference/introduction)。

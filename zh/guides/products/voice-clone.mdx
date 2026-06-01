@@ -11,9 +11,9 @@ icon: "microphone"
 | 模式 | 接口 | 结果 |
 |------|------|------|
 | 同步 | `POST /openapi/task/clone-voice/create` | HTTP 响应含 `voiceId` 与样本信息 |
-| 异步 | `POST /openapi/task/clone-voice/create-async` | [Webhook](/zh/guides/webhook-request) 含 `voiceId` |
+| 异步 | `POST /openapi/task/clone-voice/create-async` | [Webhook](/zh/guides/webhook-request)，`event` 为 `openapi-clone-voice`（`data.voiceId`） |
 
-异步须 [`X-Idempotency-Key`](/zh/guides/idempotency) 与 Webhook。
+`create` 与 `create-async` 均须 [`X-Idempotency-Key`](/zh/guides/idempotency)；异步还须配置 [Webhook](/zh/guides/webhooks)。
 
 ## 流程
 
@@ -35,7 +35,7 @@ icon: "microphone"
 - 重命名：`POST /openapi/assets/voice/clone/update`
 - 删除：`POST /openapi/assets/voice/clone/delete`
 
-克隆音色 **不会** 出现在 Dashboard。见 [资产概览](/zh/guides/assets/overview)。
+克隆音色仅能通过 API 资产接口使用，不会出现在 vmeg.ai 网页的音色列表中。见 [资产概览](/zh/guides/assets/overview)。
 
 请求与回调 schema：**API 参考 → Voice clone**。
 

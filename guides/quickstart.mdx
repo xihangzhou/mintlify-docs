@@ -9,7 +9,7 @@ import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
 ## Prerequisites
 
 - A paid account with credits — see [Pricing](/guides/pricing)
-- An **API Key** — see [Auth](/guides/authentication) and <a href={apiKeyUrl}>API Configuration</a> (<a href={productUrls.signInToApiSettings}>sign in</a> if needed)
+- An **API Key** — see [API Key](/guides/authentication) and <a href={apiKeyUrl}>API Configuration</a> (<a href={productUrls.signInToApiSettings}>sign in</a> if needed)
 
 ## Synchronous TTS example
 
@@ -36,9 +36,9 @@ On success, `code` is `200` and `data.results` contains CDN audio URLs. Field-le
 
 ## Async tasks
 
-For `create-async` endpoints:
+For async tasks:
 
-1. Send [`X-Idempotency-Key`](/guides/idempotency) (required, max 64 characters).
+1. Send [`X-Idempotency-Key`](/guides/idempotency) on every `POST` (required, max 64 characters).
 2. Configure a [Webhook](/guides/webhooks) URL on <a href={apiKeyUrl}>API Configuration</a>.
 3. The HTTP response confirms acceptance only (`taskId`, etc.) — deliverables arrive via [Webhook request body](/guides/webhook-request).
 
@@ -47,8 +47,8 @@ See [Products overview](/guides/products/overview) for sync vs async by product.
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Auth" icon="key" href="/guides/authentication">
-    API Key and Bearer header
+  <Card title="API Key" icon="key" href="/guides/authentication">
+    Bearer header and configuration
   </Card>
   <Card title="Text to speech" icon="volume-high" href="/guides/products/text-to-speech">
     TTS workflows and voice selection

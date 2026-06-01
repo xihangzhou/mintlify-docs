@@ -6,16 +6,15 @@ icon: "layer-group"
 
 Every Open API **product** creates a **task** with a `taskId`. You can list, inspect, and delete tasks through shared task endpoints regardless of product type.
 
-## Isolated from Dashboard tasks
+## Separate from website tasks
 
-Open API tasks are **managed separately** from tasks you submit in the Dashboard — the same isolation model as [API assets](/guides/assets/overview).
+Open API tasks are not the same as jobs you start on [vmeg.ai](https://www.vmeg.ai/home) — same rule as [API assets](/guides/assets/overview).
 
-- Tasks created via `/openapi/task/**` or listed with `/openapi/tasks/**` **do not** appear in Dashboard **My tasks**.
-- Dashboard jobs are **not** visible through Open API task list or detail endpoints.
-- Use only the Open API task endpoints (and webhooks) to track API-submitted work.
+- Use `/openapi/tasks/**` and webhooks to track API work only.
+- Website task history does not list API jobs, and website jobs cannot be queried through the Open API.
 
 <Info>
-  **API scope** = API Key + `projId` + Open API tasks and assets. Dashboard UI uses a separate task and asset store for in-product workflows.
+  Your API Key scopes **Open API tasks and assets** only. Work done on the website uses a separate store.
 </Info>
 
 ## Task APIs
@@ -26,39 +25,41 @@ Open API tasks are **managed separately** from tasks you submit in the Dashboard
 | Detail | `GET /openapi/tasks/detail` |
 | Delete | `POST /openapi/tasks/delete` |
 
-Schemas: **API reference → Tasks**.
+Request and response fields: [List tasks](/api-reference/tasks/list-tasks), [Get task detail](/api-reference/tasks/get-task-detail), and [Delete task](/api-reference/tasks/delete-task).
 
 ## Sync vs async
 
 | Product | Sync create | Async create | How you get results |
 |---------|-------------|--------------|---------------------|
-| [Text to speech](/guides/products/text-to-speech) | `POST .../tts/create` | `POST .../tts/create-async` | Sync: `data.results` in HTTP response. Async: [Webhook](/guides/webhooks) |
-| [Text translation](/guides/products/text-translation) | `POST .../translate/create` | `POST .../translate/create-async` | Sync: `data.items` in response. Async: Webhook |
-| [Voice clone](/guides/products/voice-clone) | `POST .../clone-voice/create` | `POST .../clone-voice/create-async` | Sync: `voiceId` in response. Async: Webhook |
 | [Media translation](/guides/products/media-translation) | — | `POST .../media-translation/create-async` | Async only: Webhook |
+| [Text to speech](/guides/products/text-to-speech) | `POST .../tts/create` | `POST .../tts/create-async` | Sync: `data.results` in HTTP response. Async: [Webhook](/guides/webhooks) |
+| [Voice clone](/guides/products/voice-clone) | `POST .../clone-voice/create` | `POST .../clone-voice/create-async` | Sync: `voiceId` in response. Async: Webhook |
+| [Text translation](/guides/products/text-translation) | `POST .../translate/create` | `POST .../translate/create-async` | Sync: `data.items` in response. Async: Webhook |
 
 ### Async integration checklist
 
-1. [Auth](/guides/authentication) — API Key
-2. [Idempotency](/guides/idempotency) — `X-Idempotency-Key` on every `create-async`
-3. [Webhooks](/guides/webhooks) — URL + secret; return 2xx quickly
+1. [API Key](/guides/authentication)
+2. [Idempotency](/guides/idempotency) — `X-Idempotency-Key` on every `POST`
+3. [Webhooks](/guides/webhooks) — webhook URL on API Configuration; copy the generated secret; return 2xx quickly
 4. Submit `create-async` → save `taskId`
-5. Handle [Webhook request body](/guides/webhook-request) on `task.completed`
+5. Handle the [Webhook request body](/guides/webhook-request) — check `event` (`openapi-tts`, `openapi-translate`, etc.) then parse `data`
 
 ### Sync integration
 
-Call `create` (non-async) and read results from the HTTP `data` payload. An idempotency header is optional on sync endpoints.
+Call `create` (non-async) with `X-Idempotency-Key` and read results from the HTTP `data` payload.
 
 ## Task types
 
+`taskType` uses short codes:
+
 | `taskType` | Product |
 |------------|---------|
-| `TTS` | Text to speech |
-| `TEXT_TRANSLATION` | Text translation |
-| `CLONE_VOICE` | Voice clone |
-| `VIDEO_TRANSLATION` / `AUDIO_TRANSLATION` | Media translation |
+| `vt` / `at` | Media translation |
+| `tts` | Text to speech |
+| `cloneVoice` | Voice clone |
+| `textTranslation` | Text translation |
 
-`SUBTITLE_TRANSLATION` exists in the type enum but is **not** exposed as a separate Open API product at this time.
+`st` (subtitle translation) exists in the enum but is **not** exposed as a separate Open API product at this time.
 
 ## Product guides
 
@@ -66,13 +67,13 @@ Call `create` (non-async) and read results from the HTTP `data` payload. An idem
   <Card title="Media translation" icon="film" href="/guides/products/media-translation">
     Video/audio localization
   </Card>
-  <Card title="Text translation" icon="language" href="/guides/products/text-translation">
-    Segment translation
-  </Card>
   <Card title="Text to speech" icon="volume-high" href="/guides/products/text-to-speech">
     Speech synthesis
   </Card>
   <Card title="Voice clone" icon="microphone" href="/guides/products/voice-clone">
     Clone from sample audio
+  </Card>
+  <Card title="Text translation" icon="language" href="/guides/products/text-translation">
+    Segment translation
   </Card>
 </CardGroup>

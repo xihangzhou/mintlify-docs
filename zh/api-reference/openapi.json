@@ -35,15 +35,15 @@
     },
     {
       "name": "Task management",
-      "description": "List, detail, and delete submitted tasks"
+      "description": "List, detail, and delete Open API tasks across all products. See [Products overview](/guides/products/overview) for sync vs async, task types, and integration flow."
     },
     {
       "name": "Assets - Materials",
-      "description": "CDN direct upload, multipart upload, list, and delete"
+      "description": "Upload, list, and delete API-scoped video/audio. See [Assets overview](/guides/assets/overview), [Materials](/guides/assets/materials), and [Material upload](/guides/assets/material-upload)."
     },
     {
       "name": "Assets - Voices",
-      "description": "System and cloned voices"
+      "description": "System presets and cloned voices for TTS. See [Assets overview](/guides/assets/overview) and [Voices](/guides/assets/voices). Clones come from [Voice clone](/guides/products/voice-clone)."
     }
   ],
   "paths": {
@@ -53,11 +53,11 @@
           "TTS"
         ],
         "summary": "创建 TTS 任务（同步）",
-        "description": "调用 vmeg-tts Lambda（RequestResponse），同步返回合成结果。",
+        "description": "同步文本转语音，合成结果在 HTTP 响应中返回。",
         "operationId": "ttsCreateSync",
         "parameters": [
           {
-            "$ref": "#/components/parameters/IdempotencyKey"
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
           }
         ],
         "requestBody": {
@@ -92,9 +92,6 @@
         "summary": "创建 TTS 任务（异步）",
         "description": "异步 TTS 提交。",
         "operationId": "ttsCreateAsync",
-        "x-mint": {
-          "content": "<Note>\n**Response：** 立即受理（`taskId`、`createdAt`），不含合成结果。\n\n**Callbacks → task.completed：** 任务完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**，下方 `data` 为合成结果。\n</Note>"
-        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -105,14 +102,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OpenApiTtsCreateRequest"
+                "$ref": "#/components/schemas/OpenApiTtsCreateAsyncRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "仅受理（`taskId`、`createdAt`）。合成结果在 **Callbacks → task.completed** 的 Webhook 回调请求体中。",
+            "description": "仅返回受理信息（`taskId`、`createdAt`）。最终生成结果在 [Webhook](/zh/guides/webhooks) 回调请求体中。",
             "content": {
               "application/json": {
                 "schema": {
@@ -126,8 +123,8 @@
           "taskCompleted": {
             "https://{yourWebhookUrl}": {
               "post": {
-                "summary": "Webhook 请求：task.completed",
-                "description": "任务完成后 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的 HTTP **请求体**，不属于上方 create-async 的 **Response**。",
+                "summary": "异步任务完成时的 Webhook（`event`: `openapi-tts`）",
+                "description": "文本转语音异步任务完成时，VMEG 向你方 [Webhook](/zh/guides/webhooks) URL POST 的**请求体**。JSON 中 `event` 为 `openapi-tts`（见 [Webhook 请求体](/zh/guides/webhook-request)）。不属于上方 create-async **Response**。完整 schema：[创建 TTS（异步）](/zh/api-reference/tts/create-tts-async) → **Callbacks**。",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -148,7 +145,7 @@
                 },
                 "responses": {
                   "200": {
-                    "description": "Return 2xx promptly to stop retries"
+                    "description": "请尽快返回 2xx 以停止重试"
                   }
                 }
               }
@@ -164,9 +161,16 @@
         ],
         "summary": "创建文本翻译（同步）",
         "operationId": "translateCreateSync",
+        "x-mint": {
+          "href": "/zh/api-reference/text-translation/create-text-translation-sync",
+          "metadata": {
+            "sidebarTitle": "创建文本翻译（同步）",
+            "title": "创建文本翻译（同步）"
+          }
+        },
         "parameters": [
           {
-            "$ref": "#/components/parameters/IdempotencyKey"
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
           }
         ],
         "requestBody": {
@@ -191,7 +195,7 @@
             }
           }
         },
-        "description": "调用 translate Lambda（RequestResponse），同步返回翻译结果。"
+        "description": "同步文本翻译，译文在 HTTP 响应中返回。"
       }
     },
     "/openapi/task/translate/create-async": {
@@ -203,7 +207,11 @@
         "operationId": "translateCreateAsync",
         "description": "异步文本翻译提交。",
         "x-mint": {
-          "content": "<Note>\n**Response：** 立即受理（`taskId`、`createdAt`），不含译文。\n\n**Callbacks → task.completed：** 任务完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**，下方 `data` 为翻译结果。\n</Note>"
+          "href": "/zh/api-reference/text-translation/create-text-translation-async",
+          "metadata": {
+            "sidebarTitle": "创建文本翻译（异步）",
+            "title": "创建文本翻译（异步）"
+          }
         },
         "parameters": [
           {
@@ -215,14 +223,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OpenApiTranslateCreateRequest"
+                "$ref": "#/components/schemas/OpenApiTranslateCreateAsyncRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "仅受理（`taskId`、`createdAt`）。翻译结果在 **Callbacks → task.completed** 的 Webhook 回调请求体中。",
+            "description": "仅返回受理信息（`taskId`、`createdAt`）。最终生成结果在 [Webhook](/zh/guides/webhooks) 回调请求体中。",
             "content": {
               "application/json": {
                 "schema": {
@@ -236,8 +244,8 @@
           "taskCompleted": {
             "https://{yourWebhookUrl}": {
               "post": {
-                "summary": "Webhook 请求：task.completed",
-                "description": "翻译完成后 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的 HTTP **请求体**，不属于上方 create-async 的 **Response**。",
+                "summary": "异步任务完成时的 Webhook（`event`: `openapi-translate`）",
+                "description": "文本翻译异步任务完成时的 Webhook **请求体**；`event` 为 `openapi-translate`。见 [Webhook 请求体](/zh/guides/webhook-request)。完整 schema：[创建文本翻译（异步）](/zh/api-reference/text-translation/create-text-translation-async) → **Callbacks**。",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -258,7 +266,7 @@
                 },
                 "responses": {
                   "200": {
-                    "description": "Return 2xx promptly to stop retries"
+                    "description": "请尽快返回 2xx 以停止重试"
                   }
                 }
               }
@@ -276,7 +284,7 @@
         "operationId": "cloneVoiceCreateSync",
         "parameters": [
           {
-            "$ref": "#/components/parameters/IdempotencyKey"
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
           }
         ],
         "requestBody": {
@@ -301,7 +309,7 @@
             }
           }
         },
-        "description": "调用 clone-voice Lambda；成功时返回 voiceId 并写入 t_openapi_voice。"
+        "description": "同步声音克隆，成功时返回可用于 TTS 的 `voiceId`。"
       }
     },
     "/openapi/task/clone-voice/create-async": {
@@ -312,9 +320,6 @@
         "summary": "创建声音克隆（异步）",
         "operationId": "cloneVoiceCreateAsync",
         "description": "异步声音克隆提交。",
-        "x-mint": {
-          "content": "<Note>\n**Response：** 仅受理（`taskId`），不含 `voiceId` 或音频。\n\n**Callbacks → task.completed：** 克隆完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**，下方 `data` 为克隆结果。\n</Note>"
-        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -325,14 +330,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateRequest"
+                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateAsyncRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "仅受理（`taskId`）。克隆结果在 **Callbacks → task.completed** 的 Webhook 回调请求体中。",
+            "description": "仅返回受理信息（`taskId`）。最终生成结果在 [Webhook](/zh/guides/webhooks) 回调请求体中。",
             "content": {
               "application/json": {
                 "schema": {
@@ -346,8 +351,8 @@
           "taskCompleted": {
             "https://{yourWebhookUrl}": {
               "post": {
-                "summary": "Webhook 请求：task.completed",
-                "description": "克隆完成后 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的 HTTP **请求体**，不属于上方 create-async 的 **Response**。",
+                "summary": "异步任务完成时的 Webhook（`event`: `openapi-clone-voice`）",
+                "description": "声音克隆异步任务完成时的 Webhook **请求体**；`event` 为 `openapi-clone-voice`。见 [Webhook 请求体](/zh/guides/webhook-request)。完整 schema：[创建声音克隆（异步）](/zh/api-reference/clone-voice/create-voice-clone-async) → **Callbacks**。",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -368,7 +373,7 @@
                 },
                 "responses": {
                   "200": {
-                    "description": "Return 2xx promptly to stop retries"
+                    "description": "请尽快返回 2xx 以停止重试"
                   }
                 }
               }
@@ -386,7 +391,11 @@
         "description": "异步媒体翻译。若请求 `taskType` 为 `at` 但素材为视频，服务端可能按 `vt` 执行（见受理响应中的 `taskType`）。",
         "operationId": "mediaTranslationCreateAsync",
         "x-mint": {
-          "content": "<Note>\n**Response：** 立即受理（`taskId`、`taskType`、`status`、`createdAt`），不含交付物。\n\n**Callbacks → task.completed：** 本地化完成后 VMEG 向你方服务器 POST 的 [Webhook](/zh/guides/webhooks) **请求体**，下方 `data` 为交付物。\n</Note>"
+          "href": "/zh/api-reference/media-translation/create-media-translation-async",
+          "metadata": {
+            "sidebarTitle": "创建媒体翻译（异步）",
+            "title": "创建媒体翻译（异步）"
+          }
         },
         "parameters": [
           {
@@ -405,7 +414,7 @@
         },
         "responses": {
           "200": {
-            "description": "仅受理（`taskId`、`taskType`、`status`、`createdAt`）。交付物在 **Callbacks → task.completed** 的 Webhook 回调请求体中。",
+            "description": "仅返回受理信息（`taskId`、`taskType`、`status`、`createdAt`）。最终生成结果在 [Webhook](/zh/guides/webhooks) 回调请求体中。",
             "content": {
               "application/json": {
                 "schema": {
@@ -419,8 +428,8 @@
           "taskCompleted": {
             "https://{yourWebhookUrl}": {
               "post": {
-                "summary": "Webhook 请求：task.completed",
-                "description": "本地化完成后 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的 HTTP **请求体**，不属于上方 create-async 的 **Response**。",
+                "summary": "异步任务完成时的 Webhook（`event`: `openapi-media-translation`）",
+                "description": "音视频翻译异步任务完成时的 Webhook **请求体**；`event` 为 `openapi-media-translation`。见 [Webhook 请求体](/zh/guides/webhook-request)。完整 schema：[创建媒体翻译（异步）](/zh/api-reference/media-translation/create-media-translation-async) → **Callbacks**。",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -441,7 +450,7 @@
                 },
                 "responses": {
                   "200": {
-                    "description": "Return 2xx promptly to stop retries"
+                    "description": "请尽快返回 2xx 以停止重试"
                   }
                 }
               }
@@ -457,6 +466,13 @@
         ],
         "summary": "任务列表",
         "operationId": "tasksList",
+        "x-mint": {
+          "href": "/zh/api-reference/tasks/list-tasks",
+          "metadata": {
+            "sidebarTitle": "任务列表",
+            "title": "任务列表"
+          }
+        },
         "parameters": [
           {
             "name": "projId",
@@ -472,14 +488,16 @@
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/OpenApiTaskType"
-            }
+            },
+            "description": "按任务类型筛选"
           },
           {
             "name": "status",
             "in": "query",
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "按任务状态筛选"
           },
           {
             "name": "currentPage",
@@ -487,7 +505,8 @@
             "schema": {
               "type": "integer",
               "default": 1
-            }
+            },
+            "description": "页码（从 1 开始）"
           },
           {
             "name": "pageSize",
@@ -495,7 +514,8 @@
             "schema": {
               "type": "integer",
               "default": 20
-            }
+            },
+            "description": "每页条数"
           }
         ],
         "responses": {
@@ -509,7 +529,8 @@
               }
             }
           }
-        }
+        },
+        "description": "分页列出各产品 API 创建的任务（TTS、文本翻译、声音克隆、音视频翻译）。见 [产品概览](/zh/guides/products/overview)；异步交付物通过 [Webhook](/zh/guides/webhooks) 送达。"
       }
     },
     "/openapi/tasks/detail": {
@@ -519,6 +540,13 @@
         ],
         "summary": "任务详情",
         "operationId": "tasksDetail",
+        "x-mint": {
+          "href": "/zh/api-reference/tasks/get-task-detail",
+          "metadata": {
+            "sidebarTitle": "任务详情",
+            "title": "任务详情"
+          }
+        },
         "parameters": [
           {
             "name": "projId",
@@ -526,7 +554,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "项目 ID（API Key 所属项目）"
           },
           {
             "name": "taskId",
@@ -534,7 +563,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Open API 任务 ID"
           }
         ],
         "responses": {
@@ -548,7 +578,8 @@
               }
             }
           }
-        }
+        },
+        "description": "按 `taskId` 查询状态与 `result` — 用于 `create-async` 之后或未使用 Webhook 时的轮询。见 [产品概览](/zh/guides/products/overview)。"
       }
     },
     "/openapi/tasks/delete": {
@@ -558,6 +589,18 @@
         ],
         "summary": "删除任务",
         "operationId": "tasksDelete",
+        "x-mint": {
+          "href": "/zh/api-reference/tasks/delete-task",
+          "metadata": {
+            "sidebarTitle": "删除任务",
+            "title": "删除任务"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -579,7 +622,8 @@
               }
             }
           }
-        }
+        },
+        "description": "删除任务记录。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [产品概览](/zh/guides/products/overview)。"
       }
     },
     "/openapi/assets/material/upload/gen-upload-url": {
@@ -589,6 +633,18 @@
         ],
         "summary": "生成预签名上传 URL",
         "operationId": "materialGenUploadUrl",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/materials/gen-upload-url",
+          "metadata": {
+            "sidebarTitle": "生成预签名上传 URL",
+            "title": "生成预签名上传 URL"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -610,7 +666,8 @@
               }
             }
           }
-        }
+        },
+        "description": "单文件上传 **第 1 步**：预签名 PUT URL（及 `materialId`）。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。流程见 [素材上传](/zh/guides/assets/material-upload)、[资产概览](/zh/guides/assets/overview)。"
       }
     },
     "/openapi/assets/material/upload/complete": {
@@ -620,6 +677,18 @@
         ],
         "summary": "完成单文件上传",
         "operationId": "materialUploadComplete",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/materials/complete-upload",
+          "metadata": {
+            "sidebarTitle": "完成单文件上传",
+            "title": "完成单文件上传"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -641,7 +710,8 @@
               }
             }
           }
-        }
+        },
+        "description": "单文件上传 **第 3 步**：CDN PUT 后登记素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
     "/openapi/assets/material/upload/multipart/initiate": {
@@ -651,6 +721,18 @@
         ],
         "summary": "初始化分片上传",
         "operationId": "materialMultipartInitiate",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/materials/multipart-initiate",
+          "metadata": {
+            "sidebarTitle": "初始化分片上传",
+            "title": "初始化分片上传"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -672,7 +754,8 @@
               }
             }
           }
-        }
+        },
+        "description": "分片上传 **第 1 步**：发起上传并获取 `materialId` / `uploadId`。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
     "/openapi/assets/material/upload/multipart/presign-parts": {
@@ -682,6 +765,18 @@
         ],
         "summary": "为分片生成预签名 URL",
         "operationId": "materialMultipartPresign",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/materials/multipart-presign-parts",
+          "metadata": {
+            "sidebarTitle": "为分片生成预签名 URL",
+            "title": "为分片生成预签名 URL"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -703,7 +798,8 @@
               }
             }
           }
-        }
+        },
+        "description": "分片上传 **第 2 步**：为每个分片获取预签名 URL。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
     "/openapi/assets/material/upload/multipart/complete": {
@@ -713,6 +809,18 @@
         ],
         "summary": "完成分片上传",
         "operationId": "materialMultipartComplete",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/materials/multipart-complete",
+          "metadata": {
+            "sidebarTitle": "完成分片上传",
+            "title": "完成分片上传"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -734,7 +842,8 @@
               }
             }
           }
-        }
+        },
+        "description": "分片上传 **最后一步**：提交分片并登记素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
     "/openapi/assets/material/upload/multipart/abort": {
@@ -744,6 +853,11 @@
         ],
         "summary": "中止分片上传",
         "operationId": "materialMultipartAbort",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -765,7 +879,8 @@
               }
             }
           }
-        }
+        },
+        "description": "取消进行中的分片上传。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
     "/openapi/assets/material/list": {
@@ -775,6 +890,13 @@
         ],
         "summary": "素材列表",
         "operationId": "materialList",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/materials/list-materials",
+          "metadata": {
+            "sidebarTitle": "素材列表",
+            "title": "素材列表"
+          }
+        },
         "parameters": [
           {
             "name": "projId",
@@ -782,7 +904,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "项目 ID（API Key 所属项目）"
           },
           {
             "name": "currentPage",
@@ -790,7 +913,8 @@
             "schema": {
               "type": "integer",
               "default": 1
-            }
+            },
+            "description": "页码（从 1 开始）"
           },
           {
             "name": "pageSize",
@@ -798,7 +922,8 @@
             "schema": {
               "type": "integer",
               "default": 20
-            }
+            },
+            "description": "每页条数"
           }
         ],
         "responses": {
@@ -812,7 +937,8 @@
               }
             }
           }
-        }
+        },
+        "description": "分页查询项目下的素材库；`materialId` 用于 [音视频翻译](/zh/guides/products/media-translation)。见 [素材](/zh/guides/assets/materials) 与 [资产概览](/zh/guides/assets/overview)。"
       }
     },
     "/openapi/assets/material/delete": {
@@ -822,6 +948,18 @@
         ],
         "summary": "删除素材（逻辑删除）",
         "operationId": "materialDelete",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/materials/delete-material",
+          "metadata": {
+            "sidebarTitle": "删除素材（逻辑删除）",
+            "title": "删除素材（逻辑删除）"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -843,7 +981,8 @@
               }
             }
           }
-        }
+        },
+        "description": "逻辑删除素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材](/zh/guides/assets/materials)。"
       }
     },
     "/openapi/assets/voice/basic/list": {
@@ -853,6 +992,13 @@
         ],
         "summary": "系统音色列表（只读）",
         "operationId": "voiceBasicList",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/voices/list-system-voices",
+          "metadata": {
+            "sidebarTitle": "系统音色列表（只读）",
+            "title": "系统音色列表（只读）"
+          }
+        },
         "requestBody": {
           "content": {
             "application/json": {
@@ -873,7 +1019,8 @@
               }
             }
           }
-        }
+        },
+        "description": "列出只读系统预设音色，选取 `voiceId` 用于 [文本转语音](/zh/guides/products/text-to-speech)。见 [音色](/zh/guides/assets/voices) 与 [资产概览](/zh/guides/assets/overview)。"
       }
     },
     "/openapi/assets/voice/clone/list": {
@@ -883,6 +1030,13 @@
         ],
         "summary": "克隆音色列表",
         "operationId": "voiceCloneList",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/voices/list-cloned-voices",
+          "metadata": {
+            "sidebarTitle": "克隆音色列表",
+            "title": "克隆音色列表"
+          }
+        },
         "requestBody": {
           "content": {
             "application/json": {
@@ -903,7 +1057,8 @@
               }
             }
           }
-        }
+        },
+        "description": "列出 [声音克隆](/zh/guides/products/voice-clone) 产生的克隆音色。见 [音色](/zh/guides/assets/voices)。"
       }
     },
     "/openapi/assets/voice/clone/update": {
@@ -913,6 +1068,18 @@
         ],
         "summary": "重命名克隆音色",
         "operationId": "voiceCloneUpdate",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/voices/rename-cloned-voice",
+          "metadata": {
+            "sidebarTitle": "重命名克隆音色",
+            "title": "重命名克隆音色"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -934,7 +1101,8 @@
               }
             }
           }
-        }
+        },
+        "description": "重命名克隆音色展示名。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [音色](/zh/guides/assets/voices)。"
       }
     },
     "/openapi/assets/voice/clone/delete": {
@@ -944,6 +1112,18 @@
         ],
         "summary": "删除克隆音色（逻辑删除）",
         "operationId": "voiceCloneDelete",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/voices/delete-cloned-voice",
+          "metadata": {
+            "sidebarTitle": "删除克隆音色（逻辑删除）",
+            "title": "删除克隆音色（逻辑删除）"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -965,33 +1145,8 @@
               }
             }
           }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "taskCallback": {
-      "post": {
-        "tags": [
-          "Webhook"
-        ],
-        "summary": "任务完成回调（由 VMEG 发送至你的 URL）",
-        "description": "异步任务完成后，VMEG 向配置的 Webhook URL 发送 POST。各任务 `data` schema 见对应 `create-async` 下的 Callbacks。外壳验签见 Webhooks 指南。",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OpenApiCallbackDispatchBody"
-              }
-            }
-          }
         },
-        "responses": {
-          "200": {
-            "description": "接收成功（请返回 2xx）"
-          }
-        }
+        "description": "逻辑删除克隆音色。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [音色](/zh/guides/assets/voices)。"
       }
     }
   },
@@ -1000,14 +1155,14 @@
       "apiKeyAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "项目 API Key：`Authorization: Bearer <api_key>`"
+        "description": "在 **`Authorization`** 请求头中传入 API Key（`Bearer <api_key>`）。见 [鉴权](/zh/guides/authentication)。"
       }
     },
     "parameters": {
       "IdempotencyKey": {
         "name": "X-Idempotency-Key",
         "in": "header",
-        "description": "幂等键（异步创建必填，最长 64 字符）",
+        "description": "创建任务或修改持久化数据的 `POST` 必填（最长 64 字符）。见 [幂等](/zh/guides/idempotency)。",
         "schema": {
           "type": "string",
           "maxLength": 64
@@ -1017,7 +1172,7 @@
         "name": "X-Idempotency-Key",
         "in": "header",
         "required": true,
-        "description": "幂等键（必填，最长 64 字符）",
+        "description": "创建任务或修改持久化数据的 `POST` 必填（最长 64 字符）。见 [幂等](/zh/guides/idempotency)。",
         "schema": {
           "type": "string",
           "maxLength": 64
@@ -1027,7 +1182,7 @@
         "name": "X-Timestamp",
         "in": "header",
         "required": true,
-        "description": "Unix timestamp in milliseconds (string)",
+        "description": "Unix 时间戳（毫秒，字符串）",
         "schema": {
           "type": "string"
         }
@@ -1036,7 +1191,7 @@
         "name": "X-Signature",
         "in": "header",
         "required": true,
-        "description": "Lowercase hex HMAC-SHA256(secret, X-Timestamp + rawBody)",
+        "description": "小写十六进制 HMAC-SHA256(secret, X-Timestamp + 原始请求体)",
         "schema": {
           "type": "string"
         }
@@ -1053,7 +1208,8 @@
           },
           "message": {
             "type": "string",
-            "example": ""
+            "example": "",
+            "description": "当 `code` 非成功时的说明信息"
           }
         },
         "required": [
@@ -1069,7 +1225,8 @@
             "type": "object",
             "properties": {
               "data": {
-                "nullable": true
+                "nullable": true,
+                "description": "无业务数据时恒为 `null`"
               }
             }
           }
@@ -1077,14 +1234,16 @@
       },
       "OpenApiTaskType": {
         "type": "string",
+        "description": "Open API 任务类型代码。媒体翻译创建请求的 `taskType` 请使用 `vt`（视频翻译）或 `at`（音频翻译）。",
         "enum": [
-          "VIDEO_TRANSLATION",
-          "AUDIO_TRANSLATION",
-          "SUBTITLE_TRANSLATION",
-          "TTS",
-          "CLONE_VOICE",
-          "TEXT_TRANSLATION"
-        ]
+          "vt",
+          "at",
+          "st",
+          "tts",
+          "cloneVoice",
+          "textTranslation"
+        ],
+        "example": "vt"
       },
       "OpenApiTtsCreateRequest": {
         "type": "object",
@@ -1094,28 +1253,39 @@
         "properties": {
           "provider": {
             "type": "string",
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
             "example": "V1",
-            "description": "引擎代码：V1-V5，或 MM/V2/CB/IT/CVC 等"
+            "description": "合成引擎版本，填写 `V1` 至 `V5`。"
           },
           "language": {
             "type": "object",
             "properties": {
               "target": {
                 "type": "string",
-                "example": "en-US"
+                "example": "en-US",
+                "description": "目标语言 locale（BCP-47）。见 [支持的语言](/zh/guides/supported-languages)。"
               }
-            }
+            },
+            "description": "合成目标语言"
           },
           "trim": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "为 `true` 时裁剪输出音频首尾静音"
           },
           "data": {
             "type": "array",
             "maxItems": 50,
             "items": {
               "$ref": "#/components/schemas/OpenApiTtsDataItem"
-            }
+            },
+            "description": "待合成文本（最多 50 条）。每条需 `text` 及 [音色](/zh/guides/assets/voices) 中的 `voiceId` 或 `timbreRefAudio`"
           },
           "outputFormat": {
             "type": "string",
@@ -1124,13 +1294,25 @@
               "mp3",
               "m4a"
             ],
-            "default": "m4a"
-          },
-          "extraData": {
-            "type": "object",
-            "additionalProperties": true
+            "default": "m4a",
+            "description": "输出音频格式：`wav`、`mp3` 或 `m4a`"
           }
         }
+      },
+      "OpenApiTtsCreateAsyncRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiTtsCreateRequest"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "extraData": {
+                "$ref": "#/components/schemas/OpenApiExtraData"
+              }
+            }
+          }
+        ]
       },
       "OpenApiTtsDataItem": {
         "type": "object",
@@ -1139,26 +1321,30 @@
         ],
         "properties": {
           "text": {
-            "type": "string"
+            "type": "string",
+            "description": "待合成文本"
           },
           "voiceId": {
             "type": "string",
-            "description": "使用 voiceId 或 timbreRefAudio 之一"
+            "description": "本行使用的系统或克隆音色 ID。见 [音色](/zh/guides/assets/voices)；也可改用 `timbreRefAudio`"
           },
           "timbreRefAudio": {
             "type": "string",
-            "description": "音色参考音频 S3 URL"
+            "description": "未使用 [音色](/zh/guides/assets/voices) 中 `voiceId` 时的参考音频 URL（HTTPS）"
           },
           "emoWeight": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1
+            "maximum": 1,
+            "description": "情感强度，配合 `emoRefAudio` / `emoPrompt` 使用（0–1）"
           },
           "emoRefAudio": {
-            "type": "string"
+            "type": "string",
+            "description": "用于情感或演绎风格的参考音频 URL（HTTPS）"
           },
           "emoPrompt": {
-            "type": "string"
+            "type": "string",
+            "description": "描述期望情感或说话风格的文本提示"
           },
           "duration": {
             "type": "number",
@@ -1171,50 +1357,52 @@
         "properties": {
           "uri": {
             "type": "string",
-            "description": "Audio URL (CDN HTTPS in API responses; S3 URI from Lambda)"
+            "description": "合成音频 URL（HTTPS）"
           },
           "duration": {
             "type": "number",
-            "description": "Duration in seconds"
+            "description": "时长（秒）"
           },
           "errorMessage": {
             "type": "string",
-            "description": "Failure reason when synthesis failed for this item"
+            "description": "该条合成失败时的原因"
           }
         }
       },
       "OpenApiTtsCreateData": {
         "type": "object",
-        "description": "Synchronous create response and task.completed webhook `data` for TTS",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API 任务 ID"
           },
           "results": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiTtsResultItem"
             },
-            "description": "Present on synchronous create and in the task.completed webhook `data`"
+            "description": "合成结果条目"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "任务创建时间（ISO 8601）"
           }
         }
       },
       "OpenApiTaskAcceptedData": {
         "type": "object",
-        "description": "Immediate response for async task submission (no task results)",
+        "description": "异步提交后的立即响应（不含任务结果）",
         "required": [
           "taskId"
         ],
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API 任务 ID，可用于轮询或关联"
           },
           "createdAt": {
             "type": "string",
-            "description": "Returned by TTS and text translation async create"
+            "description": "TTS 与文本翻译异步创建接口返回"
           }
         }
       },
@@ -1242,7 +1430,12 @@
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiTtsCreateData"
+                "description": "同步 HTTP 响应中返回的合成结果。",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiTtsCreateData"
+                  }
+                ]
               }
             }
           }
@@ -1264,30 +1457,45 @@
             "properties": {
               "source": {
                 "type": "string",
-                "example": "zh-CN"
+                "example": "zh-CN",
+                "description": "源语言 locale（BCP-47）。见 [支持的语言](/zh/guides/supported-languages)。"
               },
               "target": {
                 "type": "string",
-                "example": "en-US"
+                "example": "en-US",
+                "description": "目标语言 locale（BCP-47）。见 [支持的语言](/zh/guides/supported-languages)。"
               }
-            }
+            },
+            "description": "翻译源语言与目标语言"
           },
           "segments": {
             "type": "array",
             "maxItems": 50,
             "items": {
               "$ref": "#/components/schemas/OpenApiTranslateSegment"
-            }
+            },
+            "description": "待翻译文本片段（最多 50 条）"
           },
           "options": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "extraData": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/OpenApiTranslateOptions",
+            "description": "可选翻译设置（上下文、场景、术语表、prompt）"
           }
         }
+      },
+      "OpenApiTranslateCreateAsyncRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiTranslateCreateRequest"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "extraData": {
+                "$ref": "#/components/schemas/OpenApiExtraData"
+              }
+            }
+          }
+        ]
       },
       "OpenApiTranslateSegment": {
         "type": "object",
@@ -1296,29 +1504,113 @@
         ],
         "properties": {
           "text": {
-            "type": "string"
+            "type": "string",
+            "description": "该片段的原文"
           },
           "gender": {
             "type": "string",
-            "example": "male"
+            "example": "male",
+            "description": "该片段说话人性别提示（如 `male`、`female`）"
           },
           "speaker": {
-            "type": "string"
+            "type": "string",
+            "example": "Speaker A",
+            "description": "多说话人场景下的说话人标识，便于保持人称与音色一致"
           },
           "locale": {
-            "type": "string"
+            "type": "string",
+            "example": "zh-CN",
+            "description": "当与 `language.source` 不同时的单句语言"
           },
           "context": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "单句邻句上下文，优先于 `options.sourceContext`；在 `provided_only` 且片段时间不连续时尤其有用"
           },
           "start": {
-            "type": "number"
+            "type": "number",
+            "description": "该句在原文时间轴上的起始秒数；与 `end` 成对使用以标定时间区间"
           },
           "end": {
-            "type": "number"
+            "type": "number",
+            "description": "该句在原文时间轴上的结束秒数；须与 `start` 同时提供且不小于 `start`"
+          }
+        }
+      },
+      "OpenApiTranslateOptions": {
+        "type": "object",
+        "description": "可选翻译设置",
+        "properties": {
+          "sourceContext": {
+            "$ref": "#/components/schemas/OpenApiTranslateSourceContext",
+            "description": "如何使用相邻原文语境；省略时默认为 `independent`"
+          },
+          "sceneCustomized": {
+            "$ref": "#/components/schemas/OpenApiTranslateSceneCustomized",
+            "description": "场景与表达风格提示"
+          },
+          "glossary": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "术语表（源词 → 首选译文）"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "追加到翻译指令的自定义 prompt"
+          },
+          "skipMissingTranslationCheck": {
+            "type": "boolean",
+            "default": false,
+            "description": "为 `true` 时跳过「每句均有译文」的校验"
+          }
+        }
+      },
+      "OpenApiTranslateSourceContext": {
+        "type": "object",
+        "description": "全局邻句上下文策略；优先级低于各句的 `context`",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "independent",
+              "provided_only",
+              "neighbor"
+            ],
+            "default": "independent",
+            "description": "`independent` — 逐句独立翻译。`provided_only` — 使用各句 `context` 中提供的邻句。`neighbor` — 从按序排列的 segments 中按 `contextWindow` 自动取邻句"
+          },
+          "contextWindow": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 5,
+            "description": "仅当 `mode` 为 `neighbor` 时生效：向前后各扩展的邻段条数（1–20）"
+          }
+        }
+      },
+      "OpenApiTranslateSceneCustomized": {
+        "type": "object",
+        "description": "按场景定制的翻译行为",
+        "properties": {
+          "scene": {
+            "type": "string",
+            "enum": [
+              "video",
+              "audio",
+              "subtitle",
+              "voiceover"
+            ],
+            "default": "video",
+            "description": "供翻译模型判断的内容类型"
+          },
+          "allowStutter": {
+            "type": "boolean",
+            "default": true,
+            "description": "译文中是否可保留原文中的口吃/重复等不流畅表达"
           }
         }
       },
@@ -1327,30 +1619,31 @@
         "properties": {
           "text": {
             "type": "string",
-            "description": "Translated text"
+            "description": "译文"
           },
           "errorMessage": {
             "type": "string",
-            "description": "Failure reason when translation failed for this segment"
+            "description": "该片段翻译失败时的原因"
           }
         }
       },
       "OpenApiTranslateCreateData": {
         "type": "object",
-        "description": "Synchronous create response and task.completed webhook `data` for text translation",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API 任务 ID"
           },
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiTranslateResultItem"
             },
-            "description": "Aligned with request segments by index; present on synchronous create and in the task.completed webhook `data`"
+            "description": "译文片段，与请求 segments 按索引对齐"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "任务创建时间（ISO 8601）"
           }
         }
       },
@@ -1363,7 +1656,12 @@
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+                "description": "同步 HTTP 响应中返回的译文片段。",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+                  }
+                ]
               }
             }
           }
@@ -1373,41 +1671,65 @@
         "type": "object",
         "properties": {
           "voiceName": {
-            "type": "string"
+            "type": "string",
+            "description": "克隆音色在资产库中的展示名称"
           },
           "provider": {
             "type": "string",
-            "example": "V1"
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
+            "example": "V1",
+            "description": "克隆引擎版本，填写 `V1` 至 `V5`。"
           },
           "refAudio": {
             "type": "string",
-            "description": "HTTPS reference audio URL"
+            "description": "参考音频 URL（HTTPS）"
           },
           "sampleLanguage": {
             "type": "string",
-            "example": "zh-CN"
+            "example": "zh-CN",
+            "description": "样本语言 locale（BCP-47）。见 [支持的语言](/zh/guides/supported-languages)。"
           },
           "sampleText": {
-            "type": "string"
-          },
-          "extraData": {
-            "type": "object",
-            "additionalProperties": true
+            "type": "string",
+            "description": "`refAudio` 的可选对照文本，有助于提升克隆质量"
           }
         }
       },
+      "OpenApiCloneVoiceCreateAsyncRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiCloneVoiceCreateRequest"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "extraData": {
+                "$ref": "#/components/schemas/OpenApiExtraData"
+              }
+            }
+          }
+        ]
+      },
       "OpenApiCloneVoiceCreateData": {
         "type": "object",
-        "description": "Synchronous create response and task.completed webhook `data` for voice clone (voiceId and audio populated on completion)",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API 任务 ID（异步克隆）"
           },
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "可用于 TTS 的新克隆音色 ID。见 [音色](/zh/guides/assets/voices)"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "任务创建时间（ISO 8601）"
           }
         }
       },
@@ -1420,11 +1742,247 @@
             "type": "object",
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+                "description": "同步 HTTP 响应中返回的克隆结果。",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+                  }
+                ]
               }
             }
           }
         ]
+      },
+      "OpenApiMediaTranslationSource": {
+        "type": "object",
+        "required": [
+          "materialId"
+        ],
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "输入素材 ID。见 [素材](/zh/guides/assets/materials)（通过 [素材上传](/zh/guides/assets/material-upload) 获取）"
+          }
+        },
+        "description": "本任务的输入素材"
+      },
+      "OpenApiMediaTranslationLanguage": {
+        "type": "object",
+        "required": [
+          "target"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "源语言（BCP-47）或 `auto` 自动检测。见 [支持的语言](/zh/guides/supported-languages)。"
+          },
+          "target": {
+            "type": "string",
+            "example": "zh-CN",
+            "description": "目标语言 locale（BCP-47）。见 [支持的语言](/zh/guides/supported-languages)。"
+          }
+        },
+        "description": "本地化源语言与目标语言"
+      },
+      "OpenApiMediaTranslationVoiceClone": {
+        "type": "object",
+        "description": "配音/音色克隆设置（`options` 内必填）",
+        "properties": {
+          "style": {
+            "type": "string",
+            "enum": [
+              "emotional",
+              "consistent"
+            ],
+            "default": "emotional",
+            "description": "克隆风格：`emotional`（偏情绪表达）或 `consistent`（口音一致）"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "role",
+              "mix",
+              "sentence"
+            ],
+            "example": "role",
+            "description": "多说话人下的音色分配方式"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
+            "description": "克隆引擎版本（`V1`–`V5`），与 [TTS](/zh/api-reference/tts/create-tts-sync) 映射规则相同"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranscribe": {
+        "type": "object",
+        "description": "自动语音识别（ASR）设置",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "fast",
+              "normal"
+            ],
+            "default": "fast",
+            "description": "ASR 速度与时效的权衡"
+          },
+          "type": {
+            "type": "string",
+            "default": "default",
+            "description": "ASR 配置档（省略时使用产品默认）"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranslate": {
+        "type": "object",
+        "description": "媒体流水线中的文本翻译步骤",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "default",
+              "machine"
+            ],
+            "default": "default",
+            "description": "`default` — 标准本地化。`machine` — 机器翻译模式"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "翻译步骤的自定义 prompt"
+          }
+        }
+      },
+      "OpenApiMediaTranslationSeparation": {
+        "type": "object",
+        "description": "声源分离（人声与背景）",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "分离模式（如 `auto`）"
+          }
+        }
+      },
+      "OpenApiMediaTranslationEnhance": {
+        "type": "object",
+        "description": "音频增强选项",
+        "properties": {
+          "tts": {
+            "type": "boolean",
+            "description": "启用 TTS 输出增强"
+          }
+        }
+      },
+      "OpenApiMediaTranslationDynamicVideoLength": {
+        "type": "object",
+        "description": "动态视频时长（视频翻译）",
+        "properties": {
+          "enable": {
+            "type": "boolean",
+            "description": "启用源片与配音成片的时长动态对齐"
+          }
+        }
+      },
+      "OpenApiMediaTranslationLipsync": {
+        "type": "object",
+        "description": "唇形同步（仅视频翻译；可能额外扣积分）。见 [计费](/zh/guides/pricing)",
+        "properties": {
+          "enable": {
+            "type": "boolean",
+            "default": false,
+            "description": "对输出视频启用唇形同步"
+          }
+        }
+      },
+      "OpenApiMediaTranslationSelectedVoice": {
+        "type": "object",
+        "description": "为配音选定的系统或克隆音色",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "example": "Microsoft",
+            "description": "音色提供方标识"
+          },
+          "voice_id": {
+            "type": "string",
+            "description": "音色 ID，来自 [系统音色列表](/zh/api-reference/assets/voices/list-system-voices) 或您的克隆音色"
+          }
+        }
+      },
+      "OpenApiMediaTranslationVoiceSpeakers": {
+        "type": "object",
+        "description": "配音说话人与音色配置",
+        "properties": {
+          "selected_voices_list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationSelectedVoice"
+            },
+            "description": "为各说话人槽位显式指定音色"
+          },
+          "speaker_num": {
+            "type": "string",
+            "example": "auto",
+            "description": "检测的说话人数量（`auto` 或数字字符串）"
+          },
+          "timbre_method": {
+            "type": "string",
+            "enum": [
+              "clone",
+              "smart"
+            ],
+            "example": "clone",
+            "description": "`clone` — 从源音频克隆。`smart` — 智能匹配音色"
+          }
+        }
+      },
+      "OpenApiMediaTranslationOptions": {
+        "type": "object",
+        "required": [
+          "voiceClone"
+        ],
+        "description": "流水线选项：配音、ASR、翻译、分离、唇形同步与字幕",
+        "properties": {
+          "voiceClone": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceClone"
+          },
+          "transcribe": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranscribe"
+          },
+          "translate": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranslate"
+          },
+          "separation": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationSeparation"
+          },
+          "enhance": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationEnhance"
+          },
+          "dynamicVideoLength": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationDynamicVideoLength"
+          },
+          "lipsync": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync"
+          },
+          "text": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "标题与字幕样式/烧录配置（产品结构，键值因产品而异）"
+          },
+          "voice_speakers": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceSpeakers"
+          }
+        }
       },
       "OpenApiMediaTranslationCreateRequest": {
         "type": "object",
@@ -1441,56 +1999,41 @@
               "vt",
               "at"
             ],
-            "description": "vt = video translation, at = audio translation"
+            "description": "vt = 视频翻译，at = 音频翻译。若 `at` 对应视频素材，任务可能按视频翻译执行"
           },
           "source": {
-            "type": "object",
-            "required": [
-              "materialId"
-            ],
-            "properties": {
-              "materialId": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/components/schemas/OpenApiMediaTranslationSource"
           },
           "language": {
-            "type": "object",
-            "properties": {
-              "source": {
-                "type": "string"
-              },
-              "target": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage"
           },
           "options": {
-            "type": "object",
-            "description": "Dubbing, ASR, translation, etc. See media translation guide"
-          },
-          "output": {
-            "type": "object"
+            "$ref": "#/components/schemas/OpenApiMediaTranslationOptions"
           },
           "extraData": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/OpenApiExtraData"
           }
         }
       },
+      "OpenApiExtraData": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "异步提交时的可选客户端元数据；任务完成时在 Webhook 回调体 `extraData` 中回显。同步创建接口不使用。"
+      },
       "OpenApiMediaTranslationAcceptedData": {
         "type": "object",
-        "description": "Immediate response for media translation async create (no deliverables)",
+        "description": "音视频翻译异步创建的立即响应（不含交付物）",
         "required": [
           "taskId"
         ],
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API 任务 ID"
           },
           "taskType": {
             "$ref": "#/components/schemas/OpenApiTaskType",
-            "description": "Effective task type (may differ from request when audio material is processed as video translation)"
+            "description": "实际执行的任务类型（音频素材可能按视频翻译处理，可与请求不同）"
           },
           "status": {
             "type": "string",
@@ -1499,10 +2042,12 @@
               "failed",
               "finished"
             ],
-            "example": "running"
+            "example": "running",
+            "description": "受理后的任务状态（`running`、`failed` 或 `finished`）"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "任务创建时间（ISO 8601）"
           }
         }
       },
@@ -1523,10 +2068,11 @@
       },
       "OpenApiMediaTranslationCallbackData": {
         "type": "object",
-        "description": "Webhook `data` for media translation task.completed",
+        "description": "Webhook 中 `event` 为 `openapi-media-translation` 时，`data` 内的任务载荷（`data.result` 含 CDN 交付物）。",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API 任务 ID"
           },
           "taskType": {
             "$ref": "#/components/schemas/OpenApiTaskType"
@@ -1537,12 +2083,467 @@
               "running",
               "failed",
               "finished"
-            ]
+            ],
+            "description": "最终任务状态（`finished` 或 `failed`）"
           },
           "result": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationCustomerResult",
+            "description": "固定结构的交付结果（URL 已转换为可直接访问的 HTTPS/CDN，并移除内部字段）。"
+          }
+        }
+      },
+      "OpenApiMediaTranslationCustomerResult": {
+        "type": "object",
+        "description": "媒体翻译对客结果（固定结构）。CDN URL 为 HTTPS。",
+        "properties": {
+          "compress": {
             "type": "object",
-            "description": "Sanitized deliverables (CDN URLs and selected fields); structure varies by taskType",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationMediaFile"
+            },
+            "description": "转码/压缩结果（key 为 480p/360p 等档位）。"
+          },
+          "asrScripts": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationAsrScripts"
+          },
+          "audioSeparation": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationAudioSeparation"
+          },
+          "speechEnhance": {
+            "type": "string",
+            "description": "增强后人声音频 URL（HTTPS）。"
+          },
+          "translatedScripts": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranslatedScripts"
+          },
+          "voiceClone": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceCloneResult"
+          },
+          "voiceMatch": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceMatch"
+            },
+            "description": "说话人与音色匹配列表。"
+          },
+          "tts": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTtsResult"
+          },
+          "alignment": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationAlignment"
+          },
+          "project": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationProject"
+          },
+          "build": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationBuild"
+          }
+        }
+      },
+      "OpenApiMediaTranslationMediaFile": {
+        "type": "object",
+        "description": "媒体文件（视频/音频/图片）。",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "CDN URL（HTTPS）。"
+          },
+          "duration": {
+            "type": "number",
+            "description": "时长（秒）。"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "description": "文件大小（字节）。"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationResolution"
+          },
+          "fps": {
+            "type": "integer",
+            "description": "帧率（FPS，适用时）。"
+          }
+        }
+      },
+      "OpenApiMediaTranslationResolution": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAsrScripts": {
+        "type": "object",
+        "description": "ASR 脚本汇总（已裁剪）。",
+        "properties": {
+          "asrResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationAsrResultLine"
+            }
+          },
+          "monoAudio": {
+            "type": "string",
+            "description": "单声道音频 URL（HTTPS）。"
+          },
+          "speakerNum": {
+            "type": "integer",
+            "description": "检测到的说话人数。"
+          },
+          "language": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguagePair"
+          },
+          "category": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ctcEnabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OpenApiMediaTranslationLanguagePair": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAsrResultLine": {
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "type": "string"
+          },
+          "start": {
+            "type": "number"
+          },
+          "end": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "emotion": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "age": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "textWithBracket": {
+            "type": "string"
+          },
+          "textWithBreak": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAudioSeparation": {
+        "type": "object",
+        "description": "音频分离结果（CDN URL）。",
+        "properties": {
+          "sfxUrl": {
+            "type": "string"
+          },
+          "musicUrl": {
+            "type": "string"
+          },
+          "vocalUrl": {
+            "type": "string"
+          },
+          "speechUrl": {
+            "type": "string"
+          },
+          "otherUrl": {
+            "type": "string"
+          },
+          "mnsUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranslatedScripts": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationTranslatedScriptLine"
+            }
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranslatedScriptLine": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "number"
+          },
+          "end": {
+            "type": "number"
+          },
+          "sourceText": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "speaker": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "voiceId": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "speakerDisplayName": {
+            "type": "string"
+          },
+          "emotion": {
+            "type": "string"
+          },
+          "age": {
+            "type": "string"
+          },
+          "sourceSyllable": {
+            "type": "integer"
+          },
+          "targetSyllable": {
+            "type": "integer"
+          },
+          "mode": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationVoiceCloneResult": {
+        "type": "object",
+        "description": "声音克隆配置（入参 + 回显出参）。",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "refAudio": {
+            "type": "string",
+            "description": "参考音频 URL（HTTPS）。"
+          }
+        }
+      },
+      "OpenApiMediaTranslationVoiceMatch": {
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "type": "string"
+          },
+          "voiceId": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "exampleLanguage": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "audio": {
+            "type": "string",
+            "description": "示例音频 URL（HTTPS）。"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTtsResult": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationTtsLine"
+            }
+          }
+        }
+      },
+      "OpenApiMediaTranslationTtsLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "ttsFile": {
+            "type": "string",
+            "description": "TTS 音频 URL（HTTPS）。"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "voiceId": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cloneMode": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAlignment": {
+        "type": "object",
+        "properties": {
+          "audio": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationAlignmentTrack"
+            }
+          },
+          "subtitle": {
+            "type": "array",
+            "items": {}
+          },
+          "video": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationAlignmentTrack"
+            }
+          }
+        }
+      },
+      "OpenApiMediaTranslationAlignmentTrack": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "轨道文件 URL（HTTPS）。"
+          },
+          "templateId": {
+            "type": "integer"
+          },
+          "tracksTimes": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "timeRange": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "volumeScale": {
+            "type": "number"
+          }
+        }
+      },
+      "OpenApiMediaTranslationProject": {
+        "type": "object",
+        "description": "工程化产物（结构由算法侧定义）。",
+        "properties": {
+          "project": {
+            "type": "object",
             "additionalProperties": true
+          },
+          "projectWoBgm": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "OpenApiMediaTranslationBuild": {
+        "type": "object",
+        "description": "最终构建产物（CDN URL）。",
+        "properties": {
+          "video": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationMediaFile"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationImageFile"
+            }
+          },
+          "audio": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationAudioFile"
+          }
+        }
+      },
+      "OpenApiMediaTranslationImageFile": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationResolution"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAudioFile": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fps": {
+            "type": "integer"
           }
         }
       },
@@ -1550,19 +2551,23 @@
         "type": "object",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API 任务 ID"
           },
           "taskType": {
             "$ref": "#/components/schemas/OpenApiTaskType"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "description": "任务状态"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "description": "任务创建时间（ISO 8601）"
           },
           "updatedAt": {
-            "type": "string"
+            "type": "string",
+            "description": "最近更新时间（ISO 8601）"
           }
         }
       },
@@ -1573,11 +2578,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiTaskSummary"
-            }
+            },
+            "description": "本页任务列表"
           },
           "total": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "符合筛选条件的任务总数"
           }
         }
       },
@@ -1585,17 +2592,19 @@
         "type": "object",
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Open API 任务 ID"
           },
           "taskType": {
             "$ref": "#/components/schemas/OpenApiTaskType"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "description": "当前任务状态"
           },
           "result": {
             "type": "object",
-            "description": "Task-specific result; structure varies by taskType",
+            "description": "任务相关结果（结构因 taskType 而异）",
             "additionalProperties": true
           }
         }
@@ -1638,10 +2647,12 @@
         ],
         "properties": {
           "projId": {
-            "type": "string"
+            "type": "string",
+            "description": "项目 ID（API Key 所属项目）"
           },
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "要删除的任务 ID（逻辑删除）"
           }
         }
       },
@@ -1654,11 +2665,11 @@
         "properties": {
           "fileHash": {
             "type": "string",
-            "description": "File MD5 hash"
+            "description": "文件 MD5"
           },
           "fileName": {
             "type": "string",
-            "description": "File name including extension"
+            "description": "文件名（含扩展名）"
           }
         }
       },
@@ -1673,16 +2684,19 @@
         "properties": {
           "s3Uri": {
             "type": "string",
-            "description": "Upload target S3 URI from gen-upload-url or multipart initiate"
+            "description": "上传目标 URI（由获取预签名 URL 或分片初始化返回）"
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "原始文件名（含扩展名）"
           },
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "预签名上传返回的素材 ID。见 [素材](/zh/guides/assets/materials)"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "上传文件的 MD5（须与上传请求一致）"
           }
         }
       },
@@ -1690,23 +2704,27 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/assets/materials)"
           },
           "uploadId": {
-            "type": "string"
+            "type": "string",
+            "description": "分片初始化返回的上传会话 ID"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "完整文件的 MD5"
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "原始文件名（含扩展名）"
           },
           "partNumbers": {
             "type": "array",
             "items": {
               "type": "integer"
             },
-            "description": "Part numbers to presign (1–10000)"
+            "description": "待预签名的分片序号（1–10000）"
           }
         }
       },
@@ -1714,11 +2732,12 @@
         "type": "object",
         "properties": {
           "partNumber": {
-            "type": "integer"
+            "type": "integer",
+            "description": "分片序号（从 1 开始）"
           },
           "eTag": {
             "type": "string",
-            "description": "ETag from the S3 part PUT response"
+            "description": "分片 PUT 响应中的 ETag"
           }
         }
       },
@@ -1726,22 +2745,27 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/assets/materials)"
           },
           "uploadId": {
-            "type": "string"
+            "type": "string",
+            "description": "分片上传会话 ID"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "完整文件的 MD5"
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "原始文件名（含扩展名）"
           },
           "parts": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiMaterialMultipartCompletePart"
-            }
+            },
+            "description": "已上传分片列表，含每片的 `partNumber` 与 PUT 返回的 `eTag`"
           }
         }
       },
@@ -1749,16 +2773,20 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/assets/materials)"
           },
           "uploadId": {
-            "type": "string"
+            "type": "string",
+            "description": "要中止的分片上传会话 ID"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "文件 MD5（须与初始化请求一致）"
           },
           "fileName": {
-            "type": "string"
+            "type": "string",
+            "description": "原始文件名（含扩展名）"
           }
         }
       },
@@ -1766,7 +2794,8 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "要删除的素材 ID。见 [素材](/zh/guides/assets/materials)"
           }
         }
       },
@@ -1774,12 +2803,13 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "素材 ID。见 [素材](/zh/guides/assets/materials)"
           },
           "category": {
             "type": "string",
             "example": "video",
-            "description": "Material type"
+            "description": "素材类型"
           },
           "name": {
             "type": "string",
@@ -1787,41 +2817,46 @@
           },
           "addressUrl": {
             "type": "string",
-            "description": "Main file CDN URL"
+            "description": "主文件 CDN URL"
           },
           "thumbnailUrl": {
             "type": "string",
-            "description": "Thumbnail CDN URL"
+            "description": "缩略图 CDN URL"
           },
           "audioUrl": {
             "type": "string",
-            "description": "Separated audio track CDN URL"
+            "description": "分离音轨 CDN URL"
           },
           "resolution": {
             "type": "string",
-            "example": "1920x1080"
+            "example": "1920x1080",
+            "description": "视频分辨率（如适用，例如 `1920x1080`）"
           },
           "mimeType": {
-            "type": "string"
+            "type": "string",
+            "description": "主文件的 MIME 类型"
           },
           "fileHash": {
-            "type": "string"
+            "type": "string",
+            "description": "主文件 MD5"
           },
           "filesize": {
             "type": "integer",
             "format": "int64",
-            "description": "File size in bytes"
+            "description": "文件大小（字节）"
           },
           "duration": {
             "type": "integer",
             "format": "int64",
-            "description": "Duration in milliseconds"
+            "description": "时长（毫秒）"
           },
           "createTime": {
-            "type": "string"
+            "type": "string",
+            "description": "注册时间（ISO 8601）"
           },
           "updateTime": {
-            "type": "string"
+            "type": "string",
+            "description": "最近更新时间（ISO 8601）"
           }
         }
       },
@@ -1830,18 +2865,19 @@
         "properties": {
           "uploadUrl": {
             "type": "string",
-            "description": "Presigned PUT URL; empty when instant upload (dedup) applies"
+            "description": "预签名 PUT URL；秒传时为空"
           },
           "material": {
             "$ref": "#/components/schemas/OpenApiMaterialDto",
-            "description": "Present when the file already exists (instant upload)"
+            "description": "文件已存在（秒传）时返回"
           },
           "s3Uri": {
             "type": "string",
-            "description": "Upload target S3 URI; pass to complete"
+            "description": "上传目标 URI（传给完成上传接口）"
           },
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "本次上传的素材 ID。见 [素材](/zh/guides/assets/materials)"
           }
         }
       },
@@ -1849,22 +2885,26 @@
         "type": "object",
         "properties": {
           "materialId": {
-            "type": "string"
+            "type": "string",
+            "description": "本次分片上传的素材 ID。见 [素材](/zh/guides/assets/materials)"
           },
           "s3Uri": {
-            "type": "string"
+            "type": "string",
+            "description": "上传目标 URI，完成上传时需回传"
           },
           "uploadId": {
-            "type": "string"
+            "type": "string",
+            "description": "分片上传会话 ID"
           },
           "expiresInSeconds": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "预签名 URL 有效秒数"
           },
           "recommendedPartSize": {
             "type": "integer",
             "format": "int64",
-            "description": "Suggested part size in bytes (S3 multipart minimum is typically 5 MB except the last part)"
+            "description": "建议分片大小（字节；除最后一片外通常不少于 5 MB）"
           }
         }
       },
@@ -1872,11 +2912,12 @@
         "type": "object",
         "properties": {
           "partNumber": {
-            "type": "integer"
+            "type": "integer",
+            "description": "分片序号（从 1 开始）"
           },
           "url": {
             "type": "string",
-            "description": "Presigned PUT URL for this part"
+            "description": "该分片的预签名 PUT URL"
           }
         }
       },
@@ -1887,11 +2928,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignPartUrl"
-            }
+            },
+            "description": "所请求分片的预签名 PUT URL 列表"
           },
           "expiresInSeconds": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "上述 URL 有效秒数"
           }
         }
       },
@@ -1902,11 +2945,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiMaterialDto"
-            }
+            },
+            "description": "本页素材列表"
           },
           "total": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "符合筛选条件的素材总数"
           }
         }
       },
@@ -1989,80 +3034,103 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "系统预设音色 ID。见 [音色](/zh/guides/assets/voices)"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Internal voice name"
           },
           "localName": {
-            "type": "string"
+            "type": "string",
+            "description": "本地化名称"
           },
           "displayName": {
-            "type": "string"
+            "type": "string",
+            "description": "音色选择器中的展示名"
           },
           "locale": {
             "type": "string",
-            "example": "en-US"
+            "example": "en-US",
+            "description": "该预设的主 locale（BCP-47）"
           },
           "localeName": {
-            "type": "string"
+            "type": "string",
+            "description": "locale 的可读名称"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "该预设对应的引擎版本（`V1`–`V5`）"
           },
           "gender": {
-            "type": "string"
+            "type": "string",
+            "description": "性别标签（如 male、female）"
           },
           "style": {
-            "type": "string"
+            "type": "string",
+            "description": "说话风格标签"
           },
           "rolePlay": {
-            "type": "string"
+            "type": "string",
+            "description": "角色扮演/人设标签"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Marketing or catalog description"
           },
           "personalities": {
-            "type": "string"
+            "type": "string",
+            "description": "人格标签（逗号分隔）"
           },
           "personalityList": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "人格标签列表"
           },
           "scenarios": {
-            "type": "string"
+            "type": "string",
+            "description": "推荐使用场景标签"
           },
           "scenarioList": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "场景标签列表"
           },
           "isHd": {
-            "type": "integer"
+            "type": "integer",
+            "description": "高清音色时为 `1`"
           },
           "isPreferred": {
-            "type": "integer"
+            "type": "integer",
+            "description": "目录中标记为优选时为 `1`"
           },
           "score": {
-            "type": "number"
+            "type": "number",
+            "description": "列表排序得分"
           },
           "model": {
-            "type": "string"
+            "type": "string",
+            "description": "目录模型标签（非请求里的 `provider` 取值）"
           },
           "cover": {
-            "type": "string"
+            "type": "string",
+            "description": "封面图 URL"
           },
           "audio": {
-            "type": "string"
+            "type": "string",
+            "description": "试听音频 URL"
           },
           "createTime": {
-            "type": "string"
+            "type": "string",
+            "description": "记录创建时间"
           },
           "updateTime": {
-            "type": "string"
+            "type": "string",
+            "description": "记录最近更新时间"
           }
         }
       },
@@ -2070,31 +3138,40 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "克隆音色 ID。见 [音色](/zh/guides/assets/voices)"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Display name of the clone"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "克隆时使用的引擎版本（`V1`–`V5`）"
           },
           "exampleLanguage": {
-            "type": "string"
+            "type": "string",
+            "description": "样本语言 locale（BCP-47）"
           },
           "content": {
-            "type": "string"
+            "type": "string",
+            "description": "与克隆关联的样本文本或转写"
           },
           "audio": {
-            "type": "string"
+            "type": "string",
+            "description": "样本或参考音频 URL"
           },
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "创建该音色的克隆任务 ID"
           },
           "createTime": {
-            "type": "string"
+            "type": "string",
+            "description": "记录创建时间"
           },
           "updateTime": {
-            "type": "string"
+            "type": "string",
+            "description": "记录最近更新时间"
           }
         }
       },
@@ -2105,11 +3182,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiBasicVoiceDto"
-            }
+            },
+            "description": "本页音色列表"
           },
           "total": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "符合筛选条件的音色总数"
           }
         }
       },
@@ -2120,11 +3199,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpenApiCloneVoiceDto"
-            }
+            },
+            "description": "本页克隆音色列表"
           },
           "total": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "符合筛选条件的克隆音色总数"
           }
         }
       },
@@ -2132,28 +3213,33 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "按系统预设 `voiceId` 筛选。见 [音色](/zh/guides/assets/voices)"
           },
           "searchName": {
-            "type": "string"
+            "type": "string",
+            "description": "按展示名或本地化名称搜索"
           },
           "locale": {
             "type": "string",
-            "example": "en-US"
+            "example": "en-US",
+            "description": "按 locale（BCP-47）筛选。见 [支持的语言](/zh/guides/supported-languages)"
           },
           "age": {
             "type": "string",
             "description": "young / adult / senior"
           },
           "gender": {
-            "type": "string"
+            "type": "string",
+            "description": "按性别筛选"
           },
           "quality": {
             "type": "string",
             "description": "any / high"
           },
           "category": {
-            "type": "string"
+            "type": "string",
+            "description": "按音色分类筛选"
           },
           "emotionPrompt": {
             "type": "string",
@@ -2163,15 +3249,18 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "将这些系统预设 `voiceId` 置顶。见 [音色](/zh/guides/assets/voices)"
           },
           "currentPage": {
             "type": "integer",
-            "default": 1
+            "default": 1,
+            "description": "页码（从 1 开始）"
           },
           "pageSize": {
             "type": "integer",
-            "default": 10
+            "default": 10,
+            "description": "每页条数"
           },
           "orderBy": {
             "type": "string",
@@ -2179,7 +3268,8 @@
           },
           "order": {
             "type": "string",
-            "default": "desc"
+            "default": "desc",
+            "description": "排序方向：`asc` 或 `desc`"
           }
         }
       },
@@ -2202,24 +3292,29 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "按克隆 `voiceId` 筛选。见 [音色](/zh/guides/assets/voices)"
           },
           "voiceIds": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "按克隆 `voiceId` 列表筛选。见 [音色](/zh/guides/assets/voices)"
           },
           "searchName": {
-            "type": "string"
+            "type": "string",
+            "description": "按克隆音色名称搜索"
           },
           "currentPage": {
             "type": "integer",
-            "default": 1
+            "default": 1,
+            "description": "页码（从 1 开始）"
           },
           "pageSize": {
             "type": "integer",
-            "default": 10
+            "default": 10,
+            "description": "每页条数"
           },
           "orderBy": {
             "type": "string",
@@ -2227,7 +3322,8 @@
           },
           "order": {
             "type": "string",
-            "default": "desc"
+            "default": "desc",
+            "description": "排序方向：`asc` 或 `desc`"
           }
         }
       },
@@ -2250,10 +3346,12 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "要重命名的克隆 `voiceId`。见 [音色](/zh/guides/assets/voices)"
           },
           "voiceName": {
-            "type": "string"
+            "type": "string",
+            "description": "新的展示名称"
           }
         }
       },
@@ -2261,39 +3359,49 @@
         "type": "object",
         "properties": {
           "voiceId": {
-            "type": "string"
+            "type": "string",
+            "description": "要删除的克隆 `voiceId`。见 [音色](/zh/guides/assets/voices)"
           }
         }
       },
       "OpenApiCallbackEnvelope": {
         "type": "object",
-        "description": "`task.completed` 时 VMEG 向你方 [Webhook](/zh/guides/webhooks) URL 发送 POST 的请求体公共字段。URL、签名头与重试见 Webhooks 指南。",
+        "description": "异步任务完成时 Webhook POST 的公共顶层字段。`event` 取值与各产品说明见 [Webhook 请求体](/zh/guides/webhook-request)。",
         "properties": {
           "code": {
             "type": "integer",
             "example": 200,
-            "description": "Business outcome for this delivery"
+            "description": "本次投递的业务结果码"
           },
           "version": {
             "type": "string",
-            "example": "1.0"
+            "example": "1.0",
+            "description": "回调协议版本（当前为 `1.0`）"
           },
           "event": {
             "type": "string",
-            "example": "task.completed"
+            "enum": [
+              "openapi-tts",
+              "openapi-translate",
+              "openapi-clone-voice",
+              "openapi-media-translation"
+            ],
+            "example": "openapi-tts",
+            "description": "已完成的产品类型。请按此值路由：`openapi-tts`（TTS）、`openapi-translate`（文本翻译）、`openapi-clone-voice`（声音克隆）、`openapi-media-translation`（音视频翻译）。详见 [Webhook 请求体](/zh/guides/webhook-request)。"
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "当 `code` 非成功时的说明"
           },
           "extraData": {
             "type": "object",
-            "description": "Echo of extraData / memo from the submit request",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "与异步提交请求中的 `extraData` 一致"
           }
         }
       },
       "OpenApiTtsTaskCompletedCallback": {
-        "description": "TTS `task.completed` 的完整 Webhook 回调**请求体**。URL 配置与验签见 [Webhook](/zh/guides/webhooks)。",
+        "description": "`event` 为 `openapi-tts` 时的 TTS Webhook **请求体**；`data` 含 `results`、`taskId`。见 [Webhook 请求体](/zh/guides/webhook-request) 与 [创建 TTS（异步）](/zh/api-reference/tts/create-tts-async) → **Callbacks**。",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -2305,14 +3413,19 @@
             ],
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiTtsCreateData"
+                "description": "`event` 为 `openapi-tts` 时的产品结果；`data` 含 `results`、`taskId`。",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiTtsCreateData"
+                  }
+                ]
               }
             }
           }
         ]
       },
       "OpenApiTranslateTaskCompletedCallback": {
-        "description": "文本翻译 `task.completed` 的完整 Webhook 回调**请求体**。URL 配置与验签见 [Webhook](/zh/guides/webhooks)。",
+        "description": "`event` 为 `openapi-translate` 时的文本翻译 Webhook **请求体**；`data.items` 与请求 segments 按序对应。",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -2324,14 +3437,19 @@
             ],
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+                "description": "`event` 为 `openapi-translate` 时的翻译结果（`data.items`）。",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiTranslateCreateData"
+                  }
+                ]
               }
             }
           }
         ]
       },
       "OpenApiCloneVoiceTaskCompletedCallback": {
-        "description": "声音克隆 `task.completed` 的完整 Webhook 回调**请求体**。URL 配置与验签见 [Webhook](/zh/guides/webhooks)。",
+        "description": "`event` 为 `openapi-clone-voice` 时的克隆 Webhook **请求体**；成功时 `data` 含 `voiceId` 等。",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -2343,14 +3461,19 @@
             ],
             "properties": {
               "data": {
-                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+                "description": "`event` 为 `openapi-clone-voice` 时的克隆结果（含 `voiceId` 等）。",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+                  }
+                ]
               }
             }
           }
         ]
       },
       "OpenApiMediaTranslationTaskCompletedCallback": {
-        "description": "媒体翻译 `task.completed` 的完整 Webhook 回调**请求体**。URL 配置与验签见 [Webhook](/zh/guides/webhooks)。",
+        "description": "`event` 为 `openapi-media-translation` 时的媒体翻译 Webhook **请求体**；`data.result` 为 CDN 交付物。",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -2365,23 +3488,6 @@
                 "$ref": "#/components/schemas/OpenApiMediaTranslationCallbackData"
               }
             }
-          }
-        ]
-      },
-      "OpenApiCallbackDispatchBody": {
-        "description": "Union of all task.completed payloads (see per-endpoint Callbacks on create-async operations)",
-        "oneOf": [
-          {
-            "$ref": "#/components/schemas/OpenApiTtsTaskCompletedCallback"
-          },
-          {
-            "$ref": "#/components/schemas/OpenApiTranslateTaskCompletedCallback"
-          },
-          {
-            "$ref": "#/components/schemas/OpenApiCloneVoiceTaskCompletedCallback"
-          },
-          {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationTaskCompletedCallback"
           }
         ]
       }
