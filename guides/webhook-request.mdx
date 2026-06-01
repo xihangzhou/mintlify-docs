@@ -19,6 +19,7 @@ All async completion callbacks share the same top-level shape. Product-specific 
   "code": 200,
   "version": "v1",
   "event": "openapi-tts",
+  "pipelineKey": "a1b2c3d4e5f6789012345678901234ab",
   "message": "",
   "extraData": { "your": "memo" },
   "data": { }
@@ -30,9 +31,23 @@ All async completion callbacks share the same top-level shape. Product-specific 
 | `code` | Outcome of this delivery (`200` = task succeeded) |
 | `version` | API version of the task (e.g. `v1`, `v2`) |
 | `event` | **Which product finished** — see table below |
+| `pipelineKey` | **Stable ID for this async completion** — use for receiver deduplication (see below) |
 | `message` | Detail when `code` is not success |
 | `extraData` | Echo of `extraData` from your async submit request (if you sent it) |
 | `data` | Task results; schema depends on `event` |
+
+## Deduplicate by `pipelineKey`
+
+VMEG assigns one **`pipelineKey` per accepted async run**. It appears in every webhook POST for that completion.
+
+| Situation | What to do |
+|-----------|------------|
+| First time you see a `pipelineKey` | Verify signature, process `data`, persist the key, return 2xx |
+| Same `pipelineKey` again (retry) | Return 2xx quickly; **do not** repeat billable or irreversible work |
+
+<Info>
+  `pipelineKey` is for **webhook delivery** deduplication. It is not the same as [`X-Idempotency-Key`](/guides/idempotency) on `create-async` (which prevents duplicate task submission). One accepted async job has one `pipelineKey`; `data.taskId` identifies the task but retries are keyed by `pipelineKey`.
+</Info>
 
 ## The `event` field
 
@@ -59,11 +74,13 @@ Today, async task completion uses **only** these four `event` values. If we add 
 POST /your-webhook
   → verify signature
   → parse JSON
+  → if pipelineKey already processed → return 200
   → switch (event):
        openapi-tts              → parse TTS data
        openapi-translate        → parse translation data
        openapi-clone-voice      → parse clone data
        openapi-media-translation → parse media result
+  → store pipelineKey → return 200
 ```
 
 ## Per-endpoint request schema

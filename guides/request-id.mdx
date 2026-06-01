@@ -11,7 +11,7 @@ When a call fails or you need help from VMEG support, a **request ID** ties toge
 You can pass your own ID on **any** Open API request (`/openapi/v1/**`). If you omit it, the server generates one (32-character hex, no hyphens).
 
 <Info>
-  Request ID is for **tracing and support**. It does not replace [`X-Idempotency-Key`](/guides/idempotency) (duplicate prevention) or `taskId` (async job identity).
+  `req_id` marks **this HTTP request** for logging and support. [`X-Idempotency-Key`](/guides/idempotency) prevents duplicate writes, `taskId` tracks an async job, and [`pipelineKey`](/guides/webhook-request#deduplicate-by-pipelinekey) deduplicates webhook deliveries — use the field that matches your goal; they are often used together.
 </Info>
 
 ## What to send

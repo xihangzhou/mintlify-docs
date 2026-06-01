@@ -946,13 +946,13 @@
         "tags": [
           "Assets - Materials"
         ],
-        "summary": "Delete material (logical)",
+        "summary": "Delete material",
         "operationId": "materialDelete",
         "x-mint": {
           "href": "/api-reference/assets/materials/delete-material",
           "metadata": {
-            "sidebarTitle": "Delete material (logical)",
-            "title": "Delete material (logical)"
+            "sidebarTitle": "Delete material",
+            "title": "Delete material"
           }
         },
         "parameters": [
@@ -990,13 +990,13 @@
         "tags": [
           "Assets - Voices"
         ],
-        "summary": "List system voices (read-only)",
+        "summary": "List system voices",
         "operationId": "voiceBasicList",
         "x-mint": {
           "href": "/api-reference/assets/voices/list-system-voices",
           "metadata": {
-            "sidebarTitle": "List system voices (read-only)",
-            "title": "List system voices (read-only)"
+            "sidebarTitle": "List system voices",
+            "title": "List system voices"
           }
         },
         "requestBody": {
@@ -1110,13 +1110,13 @@
         "tags": [
           "Assets - Voices"
         ],
-        "summary": "Delete cloned voice (logical)",
+        "summary": "Delete cloned voice",
         "operationId": "voiceCloneDelete",
         "x-mint": {
           "href": "/api-reference/assets/voices/delete-cloned-voice",
           "metadata": {
-            "sidebarTitle": "Delete cloned voice (logical)",
-            "title": "Delete cloned voice (logical)"
+            "sidebarTitle": "Delete cloned voice",
+            "title": "Delete cloned voice"
           }
         },
         "parameters": [
@@ -2655,7 +2655,7 @@
           },
           "taskId": {
             "type": "string",
-            "description": "Task ID to delete (logical delete)"
+            "description": "Task ID to delete"
           }
         }
       },
@@ -3391,6 +3391,11 @@
             ],
             "example": "openapi-tts",
             "description": "Which product completed. Route your handler by this value: `openapi-tts` (TTS), `openapi-translate` (text translation), `openapi-clone-voice` (voice clone), `openapi-media-translation` (media translation). Listed in [Webhook request body](/guides/webhook-request)."
+          },
+          "pipelineKey": {
+            "type": "string",
+            "example": "a1b2c3d4e5f6789012345678901234ab",
+            "description": "Stable ID for this async completion. Deduplicate webhook handling by this value — see [Webhook request body](/guides/webhook-request#deduplicate-by-pipelinekey)."
           },
           "message": {
             "type": "string",

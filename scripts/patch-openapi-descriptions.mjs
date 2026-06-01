@@ -231,8 +231,8 @@ const FIELDS = {
     zh: "项目 ID（API Key 所属项目）",
   },
   "OpenApiTaskDeleteRequest.taskId": {
-    en: "Task ID to delete (logical delete)",
-    zh: "要删除的任务 ID（逻辑删除）",
+    en: "Task ID to delete",
+    zh: "要删除的任务 ID",
   },
   "OpenApiMaterialUploadCompleteRequest.fileName": {
     en: "Original file name including extension",
@@ -303,8 +303,8 @@ const FIELDS = {
     zh: "原始文件名（含扩展名）",
   },
   "OpenApiMaterialDeleteRequest.materialId": {
-    en: "Material ID to delete (logical delete)",
-    zh: "要删除的素材 ID（逻辑删除）",
+    en: "Material ID to delete",
+    zh: "要删除的素材 ID",
   },
   "OpenApiMaterialDto.materialId": {
     en: "Material ID",
@@ -577,8 +577,8 @@ const FIELDS = {
     zh: "新的展示名称",
   },
   "OpenApiCloneVoiceDeleteRequest.voiceId": {
-    en: "Clone `voiceId` to delete (logical delete)",
-    zh: "要删除的克隆 `voiceId`（逻辑删除）",
+    en: "Clone `voiceId` to delete",
+    zh: "要删除的克隆 `voiceId`",
   },
   "OpenApiCallbackEnvelope.version": {
     en: "API version of the task (e.g. `v1`, `v2`). Matches the version in the request path (`/openapi/v1/...`).",
@@ -587,6 +587,10 @@ const FIELDS = {
   "OpenApiCallbackEnvelope.event": {
     en: "Which product completed. Route your handler by this value: `openapi-tts` (TTS), `openapi-translate` (text translation), `openapi-clone-voice` (voice clone), `openapi-media-translation` (media translation). Listed in [Webhook request body](/guides/webhook-request).",
     zh: "已完成的产品类型。请按此值路由：`openapi-tts`（TTS）、`openapi-translate`（文本翻译）、`openapi-clone-voice`（声音克隆）、`openapi-media-translation`（音视频翻译）。详见 [Webhook 请求体](/zh/guides/webhook-request)。",
+  },
+  "OpenApiCallbackEnvelope.pipelineKey": {
+    en: "Stable ID for this async completion. Deduplicate webhook handling by this value — see [Webhook request body](/guides/webhook-request#deduplicate-by-pipelinekey).",
+    zh: "该次异步完成的稳定标识。请用此字段对接收端去重 — 见 [Webhook 请求体](/zh/guides/webhook-request#按-pipelinekey-去重)。",
   },
   "OpenApiCallbackEnvelope.message": {
     en: "Detail when `code` is not success",

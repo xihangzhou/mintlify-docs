@@ -19,6 +19,7 @@ icon: "file-code"
   "code": 200,
   "version": "v1",
   "event": "openapi-tts",
+  "pipelineKey": "a1b2c3d4e5f6789012345678901234ab",
   "message": "",
   "extraData": { "your": "memo" },
   "data": { }
@@ -30,9 +31,23 @@ icon: "file-code"
 | `code` | 本次回调的业务结果（`200` 表示任务成功） |
 | `version` | 任务的 API 版本号（如 `v1`、`v2`） |
 | `event` | **哪类产品任务已完成** — 见下表 |
+| `pipelineKey` | **该次异步完成的稳定标识** — 用于接收端去重（见下文） |
 | `message` | `code` 非成功时的说明 |
 | `extraData` | 异步提交时传入的 `extraData` 回显（若提交时有传） |
 | `data` | 任务结果；结构随 `event` 而异 |
+
+## 按 `pipelineKey` 去重
+
+VMEG 为每次**已受理**的异步任务分配一个 **`pipelineKey`**，并在该次完成的所有 Webhook POST 中携带。
+
+| 情况 | 处理方式 |
+|------|----------|
+| 首次见到某 `pipelineKey` | 验签、处理 `data`、持久化该键、返回 2xx |
+| 再次收到相同 `pipelineKey`（重试） | 快速返回 2xx；**不要**重复计费或不可逆操作 |
+
+<Info>
+  `pipelineKey` 用于 **Webhook 投递**去重，与 `create-async` 上的 [`X-Idempotency-Key`](/zh/guides/idempotency)（防止重复提交任务）不是同一概念。一次已受理的异步任务对应一个 `pipelineKey`；`data.taskId` 标识任务，但重试去重应以 `pipelineKey` 为准。
+</Info>
 
 ## `event` 字段
 
@@ -59,11 +74,13 @@ icon: "file-code"
 POST /your-webhook
   → 验签
   → 解析 JSON
+  → 若 pipelineKey 已处理 → 返回 200
   → 按 event 分支：
        openapi-tts                 → 解析 TTS data
        openapi-translate           → 解析翻译 data
        openapi-clone-voice         → 解析克隆 data
        openapi-media-translation   → 解析媒体翻译 data
+  → 记录 pipelineKey → 返回 200
 ```
 
 ## 各接口的请求 schema

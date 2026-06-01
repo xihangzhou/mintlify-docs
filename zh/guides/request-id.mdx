@@ -11,7 +11,7 @@ icon: "fingerprint"
 可在 **任意** Open API 请求（`/openapi/v1/**`）上传入你自己的 ID；不传时由服务端生成（32 位十六进制，无连字符）。
 
 <Info>
-  Request ID 用于 **链路追踪与工单**。不能替代 [`X-Idempotency-Key`](/zh/guides/idempotency)（防重复提交）或 `taskId`（异步任务标识）。
+  `req_id` 标识 **本次 HTTP 请求**，便于日志与工单排查。[`X-Idempotency-Key`](/zh/guides/idempotency) 用于防重复写，`taskId` 用于跟踪异步任务，[`pipelineKey`](/zh/guides/webhook-request#按-pipelinekey-去重) 用于 Webhook 去重 — 按场景选用对应字段，通常可同时传递。
 </Info>
 
 ## 如何传递

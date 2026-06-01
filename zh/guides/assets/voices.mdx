@@ -10,7 +10,7 @@ icon: "waveform-lines"
 
 | 类型 | 来源 | API |
 |------|------|-----|
-| **系统（basic）** | 平台预设 | `POST /openapi/v1/assets/voice/basic/list` — 只读 |
+| **系统（basic）** | 平台预设 | `POST /openapi/v1/assets/voice/basic/list` |
 | **克隆（cloned）** | [声音克隆](/zh/guides/products/voice-clone) 成功 | `POST /openapi/v1/assets/voice/clone/list`、`update`、`delete` |
 
 ## 系统音色
@@ -23,7 +23,7 @@ icon: "waveform-lines"
 
 声音克隆成功（同步响应或异步 Webhook）后，VMEG 持久化克隆并分配新 **`voiceId`**，可用于后续 TTS。
 
-可通过 clone 资产接口重命名或逻辑删除。请求与响应字段：[列出克隆音色](/api-reference/assets/voices/list-cloned-voices)、[重命名克隆音色](/api-reference/assets/voices/rename-cloned-voice)、[删除克隆音色](/api-reference/assets/voices/delete-cloned-voice)。
+可通过 clone 资产接口重命名或删除。请求与响应字段：[列出克隆音色](/api-reference/assets/voices/list-cloned-voices)、[重命名克隆音色](/api-reference/assets/voices/rename-cloned-voice)、[删除克隆音色](/api-reference/assets/voices/delete-cloned-voice)。
 
 ## 典型流程
 

@@ -36,7 +36,7 @@ Webhook 是异步结果的 **投递机制**，不是独立产品。
 
 1. **快速返回 2xx**（数秒内）。重逻辑放入队列或后台 worker。
 2. **校验签名**（对原始请求体）— 见 [Webhook 签名校验](/zh/guides/webhook-verification)。
-3. **按 `taskId` 去重**（或业务键）。重试可能重复投递相同载荷。
+3. **按 JSON 中的 `pipelineKey` 去重**。同一异步完成的重试会携带相同的 `pipelineKey` — 见 [Webhook 请求体](/zh/guides/webhook-request#按-pipelinekey-去重)。若该键已处理过，仍应返回 2xx，但不要重复执行业务副作用。
 
 非 2xx 或超时时，VMEG 会按退避策略重试。
 

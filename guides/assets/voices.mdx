@@ -10,7 +10,7 @@ Voices are API-only — referenced by `voiceId` in TTS; not shared with voices o
 
 | Type | Source | API access |
 |------|--------|------------|
-| **System (basic)** | Platform presets | `POST /openapi/v1/assets/voice/basic/list` — read-only |
+| **System (basic)** | Platform presets | `POST /openapi/v1/assets/voice/basic/list` |
 | **Cloned** | [Voice clone](/guides/products/voice-clone) task success | `POST /openapi/v1/assets/voice/clone/list`, `update`, `delete` |
 
 ## System voices
@@ -23,7 +23,7 @@ Filter options and response fields: [List system voices](/api-reference/assets/v
 
 When a voice clone task succeeds (sync response or async webhook), VMEG persists a clone with a new **`voiceId`**. Use it in subsequent TTS calls.
 
-You can rename or logically delete clones via the clone asset endpoints. Request and response fields: [List cloned voices](/api-reference/assets/voices/list-cloned-voices), [Rename cloned voice](/api-reference/assets/voices/rename-cloned-voice), and [Delete cloned voice](/api-reference/assets/voices/delete-cloned-voice).
+You can rename or delete clones via the clone asset endpoints. Request and response fields: [List cloned voices](/api-reference/assets/voices/list-cloned-voices), [Rename cloned voice](/api-reference/assets/voices/rename-cloned-voice), and [Delete cloned voice](/api-reference/assets/voices/delete-cloned-voice).
 
 ## Typical flow
 

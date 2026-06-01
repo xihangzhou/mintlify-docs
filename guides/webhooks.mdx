@@ -36,7 +36,7 @@ Your endpoint must:
 
 1. **Return 2xx quickly** (within a few seconds). Offload heavy work to a queue or background worker.
 2. **Verify signatures** on the raw request body — see [Webhook verification](/guides/webhook-verification).
-3. **Deduplicate** by `taskId` (or your business key). Retries may deliver the same payload more than once.
+3. **Deduplicate** by **`pipelineKey`** in the JSON body. Retries for the same async completion reuse the same `pipelineKey` — see [Webhook request body](/guides/webhook-request#deduplicate-by-pipelinekey). Return 2xx without repeating side effects if you already processed that key.
 
 If you return a non-2xx status or time out, VMEG retries with backoff.
 
