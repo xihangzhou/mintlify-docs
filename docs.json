@@ -8,6 +8,11 @@
     "dark": "#6239CC"
   },
   "favicon": "/favicon.ico",
+  "seo": {
+    "metatags": {
+      "canonical": "https://docs.vmeg.ai"
+    }
+  },
   "redirects": [
     {
       "source": "/",

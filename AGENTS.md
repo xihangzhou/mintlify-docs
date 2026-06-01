@@ -3,7 +3,7 @@
 ## About this project
 
 - VMEG Open API documentation site (Mintlify)
-- **Docs site (production):** https://docs.vmeg.ai/api
+- **Docs site (production):** https://docs.vmeg.ai
 - **API base URL (production):** https://api.vmeg.ai — no staging host in public docs
 - API implementation source: `vmeg-serv` → `src/main/java/pro/vmeg/openapi`
 - Pages are MDX with YAML frontmatter; site config in `docs.json`
@@ -107,7 +107,7 @@ Centralize web app links in `snippets/product-urls.jsx`.
 | API Configuration (API Key + Webhook) | `https://www.vmeg.ai/open-api-setting` |
 | Get API Key (CTA, with login redirect) | `https://www.vmeg.ai/signIn?redirect=%2Fopen-api-setting` |
 | Help center | `https://www.vmeg.ai/help-center/` |
-| Published API docs (in-app doc button) | `https://docs.vmeg.ai/api` |
+| Published API docs (in-app doc button) | `https://docs.vmeg.ai` |
 | Pricing / credits | `https://www.vmeg.ai/pricing` |
 | My tasks | `https://www.vmeg.ai/my-tasks` |
 | My assets | `https://www.vmeg.ai/my-assets` |

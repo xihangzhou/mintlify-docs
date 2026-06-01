@@ -21,7 +21,7 @@ description: Applies user-specified edits to VMEG Mintlify docs in English and m
 2. Edit **English** MDX first. Preserve:
    - YAML frontmatter `title` / `description`
    - Code blocks, paths, field names (`taskId`, `materialId`)
-   - Production URLs only: API `https://api.vmeg.ai`, docs `https://docs.vmeg.ai/api`
+   - Production URLs only: API `https://api.vmeg.ai`, docs `https://docs.vmeg.ai`
 
 3. Mirror to **each locale** listed in `docs.json` → `navigation.languages` (except `en`):
    - Path map: `guides/foo` → `zh/guides/foo`
