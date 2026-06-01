@@ -97,8 +97,12 @@ const FIELDS = {
     zh: "该片段的原文",
   },
   "OpenApiTranslateSegment.gender": {
-    en: "Speaker gender hint for this segment (e.g. `male`, `female`)",
-    zh: "该片段说话人性别提示（如 `male`、`female`）",
+    en: "Speaker gender for this segment. Enum: `male` or `female`.",
+    zh: "该片段说话人性别。枚举：`male` 或 `female`。",
+  },
+  "OpenApiTranslateSpeakerGender": {
+    en: "Speaker gender for a translation segment",
+    zh: "翻译片段说话人性别",
   },
   "OpenApiTranslateSegment.speaker": {
     en: "Speaker label to keep voice consistent across segments",

@@ -1496,6 +1496,15 @@
           }
         ]
       },
+      "OpenApiTranslateSpeakerGender": {
+        "type": "string",
+        "description": "翻译片段说话人性别",
+        "enum": [
+          "male",
+          "female"
+        ],
+        "example": "male"
+      },
       "OpenApiTranslateSegment": {
         "type": "object",
         "required": [
@@ -1507,9 +1516,7 @@
             "description": "该片段的原文"
           },
           "gender": {
-            "type": "string",
-            "example": "male",
-            "description": "该片段说话人性别提示（如 `male`、`female`）"
+            "$ref": "#/components/schemas/OpenApiTranslateSpeakerGender"
           },
           "speaker": {
             "type": "string",
@@ -1872,16 +1879,6 @@
           }
         }
       },
-      "OpenApiMediaTranslationEnhance": {
-        "type": "object",
-        "description": "音频增强选项",
-        "properties": {
-          "tts": {
-            "type": "boolean",
-            "description": "启用 TTS 输出增强"
-          }
-        }
-      },
       "OpenApiMediaTranslationDynamicVideoLength": {
         "type": "object",
         "description": "动态视频时长（视频翻译）",
@@ -1963,9 +1960,6 @@
           },
           "separation": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationSeparation"
-          },
-          "enhance": {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationEnhance"
           },
           "dynamicVideoLength": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationDynamicVideoLength"
@@ -2107,10 +2101,6 @@
           },
           "audioSeparation": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationAudioSeparation"
-          },
-          "speechEnhance": {
-            "type": "string",
-            "description": "增强后人声音频 URL（HTTPS）。"
           },
           "translatedScripts": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationTranslatedScripts"
