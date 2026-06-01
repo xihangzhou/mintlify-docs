@@ -1,0 +1,38 @@
+---
+title: "Supported clone methods"
+description: "Voice clone engine versions V1–V5 for Open API requests"
+icon: "microphone-lines"
+---
+
+Pass a **`provider`** value of `V1` through `V5` to choose the voice clone / synthesis engine. These codes match the clone model options on [vmeg.ai](https://www.vmeg.ai/home) for video translation and voice cloning.
+
+## Where to set `provider`
+
+| Product | Field |
+|---------|--------|
+| [Text to speech](/guides/products/text-to-speech) | `provider` on `create` / `create-async` |
+| [Voice clone](/guides/products/voice-clone) | `provider` when creating a cloned voice |
+| [Media translation](/guides/products/media-translation) | `options.voiceClone.provider` when voice cloning is enabled |
+
+## Engine versions
+
+| `provider` | Model | Best for |
+|------------|-------|----------|
+| `V1` | Basic universal | Simple cloning — short sentences, everyday dialogue |
+| `V2` | Film & TV emotional | Films, dramas, storytelling — emotional shifts and tone detail |
+| `V3` | English-focused | General use with more accurate, natural cloning for **English** voices |
+| `V4` | Enhanced emotional | Authentic emotion and subtle mood changes; strongest nuance |
+| `V5` | Multilingual universal | **Non-English** and multilingual voices |
+
+## Choosing a version
+
+| Your content | Suggested `provider` |
+|--------------|---------------------|
+| Short lines, light usage | `V1` |
+| Drama, film, strong performance | `V2` or `V4` |
+| Mostly English source/target | `V3` |
+| Mostly non-English or multilingual | `V5` |
+
+<Note>
+  Locale codes for languages are listed separately in [Supported languages](/guides/supported-languages). `provider` selects the **clone engine**, not the language.
+</Note>

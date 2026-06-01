@@ -1238,7 +1238,6 @@
         "enum": [
           "vt",
           "at",
-          "st",
           "tts",
           "cloneVoice",
           "textTranslation"
@@ -1261,7 +1260,7 @@
               "V5"
             ],
             "example": "V1",
-            "description": "合成引擎版本，填写 `V1` 至 `V5`。"
+            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "language": {
             "type": "object",
@@ -1684,7 +1683,7 @@
               "V5"
             ],
             "example": "V1",
-            "description": "克隆引擎版本，填写 `V1` 至 `V5`。"
+            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "refAudio": {
             "type": "string",
@@ -1818,7 +1817,7 @@
               "V4",
               "V5"
             ],
-            "description": "克隆引擎版本（`V1`–`V5`），与 [TTS](/zh/api-reference/tts/create-tts-sync) 映射规则相同"
+            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           }
         }
       },
@@ -2333,7 +2332,8 @@
             "type": "string"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "speakerDisplayName": {
             "type": "string"
@@ -2360,7 +2360,8 @@
         "description": "声音克隆配置（入参 + 回显出参）。",
         "properties": {
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "mode": {
             "type": "string"
@@ -2381,7 +2382,8 @@
             "type": "string"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "exampleLanguage": {
             "type": "string"
@@ -2420,7 +2422,8 @@
             "description": "TTS 音频 URL（HTTPS）。"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "voiceId": {
             "type": "string"
@@ -3060,7 +3063,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "该预设对应的引擎版本（`V1`–`V5`）"
+            "description": "该预设对应的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "gender": {
             "type": "string",
@@ -3147,7 +3150,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "克隆时使用的引擎版本（`V1`–`V5`）"
+            "description": "克隆时使用的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "exampleLanguage": {
             "type": "string",

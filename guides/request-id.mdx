@@ -1,0 +1,61 @@
+---
+title: "Request ID"
+description: "Correlate Open API calls with req_id for logging and support"
+icon: "fingerprint"
+---
+
+## Why use it
+
+When a call fails or you need help from VMEG support, a **request ID** ties together server logs, idempotency records, and task creation for that HTTP request.
+
+You can pass your own ID on **any** Open API request (`/openapi/v1/**`). If you omit it, the server generates one (32-character hex, no hyphens).
+
+<Info>
+  Request ID is for **tracing and support**. It does not replace [`X-Idempotency-Key`](/guides/idempotency) (duplicate prevention) or `taskId` (async job identity).
+</Info>
+
+## What to send
+
+Add a query parameter:
+
+| Item | Value |
+|------|--------|
+| Name | `req_id` |
+| Location | Query string |
+| Required | No |
+
+```http
+POST /openapi/v1/task/tts/create?req_id=YOUR_REQUEST_ID
+```
+
+Rules:
+
+- Use a value you can store in your own logs (for example a UUID or `order-12345-attempt-1`)
+- Works on `GET` and `POST` under `/openapi/v1/**`
+- The ID is **not** returned in the standard success JSON body; keep the value you sent (or log the generated ID from your client if you rely on server generation only indirectly via support lookup)
+
+## Example
+
+```bash
+export REQ_ID="support-$(date +%s)-$RANDOM"
+
+curl -X POST "https://api.vmeg.ai/openapi/v1/task/tts/create?req_id=${REQ_ID}" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "X-Idempotency-Key: $IDEM_KEY" \
+  -H "Content-Type: application/json" \
+  -d @payload.json
+```
+
+If the URL already has query parameters, append with `&req_id=...`.
+
+## When contacting support
+
+Provide:
+
+- The `req_id` you used (or the approximate time and API Key project if you did not set one)
+- `taskId` for async jobs, if applicable
+- Product and endpoint path
+
+<Tip>
+  Set `req_id` on the **first** attempt of a flow and reuse it only when retrying the **same** HTTP call for debugging. Start a **new** `req_id` for a logically new submission (and use a new idempotency key for new writes).
+</Tip>

@@ -1,0 +1,61 @@
+---
+title: "Request ID"
+description: "通过 req_id 关联 Open API 请求日志与排查"
+icon: "fingerprint"
+---
+
+## 为什么使用
+
+当调用失败或需要 VMEG 协助排查时，**request ID** 能把该次 HTTP 请求对应的服务端日志、幂等记录与任务创建链路串起来。
+
+可在 **任意** Open API 请求（`/openapi/v1/**`）上传入你自己的 ID；不传时由服务端生成（32 位十六进制，无连字符）。
+
+<Info>
+  Request ID 用于 **链路追踪与工单**。不能替代 [`X-Idempotency-Key`](/zh/guides/idempotency)（防重复提交）或 `taskId`（异步任务标识）。
+</Info>
+
+## 如何传递
+
+使用 query 参数：
+
+| 项 | 值 |
+|----|-----|
+| 参数名 | `req_id` |
+| 位置 | Query string |
+| 是否必填 | 否 |
+
+```http
+POST /openapi/v1/task/tts/create?req_id=YOUR_REQUEST_ID
+```
+
+说明：
+
+- 建议使用便于在你方日志中检索的值（例如 UUID 或 `order-12345-attempt-1`）
+- 适用于 `/openapi/v1/**` 下的 `GET` 与 `POST`
+- 成功响应的 JSON **通常不包含** request ID；请在你方日志中保存传入的值
+
+## 示例
+
+```bash
+export REQ_ID="support-$(date +%s)-$RANDOM"
+
+curl -X POST "https://api.vmeg.ai/openapi/v1/task/tts/create?req_id=${REQ_ID}" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "X-Idempotency-Key: $IDEM_KEY" \
+  -H "Content-Type: application/json" \
+  -d @payload.json
+```
+
+若 URL 已有其它 query 参数，用 `&req_id=...` 追加即可。
+
+## 联系支持时
+
+请提供：
+
+- 你使用的 `req_id`（若未设置，可提供大致时间与 API Key 对应项目）
+- 异步任务相关的 `taskId`（如有）
+- 产品与接口路径
+
+<Tip>
+  建议在流程的 **第一次** 请求就设置 `req_id`，便于排查。逻辑上是 **新的一次提交** 时请使用新的 `req_id`（新写入还需新的幂等键）。
+</Tip>

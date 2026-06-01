@@ -12,6 +12,19 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const openapiPath = path.join(root, "api-reference/openapi.json");
 const zhLocalePath = path.join(root, "scripts/locales/zh.json");
 
+const CLONE_PROVIDER = {
+  en: "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).",
+  zh: "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+};
+const CLONE_PROVIDER_PRESET = {
+  en: "Engine version tag for this preset (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).",
+  zh: "该预设对应的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+};
+const CLONE_PROVIDER_USED = {
+  en: "Engine version used when cloning (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).",
+  zh: "克隆时使用的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+};
+
 /** @type {Record<string, { en: string, zh: string }>} */
 const FIELDS = {
   "OpenApiResponseBase.message": {
@@ -34,6 +47,7 @@ const FIELDS = {
     en: "Output audio container: `wav`, `mp3`, or `m4a`",
     zh: "输出音频格式：`wav`、`mp3` 或 `m4a`",
   },
+  "OpenApiTtsCreateRequest.provider": CLONE_PROVIDER,
   "OpenApiExtraData": {
     en: "Optional client metadata on async submit; echoed in the completion webhook (`extraData` in callback body). Not used on sync create endpoints.",
     zh: "异步提交时的可选客户端元数据；任务完成时在 Webhook 回调体 `extraData` 中回显。同步创建接口不使用。",
@@ -118,6 +132,7 @@ const FIELDS = {
     en: "Display name for the cloned voice in your asset library",
     zh: "克隆音色在资产库中的展示名称",
   },
+  "OpenApiCloneVoiceCreateRequest.provider": CLONE_PROVIDER,
   "OpenApiCloneVoiceCreateRequest.sampleText": {
     en: "Optional transcript of `refAudio` to improve clone quality",
     zh: "`refAudio` 的可选对照文本，有助于提升克隆质量",
@@ -174,6 +189,11 @@ const FIELDS = {
     en: "Final task status (`finished` or `failed`)",
     zh: "最终任务状态（`finished` 或 `failed`）",
   },
+  "OpenApiMediaTranslationVoiceClone.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationTranslatedScriptLine.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationVoiceCloneResult.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationVoiceMatch.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationTtsLine.provider": CLONE_PROVIDER,
   "OpenApiTaskSummary.taskId": {
     en: "Open API task ID",
     zh: "Open API 任务 ID",
@@ -374,10 +394,7 @@ const FIELDS = {
     en: "Human-readable locale label",
     zh: "locale 的可读名称",
   },
-  "OpenApiBasicVoiceDto.provider": {
-    en: "Engine version tag for this preset (`V1`–`V5`)",
-    zh: "该预设对应的引擎版本（`V1`–`V5`）",
-  },
+  "OpenApiBasicVoiceDto.provider": CLONE_PROVIDER_PRESET,
   "OpenApiBasicVoiceDto.gender": {
     en: "Gender label (e.g. male, female)",
     zh: "性别标签（如 male、female）",
@@ -450,10 +467,7 @@ const FIELDS = {
     en: "Display name of the clone",
     zh: "克隆音色展示名",
   },
-  "OpenApiCloneVoiceDto.provider": {
-    en: "Engine version used when cloning (`V1`–`V5`)",
-    zh: "克隆时使用的引擎版本（`V1`–`V5`）",
-  },
+  "OpenApiCloneVoiceDto.provider": CLONE_PROVIDER_USED,
   "OpenApiCloneVoiceDto.exampleLanguage": {
     en: "Sample language locale (BCP-47)",
     zh: "样本语言 locale（BCP-47）",

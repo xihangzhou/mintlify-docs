@@ -1,0 +1,38 @@
+---
+title: "支持的克隆方式"
+description: "Open API 请求中的克隆引擎版本 V1–V5"
+icon: "microphone-lines"
+---
+
+在请求中传入 **`provider`**，取值为 `V1`–`V5`，用于选择声音克隆 / 合成引擎。与 [vmeg.ai](https://www.vmeg.ai/home) 网页端音视频翻译、声音克隆中的模型选项一致。
+
+## 在哪些接口使用
+
+| 产品 | 字段 |
+|------|------|
+| [文本转语音](/zh/guides/products/text-to-speech) | `create` / `create-async` 上的 `provider` |
+| [声音克隆](/zh/guides/products/voice-clone) | 创建克隆音色时的 `provider` |
+| [音视频翻译](/zh/guides/products/media-translation) | 启用克隆时 `options.voiceClone.provider` |
+
+## 引擎版本
+
+| `provider` | 模型 | 适用场景 |
+|------------|------|----------|
+| `V1` | 基础通用 | 简单克隆：短句、日常对话 |
+| `V2` | 影视情感 | 影视、剧情、叙事 — 情绪起伏与语气细节 |
+| `V3` | 英语优化 | 通用场景下 **英语** 音色更准、更自然 |
+| `V4` | 增强情感 | 需要真实情绪与细腻语气变化的内容 |
+| `V5` | 多语言通用 | **非英语** 及多语言音色 |
+
+## 选型建议
+
+| 内容特点 | 建议 `provider` |
+|----------|-----------------|
+| 短句、轻量使用 | `V1` |
+| 影视、剧情、表演感强 | `V2` 或 `V4` |
+| 以英语为主 | `V3` |
+| 以非英语或多语言为主 | `V5` |
+
+<Note>
+  语言 locale 见 [支持的语言](/zh/guides/supported-languages)。`provider` 表示 **克隆引擎**，不是语言代码。
+</Note>

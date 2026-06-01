@@ -32,7 +32,8 @@
                   "guides/introduction",
                   "guides/quickstart",
                   "guides/pricing",
-                  "guides/supported-languages"
+                  "guides/supported-languages",
+                  "guides/supported-clone-methods"
                 ]
               },
               {
@@ -41,9 +42,12 @@
                 "pages": ["guides/authentication"]
               },
               {
-                "group": "Idempotency",
-                "icon": "rotate",
-                "pages": ["guides/idempotency"]
+                "group": "Reliable requests",
+                "icon": "shield-check",
+                "pages": [
+                  "guides/idempotency",
+                  "guides/request-id"
+                ]
               },
               {
                 "group": "Webhooks",
@@ -105,7 +109,8 @@
                   "zh/guides/introduction",
                   "zh/guides/quickstart",
                   "zh/guides/pricing",
-                  "zh/guides/supported-languages"
+                  "zh/guides/supported-languages",
+                  "zh/guides/supported-clone-methods"
                 ]
               },
               {
@@ -114,9 +119,12 @@
                 "pages": ["zh/guides/authentication"]
               },
               {
-                "group": "幂等",
-                "icon": "rotate",
-                "pages": ["zh/guides/idempotency"]
+                "group": "可靠请求",
+                "icon": "shield-check",
+                "pages": [
+                  "zh/guides/idempotency",
+                  "zh/guides/request-id"
+                ]
               },
               {
                 "group": "Webhooks",

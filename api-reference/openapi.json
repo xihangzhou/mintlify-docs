@@ -1238,7 +1238,6 @@
         "enum": [
           "vt",
           "at",
-          "st",
           "tts",
           "cloneVoice",
           "textTranslation"
@@ -1261,7 +1260,7 @@
               "V5"
             ],
             "example": "V1",
-            "description": "Synthesis engine version. Use `V1` through `V5`."
+            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "language": {
             "type": "object",
@@ -1684,7 +1683,7 @@
               "V5"
             ],
             "example": "V1",
-            "description": "Clone engine version. Use `V1` through `V5`."
+            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "refAudio": {
             "type": "string",
@@ -1818,7 +1817,7 @@
               "V4",
               "V5"
             ],
-            "description": "Clone engine version (`V1`–`V5`), same mapping as [TTS](/api-reference/tts/create-tts-sync)"
+            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           }
         }
       },
@@ -2333,7 +2332,8 @@
             "type": "string"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "speakerDisplayName": {
             "type": "string"
@@ -2360,7 +2360,8 @@
         "description": "Voice clone configuration (input + echoed output).",
         "properties": {
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "mode": {
             "type": "string"
@@ -2381,7 +2382,8 @@
             "type": "string"
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "exampleLanguage": {
             "type": "string"
@@ -2420,7 +2422,8 @@
             "description": "TTS audio URL (HTTPS)."
           },
           "provider": {
-            "type": "string"
+            "type": "string",
+            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "voiceId": {
             "type": "string"
@@ -3060,7 +3063,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "Engine version tag for this preset (`V1`–`V5`)"
+            "description": "Engine version tag for this preset (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "gender": {
             "type": "string",
@@ -3147,7 +3150,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "Engine version used when cloning (`V1`–`V5`)"
+            "description": "Engine version used when cloning (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "exampleLanguage": {
             "type": "string",
