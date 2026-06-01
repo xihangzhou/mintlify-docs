@@ -17,7 +17,7 @@ icon: "file-code"
 ```json
 {
   "code": 200,
-  "version": "1.0",
+  "version": "v1",
   "event": "openapi-tts",
   "message": "",
   "extraData": { "your": "memo" },
@@ -28,7 +28,7 @@ icon: "file-code"
 | 字段 | 含义 |
 |------|------|
 | `code` | 本次回调的业务结果（`200` 表示任务成功） |
-| `version` | 回调协议版本（当前 `1.0`） |
+| `version` | 任务的 API 版本号（如 `v1`、`v2`） |
 | `event` | **哪类产品任务已完成** — 见下表 |
 | `message` | `code` 非成功时的说明 |
 | `extraData` | 异步提交时传入的 `extraData` 回显（若提交时有传） |

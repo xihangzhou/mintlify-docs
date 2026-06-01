@@ -17,7 +17,7 @@ Webhook 是异步结果的 **投递机制**，不是独立产品。
 | 未配置 Webhook | 已配置 Webhook |
 |----------------|----------------|
 | `create-async` 只返回 `taskId` | POST 请求体含完整交付物 |
-| 需轮询 `GET /openapi/tasks/detail` | 任务完成时主动通知你的服务 |
+| 需轮询 `GET /openapi/v1/tasks/detail` | 任务完成时主动通知你的服务 |
 
 生产环境异步集成应在调用 `*-create-async` 前配置 Webhook。
 

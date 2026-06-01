@@ -21,13 +21,13 @@ Request and response fields: [Generate presigned upload URL](/api-reference/asse
 
 <Steps>
   <Step title="Get presigned URL">
-    `POST /openapi/assets/material/upload/gen-upload-url` with `fileHash` (MD5) and `fileName`.
+    `POST /openapi/v1/assets/material/upload/gen-upload-url` with `fileHash` (MD5) and `fileName`.
   </Step>
   <Step title="PUT file to CDN">
     If the response includes `data.material`, the file was deduplicated — skip PUT. Otherwise upload bytes to `data.uploadUrl`.
   </Step>
   <Step title="Complete upload">
-    `POST /openapi/assets/material/upload/complete` with `s3Uri`, `materialId`, `fileHash`, and `fileName` from the gen-upload-url step.
+    `POST /openapi/v1/assets/material/upload/complete` with `s3Uri`, `materialId`, `fileHash`, and `fileName` from the gen-upload-url step.
   </Step>
 </Steps>
 
@@ -73,7 +73,7 @@ async function uploadSingleFile() {
   const fileHash = md5File(FILE_PATH);
   const fileBytes = fs.readFileSync(FILE_PATH);
 
-  const gen = await apiPost("/openapi/assets/material/upload/gen-upload-url", {
+  const gen = await apiPost("/openapi/v1/assets/material/upload/gen-upload-url", {
     fileHash,
     fileName,
   });
@@ -86,7 +86,7 @@ async function uploadSingleFile() {
   const putRes = await fetch(gen.uploadUrl, { method: "PUT", body: fileBytes });
   if (!putRes.ok) throw new Error(`CDN PUT failed: ${putRes.status}`);
 
-  const material = await apiPost("/openapi/assets/material/upload/complete", {
+  const material = await apiPost("/openapi/v1/assets/material/upload/complete", {
     s3Uri: gen.s3Uri,
     materialId: gen.materialId,
     fileHash,
@@ -147,7 +147,7 @@ def upload_single_file() -> str:
     file_hash = md5_file(FILE_PATH)
 
     gen = api_post(
-        "/openapi/assets/material/upload/gen-upload-url",
+        "/openapi/v1/assets/material/upload/gen-upload-url",
         {"fileHash": file_hash, "fileName": file_name},
     )
 
@@ -161,7 +161,7 @@ def upload_single_file() -> str:
     put.raise_for_status()
 
     material = api_post(
-        "/openapi/assets/material/upload/complete",
+        "/openapi/v1/assets/material/upload/complete",
         {
             "s3Uri": gen["s3Uri"],
             "materialId": gen["materialId"],
@@ -215,7 +215,7 @@ public final class SingleMaterialUpload {
     byte[] fileBytes = Files.readAllBytes(FILE_PATH);
 
     JsonNode gen = apiPost(
-        "/openapi/assets/material/upload/gen-upload-url",
+        "/openapi/v1/assets/material/upload/gen-upload-url",
         Map.of("fileHash", fileHash, "fileName", fileName));
 
     if (gen.hasNonNull("material") && gen.get("material").hasNonNull("materialId")) {
@@ -233,7 +233,7 @@ public final class SingleMaterialUpload {
     }
 
     JsonNode material = apiPost(
-        "/openapi/assets/material/upload/complete",
+        "/openapi/v1/assets/material/upload/complete",
         Map.of(
             "s3Uri", gen.get("s3Uri").asText(),
             "materialId", gen.get("materialId").asText(),
@@ -337,7 +337,7 @@ async function uploadMultipart() {
   const fileHash = md5File(FILE_PATH);
   const fileBytes = fs.readFileSync(FILE_PATH);
 
-  const init = await apiPost("/openapi/assets/material/upload/multipart/initiate", {
+  const init = await apiPost("/openapi/v1/assets/material/upload/multipart/initiate", {
     fileHash,
     fileName,
   });
@@ -349,7 +349,7 @@ async function uploadMultipart() {
   }
 
   const presign = await apiPost(
-    "/openapi/assets/material/upload/multipart/presign-parts",
+    "/openapi/v1/assets/material/upload/multipart/presign-parts",
     {
       materialId: init.materialId,
       uploadId: init.uploadId,
@@ -370,7 +370,7 @@ async function uploadMultipart() {
   }
 
   const material = await apiPost(
-    "/openapi/assets/material/upload/multipart/complete",
+    "/openapi/v1/assets/material/upload/multipart/complete",
     {
       materialId: init.materialId,
       uploadId: init.uploadId,
@@ -436,7 +436,7 @@ def upload_multipart() -> str:
     file_size = os.path.getsize(FILE_PATH)
 
     init = api_post(
-        "/openapi/assets/material/upload/multipart/initiate",
+        "/openapi/v1/assets/material/upload/multipart/initiate",
         {"fileHash": file_hash, "fileName": file_name},
     )
 
@@ -445,7 +445,7 @@ def upload_multipart() -> str:
     part_numbers = list(range(1, part_count + 1))
 
     presign = api_post(
-        "/openapi/assets/material/upload/multipart/presign-parts",
+        "/openapi/v1/assets/material/upload/multipart/presign-parts",
         {
             "materialId": init["materialId"],
             "uploadId": init["uploadId"],
@@ -467,7 +467,7 @@ def upload_multipart() -> str:
             parts.append({"partNumber": part_number, "eTag": e_tag})
 
     material = api_post(
-        "/openapi/assets/material/upload/multipart/complete",
+        "/openapi/v1/assets/material/upload/multipart/complete",
         {
             "materialId": init["materialId"],
             "uploadId": init["uploadId"],
@@ -525,7 +525,7 @@ public final class MultipartMaterialUpload {
     long fileSize = java.nio.file.Files.size(FILE_PATH);
 
     JsonNode init = apiPost(
-        "/openapi/assets/material/upload/multipart/initiate",
+        "/openapi/v1/assets/material/upload/multipart/initiate",
         Map.of("fileHash", fileHash, "fileName", fileName));
 
     long partSize = init.has("recommendedPartSize")
@@ -547,7 +547,7 @@ public final class MultipartMaterialUpload {
     partNumbers.forEach(nums::add);
 
     JsonNode presign = apiPost(
-        "/openapi/assets/material/upload/multipart/presign-parts", presignBody);
+        "/openapi/v1/assets/material/upload/multipart/presign-parts", presignBody);
 
     ArrayNode completedParts = JSON.createArrayNode();
     try (RandomAccessFile raf = new RandomAccessFile(FILE_PATH.toFile(), "r")) {
@@ -586,7 +586,7 @@ public final class MultipartMaterialUpload {
     completeBody.set("parts", completedParts);
 
     JsonNode material = apiPost(
-        "/openapi/assets/material/upload/multipart/complete", completeBody);
+        "/openapi/v1/assets/material/upload/multipart/complete", completeBody);
 
     return material.get("materialId").asText();
   }

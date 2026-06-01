@@ -20,10 +20,10 @@ Credits are deducted when a billable task is **accepted and processed** (sync `c
 
 | Open API product | Endpoints | Charging unit | Credits |
 |------------------|-----------|-----------------|---------|
-| [Media translation](/guides/products/media-translation) | `POST /openapi/task/media-translation/create-async` | Per minute of source media duration | **60 credits / min** |
-| [Text to speech](/guides/products/text-to-speech) | `POST /openapi/task/tts/create`, `.../create-async` | Per character length of input text | **~2 credits per 200 characters** |
-| [Voice clone](/guides/products/voice-clone) | `POST /openapi/task/clone-voice/create`, `.../create-async` | Per successful clone | **10 credits per voice** |
-| [Text translation](/guides/products/text-translation) | `POST /openapi/task/translate/create`, `.../create-async` | Per billed minute (from request size / duration rules) | **1 credit / min** |
+| [Media translation](/guides/products/media-translation) | `POST /openapi/v1/task/media-translation/create-async` | Per minute of source media duration | **60 credits / min** |
+| [Text to speech](/guides/products/text-to-speech) | `POST /openapi/v1/task/tts/create`, `.../create-async` | Per character length of input text | **~2 credits per 200 characters** |
+| [Voice clone](/guides/products/voice-clone) | `POST /openapi/v1/task/clone-voice/create`, `.../create-async` | Per successful clone | **10 credits per voice** |
+| [Text translation](/guides/products/text-translation) | `POST /openapi/v1/task/translate/create`, `.../create-async` | Per billed minute (from request size / duration rules) | **1 credit / min** |
 
 ### Per-minute products
 

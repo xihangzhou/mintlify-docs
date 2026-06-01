@@ -10,8 +10,8 @@ Create a reusable **cloned voice** from sample audio. On success, VMEG assigns a
 
 | Mode | Endpoint | Results |
 |------|----------|---------|
-| Sync | `POST /openapi/task/clone-voice/create` | `voiceId` and sample metadata in HTTP response |
-| Async | `POST /openapi/task/clone-voice/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-clone-voice` (`data.voiceId`) |
+| Sync | `POST /openapi/v1/task/clone-voice/create` | `voiceId` and sample metadata in HTTP response |
+| Async | `POST /openapi/v1/task/clone-voice/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-clone-voice` (`data.voiceId`) |
 
 Every `create` and `create-async` call requires [`X-Idempotency-Key`](/guides/idempotency). Async also needs a configured [Webhook](/guides/webhooks).
 
@@ -31,9 +31,9 @@ Every `create` and `create-async` call requires [`X-Idempotency-Key`](/guides/id
 
 ## After cloning
 
-- List clones: `POST /openapi/assets/voice/clone/list`
-- Rename: `POST /openapi/assets/voice/clone/update`
-- Delete: `POST /openapi/assets/voice/clone/delete`
+- List clones: `POST /openapi/v1/assets/voice/clone/list`
+- Rename: `POST /openapi/v1/assets/voice/clone/update`
+- Delete: `POST /openapi/v1/assets/voice/clone/delete`
 
 Clones are only available through API asset endpoints, not among voices you pick on vmeg.ai. See [Assets overview](/guides/assets/overview).
 

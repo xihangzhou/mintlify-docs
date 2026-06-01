@@ -46,6 +46,6 @@ Open API 使用 JSON 字段 **`code`** 表示业务结果。HTTP 状态码用于
     任务无法扣减项目积分时返回。见 [价格](/zh/guides/pricing) 或在 vmeg.ai <a href={productUrls.pricing}>价格页</a> 充值。
   </Accordion>
   <Accordion title="502 上游失败">
-    上游服务调用失败或超时。使用 `taskId` 轮询 `GET /openapi/tasks/detail`（vmeg.ai 网页任务记录不包含 Open API 任务）；若已配置 Webhook，可等待重试。
+    上游服务调用失败或超时。使用 `taskId` 轮询 `GET /openapi/v1/tasks/detail`（vmeg.ai 网页任务记录不包含 Open API 任务）；若已配置 Webhook，可等待重试。
   </Accordion>
 </AccordionGroup>

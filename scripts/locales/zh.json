@@ -257,7 +257,7 @@
   "Clone `voiceId` to rename": "要重命名的克隆 `voiceId`",
   "New display name": "新的展示名称",
   "Clone `voiceId` to delete (logical delete)": "要删除的克隆 `voiceId`（逻辑删除）",
-  "Callback protocol version (currently `1.0`)": "回调协议版本（当前为 `1.0`）",
+  "API version of the task (e.g. `v1`, `v2`). Matches the version in the request path (`/openapi/v1/...`).": "任务的 API 版本号（如 `v1`、`v2`），与请求路径中的版本一致（如 `/openapi/v1/...`）。",
   "Event name (e.g. `task.completed`)": "事件名（如 `task.completed`）",
   "Detail when `code` is not success": "当 `code` 非成功时的说明",
   "HTTPS URL of reference audio when cloning timbre without a `voiceId`": "无 `voiceId` 时用于克隆音色的参考音频 URL（HTTPS）",

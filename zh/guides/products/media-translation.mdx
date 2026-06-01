@@ -27,7 +27,7 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
     在 <a href={apiKeyUrl}>API 配置</a> 设置 Webhook URL，并复制页面展示的 Secret 用于验签
   </Step>
   <Step title="提交任务">
-    `POST /openapi/task/media-translation/create-async`，携带 `X-Idempotency-Key`
+    `POST /openapi/v1/task/media-translation/create-async`，携带 `X-Idempotency-Key`
   </Step>
   <Step title="接收结果">
     `event` 为 `openapi-media-translation` 的 [Webhook 请求体](/zh/guides/webhook-request)
@@ -49,4 +49,4 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
 ## 任务管理
 
-可轮询 `GET /openapi/tasks/detail` 作为兜底。见 [产品概览](/zh/guides/products/overview)。
+可轮询 `GET /openapi/v1/tasks/detail` 作为兜底。见 [产品概览](/zh/guides/products/overview)。

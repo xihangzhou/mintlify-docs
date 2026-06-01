@@ -10,8 +10,8 @@ icon: "volume-high"
 
 | 模式 | 接口 | 结果 |
 |------|------|------|
-| 同步 | `POST /openapi/task/tts/create` | HTTP `data.results[].uri`（CDN 音频） |
-| 异步 | `POST /openapi/task/tts/create-async` | [Webhook](/zh/guides/webhook-request)，`event` 为 `openapi-tts`（`data.results`） |
+| 同步 | `POST /openapi/v1/task/tts/create` | HTTP `data.results[].uri`（CDN 音频） |
+| 异步 | `POST /openapi/v1/task/tts/create-async` | [Webhook](/zh/guides/webhook-request)，`event` 为 `openapi-tts`（`data.results`） |
 
 `create` 与 `create-async` 均须 [`X-Idempotency-Key`](/zh/guides/idempotency)；异步还须配置 [Webhook](/zh/guides/webhooks)。
 
@@ -34,7 +34,7 @@ icon: "volume-high"
 
 ## 音色
 
-- **系统音色**：`POST /openapi/assets/voice/basic/list`
+- **系统音色**：`POST /openapi/v1/assets/voice/basic/list`
 - **克隆音色**：[声音克隆](/zh/guides/products/voice-clone) 成功后使用返回的 `voiceId`
 
 完整 schema：**API 参考 → TTS**。

@@ -27,7 +27,7 @@ If you request `at` but the material is video, the server may run **video transl
     Set your webhook URL on <a href={apiKeyUrl}>API Configuration</a> and copy the generated secret for verification
   </Step>
   <Step title="Submit task">
-    `POST /openapi/task/media-translation/create-async` with `X-Idempotency-Key`
+    `POST /openapi/v1/task/media-translation/create-async` with `X-Idempotency-Key`
   </Step>
   <Step title="Receive results">
     [Webhook request body](/guides/webhook-request) when `event` is `openapi-media-translation`
@@ -49,4 +49,4 @@ Do not expect final video/audio URLs in the `create-async` HTTP response.
 
 ## Task management
 
-Poll `GET /openapi/tasks/detail` as a fallback. See [Products overview](/guides/products/overview).
+Poll `GET /openapi/v1/tasks/detail` as a fallback. See [Products overview](/guides/products/overview).

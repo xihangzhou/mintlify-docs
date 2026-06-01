@@ -16,7 +16,7 @@ Retries after a timeout or ambiguous `5xx` are common. Without an idempotency ke
 
 ## What to send
 
-Add the header on **every `POST` request** to the Open API (`/openapi/**`):
+Add the header on **every `POST` request** to the Open API (`/openapi/v1/**`):
 
 ```http
 X-Idempotency-Key: <unique-string>
@@ -47,7 +47,7 @@ Rules:
 ```bash
 export IDEM_KEY="job-$(date +%s)-$RANDOM"
 
-curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
+curl -X POST "https://api.vmeg.ai/openapi/v1/task/tts/create" \
   -H "Authorization: Bearer $API_KEY" \
   -H "X-Idempotency-Key: $IDEM_KEY" \
   -H "Content-Type: application/json" \

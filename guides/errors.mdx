@@ -46,6 +46,6 @@ The Open API uses the JSON **`code`** field for business outcomes. HTTP status h
     Returned when a task cannot deduct project credits (TTS, translation, voice clone, media translation). See [Pricing](/guides/pricing) or <a href={productUrls.pricing}>add credits</a> on vmeg.ai.
   </Accordion>
   <Accordion title="502 Upstream failure">
-    An upstream service failed or timed out. Poll `GET /openapi/tasks/detail` with the `taskId` (your task list on vmeg.ai does not include Open API jobs). If a webhook is configured, wait for retries.
+    An upstream service failed or timed out. Poll `GET /openapi/v1/tasks/detail` with the `taskId` (your task list on vmeg.ai does not include Open API jobs). If a webhook is configured, wait for retries.
   </Accordion>
 </AccordionGroup>

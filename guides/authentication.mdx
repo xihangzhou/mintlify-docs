@@ -8,7 +8,7 @@ import { productUrls, apiKeyUrl } from "/snippets/product-urls.jsx";
 
 ## API Key
 
-All endpoints under `/openapi/**` require an **API Key**.
+All endpoints under `/openapi/v1/**` require an **API Key**.
 
 ## Request header
 
@@ -21,7 +21,7 @@ Authorization: Bearer <your_api_key>
 Example with `curl`:
 
 ```bash
-curl "https://api.vmeg.ai/openapi/tasks/list" \
+curl "https://api.vmeg.ai/openapi/v1/tasks/list" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 

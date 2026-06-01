@@ -10,15 +10,15 @@ Translate one or more text segments between locales supported in [Supported lang
 
 | Mode | Endpoint | Results |
 |------|----------|---------|
-| Sync | `POST /openapi/task/translate/create` | `data.items` in HTTP response |
-| Async | `POST /openapi/task/translate/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-translate` (`data.items`) |
+| Sync | `POST /openapi/v1/task/translate/create` | `data.items` in HTTP response |
+| Async | `POST /openapi/v1/task/translate/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-translate` (`data.items`) |
 
 Every `create` and `create-async` call requires [`X-Idempotency-Key`](/guides/idempotency). Async also needs a configured [Webhook](/guides/webhooks).
 
 ## Workflow (sync)
 
 ```bash
-curl -X POST "https://api.vmeg.ai/openapi/task/translate/create" \
+curl -X POST "https://api.vmeg.ai/openapi/v1/task/translate/create" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

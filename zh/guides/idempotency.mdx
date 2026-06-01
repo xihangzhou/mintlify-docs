@@ -16,7 +16,7 @@ icon: "rotate"
 
 ## 怎么用
 
-对 Open API 的**每一个 `POST` 请求**（`/openapi/**`）都加上该请求头：
+对 Open API 的**每一个 `POST` 请求**（`/openapi/v1/**`）都加上该请求头：
 
 ```http
 X-Idempotency-Key: <unique-string>
@@ -47,7 +47,7 @@ X-Idempotency-Key: <unique-string>
 ```bash
 export IDEM_KEY="job-$(date +%s)-$RANDOM"
 
-curl -X POST "https://api.vmeg.ai/openapi/task/tts/create" \
+curl -X POST "https://api.vmeg.ai/openapi/v1/task/tts/create" \
   -H "Authorization: Bearer $API_KEY" \
   -H "X-Idempotency-Key: $IDEM_KEY" \
   -H "Content-Type: application/json" \

@@ -20,10 +20,10 @@ Open API 面向 **付费用户**。免费账户访问 <a href={productUrls.apiCo
 
 | Open API 产品 | 接口 | 计费单位 | 积分 |
 |---------------|------|----------|------|
-| [音视频翻译](/zh/guides/products/media-translation) | `POST /openapi/task/media-translation/create-async` | 按源媒资时长（分钟） | **60 积分 / 分钟** |
-| [文本转语音](/zh/guides/products/text-to-speech) | `POST /openapi/task/tts/create`、`.../create-async` | 按输入文本字符数 | **约 2 积分 / 200 字符** |
-| [声音克隆](/zh/guides/products/voice-clone) | `POST /openapi/task/clone-voice/create`、`.../create-async` | 每次克隆成功 | **10 积分 / 个音色** |
-| [文本翻译](/zh/guides/products/text-translation) | `POST /openapi/task/translate/create`、`.../create-async` | 按计费分钟（由请求体量/时长规则换算） | **1 积分 / 分钟** |
+| [音视频翻译](/zh/guides/products/media-translation) | `POST /openapi/v1/task/media-translation/create-async` | 按源媒资时长（分钟） | **60 积分 / 分钟** |
+| [文本转语音](/zh/guides/products/text-to-speech) | `POST /openapi/v1/task/tts/create`、`.../create-async` | 按输入文本字符数 | **约 2 积分 / 200 字符** |
+| [声音克隆](/zh/guides/products/voice-clone) | `POST /openapi/v1/task/clone-voice/create`、`.../create-async` | 每次克隆成功 | **10 积分 / 个音色** |
+| [文本翻译](/zh/guides/products/text-translation) | `POST /openapi/v1/task/translate/create`、`.../create-async` | 按计费分钟（由请求体量/时长规则换算） | **1 积分 / 分钟** |
 
 ### 按分钟计费的产品
 

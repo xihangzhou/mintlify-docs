@@ -10,7 +10,7 @@ icon: "layer-group"
 
 Open API 任务与在 [vmeg.ai](https://www.vmeg.ai/home) 网页上发起的任务 **不是同一套**，规则与 [API 资产](/zh/guides/assets/overview) 一致。
 
-- 请仅用 `/openapi/tasks/**` 与 Webhook 跟踪 API 任务。
+- 请仅用 `/openapi/v1/tasks/**` 与 Webhook 跟踪 API 任务。
 - 网站上的任务记录不包含 API 任务；网站任务也不能用 Open API 查询。
 
 <Info>
@@ -21,9 +21,9 @@ Open API 任务与在 [vmeg.ai](https://www.vmeg.ai/home) 网页上发起的任�
 
 | 操作 | 接口 |
 |------|------|
-| 列表 | `GET /openapi/tasks/list` |
-| 详情 | `GET /openapi/tasks/detail` |
-| 删除 | `POST /openapi/tasks/delete` |
+| 列表 | `GET /openapi/v1/tasks/list` |
+| 详情 | `GET /openapi/v1/tasks/detail` |
+| 删除 | `POST /openapi/v1/tasks/delete` |
 
 请求与响应字段：[任务列表](/api-reference/tasks/list-tasks)、[任务详情](/api-reference/tasks/get-task-detail)、[删除任务](/api-reference/tasks/delete-task)。
 

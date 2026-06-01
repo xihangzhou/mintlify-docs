@@ -10,15 +10,15 @@ icon: "language"
 
 | 模式 | 接口 | 结果 |
 |------|------|------|
-| 同步 | `POST /openapi/task/translate/create` | HTTP 响应 `data.items` |
-| 异步 | `POST /openapi/task/translate/create-async` | [Webhook](/zh/guides/webhook-request)，`event` 为 `openapi-translate`（`data.items`） |
+| 同步 | `POST /openapi/v1/task/translate/create` | HTTP 响应 `data.items` |
+| 异步 | `POST /openapi/v1/task/translate/create-async` | [Webhook](/zh/guides/webhook-request)，`event` 为 `openapi-translate`（`data.items`） |
 
 `create` 与 `create-async` 均须 [`X-Idempotency-Key`](/zh/guides/idempotency)；异步还须配置 [Webhook](/zh/guides/webhooks)。
 
 ## 流程（同步）
 
 ```bash
-curl -X POST "https://api.vmeg.ai/openapi/task/translate/create" \
+curl -X POST "https://api.vmeg.ai/openapi/v1/task/translate/create" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

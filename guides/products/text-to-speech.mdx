@@ -10,8 +10,8 @@ Convert text to speech using a system or cloned **voiceId**. See [Voices](/guide
 
 | Mode | Endpoint | Results |
 |------|----------|---------|
-| Sync | `POST /openapi/task/tts/create` | `data.results[].uri` (CDN audio) in HTTP response |
-| Async | `POST /openapi/task/tts/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-tts` (`data.results`) |
+| Sync | `POST /openapi/v1/task/tts/create` | `data.results[].uri` (CDN audio) in HTTP response |
+| Async | `POST /openapi/v1/task/tts/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-tts` (`data.results`) |
 
 Every `create` and `create-async` call requires [`X-Idempotency-Key`](/guides/idempotency). Async also needs a configured [Webhook](/guides/webhooks).
 
@@ -34,7 +34,7 @@ Key request fields:
 
 ## Voices
 
-- **System voices**: `POST /openapi/assets/voice/basic/list`
+- **System voices**: `POST /openapi/v1/assets/voice/basic/list`
 - **Cloned voices**: create via [Voice clone](/guides/products/voice-clone), then use returned `voiceId`
 
 Full request schema: **API reference → TTS** operations.

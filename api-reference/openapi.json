@@ -47,7 +47,7 @@
     }
   ],
   "paths": {
-    "/openapi/task/tts/create": {
+    "/openapi/v1/task/tts/create": {
       "post": {
         "tags": [
           "TTS"
@@ -84,7 +84,7 @@
         }
       }
     },
-    "/openapi/task/tts/create-async": {
+    "/openapi/v1/task/tts/create-async": {
       "post": {
         "tags": [
           "TTS"
@@ -154,7 +154,7 @@
         }
       }
     },
-    "/openapi/task/translate/create": {
+    "/openapi/v1/task/translate/create": {
       "post": {
         "tags": [
           "Text translation"
@@ -198,7 +198,7 @@
         "description": "Synchronous text translation. Translated segments are returned in the HTTP response."
       }
     },
-    "/openapi/task/translate/create-async": {
+    "/openapi/v1/task/translate/create-async": {
       "post": {
         "tags": [
           "Text translation"
@@ -275,7 +275,7 @@
         }
       }
     },
-    "/openapi/task/clone-voice/create": {
+    "/openapi/v1/task/clone-voice/create": {
       "post": {
         "tags": [
           "Voice clone"
@@ -312,7 +312,7 @@
         "description": "Synchronous voice clone. On success, returns `voiceId` for use in TTS."
       }
     },
-    "/openapi/task/clone-voice/create-async": {
+    "/openapi/v1/task/clone-voice/create-async": {
       "post": {
         "tags": [
           "Voice clone"
@@ -382,7 +382,7 @@
         }
       }
     },
-    "/openapi/task/media-translation/create-async": {
+    "/openapi/v1/task/media-translation/create-async": {
       "post": {
         "tags": [
           "Media translation"
@@ -459,7 +459,7 @@
         }
       }
     },
-    "/openapi/tasks/list": {
+    "/openapi/v1/tasks/list": {
       "get": {
         "tags": [
           "Task management"
@@ -533,7 +533,7 @@
         "description": "Paginated list of tasks created via product APIs (TTS, text translation, voice clone, media translation). See [Products overview](/guides/products/overview); async deliverables arrive via [Webhooks](/guides/webhooks)."
       }
     },
-    "/openapi/tasks/detail": {
+    "/openapi/v1/tasks/detail": {
       "get": {
         "tags": [
           "Task management"
@@ -582,7 +582,7 @@
         "description": "Status and `result` for one `taskId` — use after `create-async` or when polling instead of webhooks. See [Products overview](/guides/products/overview)."
       }
     },
-    "/openapi/tasks/delete": {
+    "/openapi/v1/tasks/delete": {
       "post": {
         "tags": [
           "Task management"
@@ -626,7 +626,7 @@
         "description": "Delete a task record. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Products overview](/guides/products/overview)."
       }
     },
-    "/openapi/assets/material/upload/gen-upload-url": {
+    "/openapi/v1/assets/material/upload/gen-upload-url": {
       "post": {
         "tags": [
           "Assets - Materials"
@@ -670,7 +670,7 @@
         "description": "Single-file upload **step 1**: presigned PUT URL (and `materialId`). Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload) · [Assets overview](/guides/assets/overview)."
       }
     },
-    "/openapi/assets/material/upload/complete": {
+    "/openapi/v1/assets/material/upload/complete": {
       "post": {
         "tags": [
           "Assets - Materials"
@@ -714,7 +714,7 @@
         "description": "Single-file upload **step 3**: register the file after CDN PUT. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload)."
       }
     },
-    "/openapi/assets/material/upload/multipart/initiate": {
+    "/openapi/v1/assets/material/upload/multipart/initiate": {
       "post": {
         "tags": [
           "Assets - Materials"
@@ -758,7 +758,7 @@
         "description": "Multipart upload **step 1**: start upload and get `materialId` / `uploadId`. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload)."
       }
     },
-    "/openapi/assets/material/upload/multipart/presign-parts": {
+    "/openapi/v1/assets/material/upload/multipart/presign-parts": {
       "post": {
         "tags": [
           "Assets - Materials"
@@ -802,7 +802,7 @@
         "description": "Multipart upload **step 2**: presigned URL per part. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload)."
       }
     },
-    "/openapi/assets/material/upload/multipart/complete": {
+    "/openapi/v1/assets/material/upload/multipart/complete": {
       "post": {
         "tags": [
           "Assets - Materials"
@@ -846,7 +846,7 @@
         "description": "Multipart upload **final step**: commit parts and register the material. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload)."
       }
     },
-    "/openapi/assets/material/upload/multipart/abort": {
+    "/openapi/v1/assets/material/upload/multipart/abort": {
       "post": {
         "tags": [
           "Assets - Materials"
@@ -883,7 +883,7 @@
         "description": "Cancel an in-progress multipart upload. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Material upload](/guides/assets/material-upload)."
       }
     },
-    "/openapi/assets/material/list": {
+    "/openapi/v1/assets/material/list": {
       "get": {
         "tags": [
           "Assets - Materials"
@@ -941,7 +941,7 @@
         "description": "Paginated material library for your project. Use `materialId` in [Media translation](/guides/products/media-translation). See [Materials](/guides/assets/materials) and [Assets overview](/guides/assets/overview)."
       }
     },
-    "/openapi/assets/material/delete": {
+    "/openapi/v1/assets/material/delete": {
       "post": {
         "tags": [
           "Assets - Materials"
@@ -985,7 +985,7 @@
         "description": "Logical delete of a material. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Materials](/guides/assets/materials)."
       }
     },
-    "/openapi/assets/voice/basic/list": {
+    "/openapi/v1/assets/voice/basic/list": {
       "post": {
         "tags": [
           "Assets - Voices"
@@ -1023,7 +1023,7 @@
         "description": "List read-only system preset voices; pick a `voiceId` for [Text to speech](/guides/products/text-to-speech). See [Voices](/guides/assets/voices) and [Assets overview](/guides/assets/overview)."
       }
     },
-    "/openapi/assets/voice/clone/list": {
+    "/openapi/v1/assets/voice/clone/list": {
       "post": {
         "tags": [
           "Assets - Voices"
@@ -1061,7 +1061,7 @@
         "description": "List cloned voices created by [Voice clone](/guides/products/voice-clone). See [Voices](/guides/assets/voices)."
       }
     },
-    "/openapi/assets/voice/clone/update": {
+    "/openapi/v1/assets/voice/clone/update": {
       "post": {
         "tags": [
           "Assets - Voices"
@@ -1105,7 +1105,7 @@
         "description": "Rename a cloned voice display name. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Voices](/guides/assets/voices)."
       }
     },
-    "/openapi/assets/voice/clone/delete": {
+    "/openapi/v1/assets/voice/clone/delete": {
       "post": {
         "tags": [
           "Assets - Voices"
@@ -3375,8 +3375,8 @@
           },
           "version": {
             "type": "string",
-            "example": "1.0",
-            "description": "Callback protocol version (currently `1.0`)"
+            "example": "v1",
+            "description": "API version of the task (e.g. `v1`, `v2`). Matches the version in the request path (`/openapi/v1/...`)."
           },
           "event": {
             "type": "string",

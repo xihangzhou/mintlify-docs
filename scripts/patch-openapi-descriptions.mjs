@@ -567,8 +567,8 @@ const FIELDS = {
     zh: "要删除的克隆 `voiceId`（逻辑删除）",
   },
   "OpenApiCallbackEnvelope.version": {
-    en: "Callback protocol version (currently `1.0`)",
-    zh: "回调协议版本（当前为 `1.0`）",
+    en: "API version of the task (e.g. `v1`, `v2`). Matches the version in the request path (`/openapi/v1/...`).",
+    zh: "任务的 API 版本号（如 `v1`、`v2`），与请求路径中的版本一致（如 `/openapi/v1/...`）。",
   },
   "OpenApiCallbackEnvelope.event": {
     en: "Which product completed. Route your handler by this value: `openapi-tts` (TTS), `openapi-translate` (text translation), `openapi-clone-voice` (voice clone), `openapi-media-translation` (media translation). Listed in [Webhook request body](/guides/webhook-request).",

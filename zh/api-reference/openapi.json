@@ -47,7 +47,7 @@
     }
   ],
   "paths": {
-    "/openapi/task/tts/create": {
+    "/openapi/v1/task/tts/create": {
       "post": {
         "tags": [
           "TTS"
@@ -84,7 +84,7 @@
         }
       }
     },
-    "/openapi/task/tts/create-async": {
+    "/openapi/v1/task/tts/create-async": {
       "post": {
         "tags": [
           "TTS"
@@ -154,7 +154,7 @@
         }
       }
     },
-    "/openapi/task/translate/create": {
+    "/openapi/v1/task/translate/create": {
       "post": {
         "tags": [
           "文本翻译"
@@ -198,7 +198,7 @@
         "description": "同步文本翻译，译文在 HTTP 响应中返回。"
       }
     },
-    "/openapi/task/translate/create-async": {
+    "/openapi/v1/task/translate/create-async": {
       "post": {
         "tags": [
           "文本翻译"
@@ -275,7 +275,7 @@
         }
       }
     },
-    "/openapi/task/clone-voice/create": {
+    "/openapi/v1/task/clone-voice/create": {
       "post": {
         "tags": [
           "声音克隆"
@@ -312,7 +312,7 @@
         "description": "同步声音克隆，成功时返回可用于 TTS 的 `voiceId`。"
       }
     },
-    "/openapi/task/clone-voice/create-async": {
+    "/openapi/v1/task/clone-voice/create-async": {
       "post": {
         "tags": [
           "声音克隆"
@@ -382,7 +382,7 @@
         }
       }
     },
-    "/openapi/task/media-translation/create-async": {
+    "/openapi/v1/task/media-translation/create-async": {
       "post": {
         "tags": [
           "媒体翻译"
@@ -459,7 +459,7 @@
         }
       }
     },
-    "/openapi/tasks/list": {
+    "/openapi/v1/tasks/list": {
       "get": {
         "tags": [
           "任务管理"
@@ -533,7 +533,7 @@
         "description": "分页列出各产品 API 创建的任务（TTS、文本翻译、声音克隆、音视频翻译）。见 [产品概览](/zh/guides/products/overview)；异步交付物通过 [Webhook](/zh/guides/webhooks) 送达。"
       }
     },
-    "/openapi/tasks/detail": {
+    "/openapi/v1/tasks/detail": {
       "get": {
         "tags": [
           "任务管理"
@@ -582,7 +582,7 @@
         "description": "按 `taskId` 查询状态与 `result` — 用于 `create-async` 之后或未使用 Webhook 时的轮询。见 [产品概览](/zh/guides/products/overview)。"
       }
     },
-    "/openapi/tasks/delete": {
+    "/openapi/v1/tasks/delete": {
       "post": {
         "tags": [
           "任务管理"
@@ -626,7 +626,7 @@
         "description": "删除任务记录。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [产品概览](/zh/guides/products/overview)。"
       }
     },
-    "/openapi/assets/material/upload/gen-upload-url": {
+    "/openapi/v1/assets/material/upload/gen-upload-url": {
       "post": {
         "tags": [
           "资产 - 素材"
@@ -670,7 +670,7 @@
         "description": "单文件上传 **第 1 步**：预签名 PUT URL（及 `materialId`）。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。流程见 [素材上传](/zh/guides/assets/material-upload)、[资产概览](/zh/guides/assets/overview)。"
       }
     },
-    "/openapi/assets/material/upload/complete": {
+    "/openapi/v1/assets/material/upload/complete": {
       "post": {
         "tags": [
           "资产 - 素材"
@@ -714,7 +714,7 @@
         "description": "单文件上传 **第 3 步**：CDN PUT 后登记素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
-    "/openapi/assets/material/upload/multipart/initiate": {
+    "/openapi/v1/assets/material/upload/multipart/initiate": {
       "post": {
         "tags": [
           "资产 - 素材"
@@ -758,7 +758,7 @@
         "description": "分片上传 **第 1 步**：发起上传并获取 `materialId` / `uploadId`。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
-    "/openapi/assets/material/upload/multipart/presign-parts": {
+    "/openapi/v1/assets/material/upload/multipart/presign-parts": {
       "post": {
         "tags": [
           "资产 - 素材"
@@ -802,7 +802,7 @@
         "description": "分片上传 **第 2 步**：为每个分片获取预签名 URL。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
-    "/openapi/assets/material/upload/multipart/complete": {
+    "/openapi/v1/assets/material/upload/multipart/complete": {
       "post": {
         "tags": [
           "资产 - 素材"
@@ -846,7 +846,7 @@
         "description": "分片上传 **最后一步**：提交分片并登记素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
-    "/openapi/assets/material/upload/multipart/abort": {
+    "/openapi/v1/assets/material/upload/multipart/abort": {
       "post": {
         "tags": [
           "资产 - 素材"
@@ -883,7 +883,7 @@
         "description": "取消进行中的分片上传。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
-    "/openapi/assets/material/list": {
+    "/openapi/v1/assets/material/list": {
       "get": {
         "tags": [
           "资产 - 素材"
@@ -941,7 +941,7 @@
         "description": "分页查询项目下的素材库；`materialId` 用于 [音视频翻译](/zh/guides/products/media-translation)。见 [素材](/zh/guides/assets/materials) 与 [资产概览](/zh/guides/assets/overview)。"
       }
     },
-    "/openapi/assets/material/delete": {
+    "/openapi/v1/assets/material/delete": {
       "post": {
         "tags": [
           "资产 - 素材"
@@ -985,7 +985,7 @@
         "description": "逻辑删除素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材](/zh/guides/assets/materials)。"
       }
     },
-    "/openapi/assets/voice/basic/list": {
+    "/openapi/v1/assets/voice/basic/list": {
       "post": {
         "tags": [
           "资产 - 音色"
@@ -1023,7 +1023,7 @@
         "description": "列出只读系统预设音色，选取 `voiceId` 用于 [文本转语音](/zh/guides/products/text-to-speech)。见 [音色](/zh/guides/assets/voices) 与 [资产概览](/zh/guides/assets/overview)。"
       }
     },
-    "/openapi/assets/voice/clone/list": {
+    "/openapi/v1/assets/voice/clone/list": {
       "post": {
         "tags": [
           "资产 - 音色"
@@ -1061,7 +1061,7 @@
         "description": "列出 [声音克隆](/zh/guides/products/voice-clone) 产生的克隆音色。见 [音色](/zh/guides/assets/voices)。"
       }
     },
-    "/openapi/assets/voice/clone/update": {
+    "/openapi/v1/assets/voice/clone/update": {
       "post": {
         "tags": [
           "资产 - 音色"
@@ -1105,7 +1105,7 @@
         "description": "重命名克隆音色展示名。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [音色](/zh/guides/assets/voices)。"
       }
     },
-    "/openapi/assets/voice/clone/delete": {
+    "/openapi/v1/assets/voice/clone/delete": {
       "post": {
         "tags": [
           "资产 - 音色"
@@ -3375,8 +3375,8 @@
           },
           "version": {
             "type": "string",
-            "example": "1.0",
-            "description": "回调协议版本（当前为 `1.0`）"
+            "example": "v1",
+            "description": "任务的 API 版本号（如 `v1`、`v2`），与请求路径中的版本一致（如 `/openapi/v1/...`）。"
           },
           "event": {
             "type": "string",

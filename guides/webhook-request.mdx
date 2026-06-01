@@ -17,7 +17,7 @@ All async completion callbacks share the same top-level shape. Product-specific 
 ```json
 {
   "code": 200,
-  "version": "1.0",
+  "version": "v1",
   "event": "openapi-tts",
   "message": "",
   "extraData": { "your": "memo" },
@@ -28,7 +28,7 @@ All async completion callbacks share the same top-level shape. Product-specific 
 | Field | Meaning |
 |-------|---------|
 | `code` | Outcome of this delivery (`200` = task succeeded) |
-| `version` | Callback protocol version (currently `1.0`) |
+| `version` | API version of the task (e.g. `v1`, `v2`) |
 | `event` | **Which product finished** — see table below |
 | `message` | Detail when `code` is not success |
 | `extraData` | Echo of `extraData` from your async submit request (if you sent it) |

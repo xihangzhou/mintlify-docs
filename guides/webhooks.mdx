@@ -17,7 +17,7 @@ Webhooks are the **delivery mechanism** for async outcomes, not a separate produ
 | Without webhook | With webhook |
 |-----------------|--------------|
 | You only get `taskId` from `create-async` | You receive full deliverables in the POST body |
-| You must poll `GET /openapi/tasks/detail` | Your server is notified when work completes |
+| You must poll `GET /openapi/v1/tasks/detail` | Your server is notified when work completes |
 
 For production async integrations, configure a webhook before calling `*-create-async` endpoints.
 

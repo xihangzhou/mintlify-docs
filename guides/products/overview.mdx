@@ -10,7 +10,7 @@ Every Open API **product** creates a **task** with a `taskId`. You can list, ins
 
 Open API tasks are not the same as jobs you start on [vmeg.ai](https://www.vmeg.ai/home) — same rule as [API assets](/guides/assets/overview).
 
-- Use `/openapi/tasks/**` and webhooks to track API work only.
+- Use `/openapi/v1/tasks/**` and webhooks to track API work only.
 - Website task history does not list API jobs, and website jobs cannot be queried through the Open API.
 
 <Info>
@@ -21,9 +21,9 @@ Open API tasks are not the same as jobs you start on [vmeg.ai](https://www.vmeg.
 
 | Action | Endpoint |
 |--------|----------|
-| List | `GET /openapi/tasks/list` |
-| Detail | `GET /openapi/tasks/detail` |
-| Delete | `POST /openapi/tasks/delete` |
+| List | `GET /openapi/v1/tasks/list` |
+| Detail | `GET /openapi/v1/tasks/detail` |
+| Delete | `POST /openapi/v1/tasks/delete` |
 
 Request and response fields: [List tasks](/api-reference/tasks/list-tasks), [Get task detail](/api-reference/tasks/get-task-detail), and [Delete task](/api-reference/tasks/delete-task).
 
