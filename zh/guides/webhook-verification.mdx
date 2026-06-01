@@ -17,15 +17,15 @@ VMEG 对每次 Webhook POST 使用 **HMAC-SHA256** 签名：
 1. 在 <a href={apiKeyUrl}>API 配置</a> 填写 **Webhook URL** 后，页面会生成 **Webhook Secret**，复制到服务端保存，回调请求中无需也不应带上 Secret。
 2. 任务完成时，VMEG 向该 URL POST JSON，并附带：
    - **`X-Timestamp`** — 发送时刻的 Unix **毫秒**时间戳（字符串）
-   - **`X-Signature`** — `HMAC-SHA256(secret, X-Timestamp + rawBody)` 的小写 hex
+   - **`X-Signature`** — `HMAC-SHA256(secret, X-Timestamp + rawBody)` 的 hex（16 进制）字符串
 3. 服务端用同一 Secret 重算 HMAC，与 `X-Signature` 一致则视为 VMEG 发出且 body 未被篡改。若时间戳与服务器时间相差超过 **300 秒**，应拒绝（防重放）。
 
 ## 如何校验
 
 1. 从请求头读取 `X-Timestamp`、`X-Signature`。
 2. 超出 300 秒时间窗则拒绝。
-3. 对**原始请求体字节**计算 HMAC，不要重新序列化 JSON。
-4. 与 `X-Signature` 做**常数时间**比较。
+3. 对**原始请求体字节**计算 HMAC：不要重新序列化 JSON、不要格式化/排序 key、不要改动空白字符。
+4. 将计算得到的签名与 `X-Signature` 做比较（严格相等；不要做大小写转换）。
 
 失败返回 `401` 或 `403`，仍须快速响应。
 
@@ -84,7 +84,7 @@ public final class WebhookVerifier {
     String expected = toHex(mac.doFinal(message));
     return MessageDigest.isEqual(
         expected.getBytes(StandardCharsets.UTF_8),
-        signature.toLowerCase().getBytes(StandardCharsets.UTF_8));
+        signature.getBytes(StandardCharsets.UTF_8));
   }
 
   private static String toHex(byte[] bytes) {

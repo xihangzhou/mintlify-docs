@@ -17,15 +17,15 @@ VMEG signs each webhook POST with **HMAC-SHA256**:
 1. You configure a **Webhook URL** on <a href={apiKeyUrl}>API Configuration</a>. VMEG generates a **Webhook Secret** on that page — copy it to your server; you never send it in the callback.
 2. When a task completes, VMEG POSTs the JSON body to your URL and attaches:
    - **`X-Timestamp`** — send time in Unix **milliseconds** (string)
-   - **`X-Signature`** — lowercase hex of `HMAC-SHA256(secret, X-Timestamp + rawBody)`
+   - **`X-Signature`** — hex (base16) string of `HMAC-SHA256(secret, X-Timestamp + rawBody)`
 3. Your endpoint recomputes the same HMAC with your copy of the secret. If it matches `X-Signature`, the sender is VMEG and the body was not tampered with. Reject callbacks whose timestamp is more than **300 seconds** from your server clock (replay protection).
 
 ## How to verify
 
 1. Read `X-Timestamp` and `X-Signature` from the request headers.
 2. Reject if `X-Timestamp` is outside the 300-second window.
-3. Hash the **raw request body bytes** — do not re-serialize JSON.
-4. Compare your HMAC to `X-Signature` using a **constant-time** comparison.
+3. Hash the **raw request body bytes** — do not re-serialize JSON, pretty-print, sort keys, or change whitespace.
+4. Compare your computed hex to `X-Signature` (exact match; do not transform case).
 
 Return `401` or `403` on failure. Still respond promptly.
 
@@ -84,7 +84,7 @@ public final class WebhookVerifier {
     String expected = toHex(mac.doFinal(message));
     return MessageDigest.isEqual(
         expected.getBytes(StandardCharsets.UTF_8),
-        signature.toLowerCase().getBytes(StandardCharsets.UTF_8));
+        signature.getBytes(StandardCharsets.UTF_8));
   }
 
   private static String toHex(byte[] bytes) {
