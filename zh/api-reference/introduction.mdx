@@ -22,6 +22,10 @@ Authorization: Bearer <api_key>
 
 在 Playground 的 **Authorization** 字段填入 Key 即可试调。
 
+## 数据范围
+
+**任务** 与 **素材** 的列表、详情、删除，以及 **克隆音色** 的查询，均只返回当前 API Key 下的数据。查询参数与请求体中无需也不应携带项目标识。
+
 ## 接口分组
 
 | 分组 | 说明 |

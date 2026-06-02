@@ -21,9 +21,9 @@ const TAG_DESCRIPTIONS = {
 
 const OPERATION_DESCRIPTIONS = {
   tasksList:
-    "Paginated list of tasks created via product APIs (TTS, text translation, voice clone, media translation). See [Products overview](/guides/products/overview); async deliverables arrive via [Webhooks](/guides/webhooks).",
+    "Paginated list of tasks created via product APIs (TTS, text translation, voice clone, media translation). Results are scoped to your **API Key**. See [Products overview](/guides/products/overview); async deliverables arrive via [Webhooks](/guides/webhooks).",
   tasksDetail:
-    "Status and `result` for one `taskId` — use after `create-async` or when polling instead of webhooks. See [Products overview](/guides/products/overview).",
+    "Status and `result` for one `taskId` — use after `create-async` or when polling instead of webhooks. Scoped to your **API Key**. See [Products overview](/guides/products/overview).",
   tasksDelete:
     "Delete a task record. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Products overview](/guides/products/overview).",
   materialGenUploadUrl:
@@ -39,7 +39,7 @@ const OPERATION_DESCRIPTIONS = {
   materialMultipartAbort:
     "Cancel an in-progress multipart upload. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Material upload](/guides/assets/material-upload).",
   materialList:
-    "Paginated material library for your project. Use `materialId` in [Media translation](/guides/products/media-translation). See [Materials](/guides/assets/materials) and [Assets overview](/guides/assets/overview).",
+    "Paginated material library scoped to your **API Key**. Use `materialId` in [Media translation](/guides/products/media-translation). See [Materials](/guides/assets/materials) and [Assets overview](/guides/assets/overview).",
   materialDelete:
     "Logical delete of a material. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Materials](/guides/assets/materials).",
   voiceBasicList:

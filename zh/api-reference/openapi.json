@@ -475,15 +475,6 @@
         },
         "parameters": [
           {
-            "name": "projId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "项目 ID（来自 API Key 鉴权上下文）"
-          },
-          {
             "name": "taskType",
             "in": "query",
             "schema": {
@@ -530,7 +521,7 @@
             }
           }
         },
-        "description": "分页列出各产品 API 创建的任务（TTS、文本翻译、声音克隆、音视频翻译）。见 [产品概览](/zh/guides/products/overview)；异步交付物通过 [Webhook](/zh/guides/webhooks) 送达。"
+        "description": "分页列出各产品 API 创建的任务（TTS、文本翻译、声音克隆、音视频翻译）。结果按 **API Key** 限定范围。见 [产品概览](/zh/guides/products/overview)；异步交付物通过 [Webhook](/zh/guides/webhooks) 送达。"
       }
     },
     "/openapi/v1/tasks/detail": {
@@ -548,15 +539,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "projId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "项目 ID（API Key 所属项目）"
-          },
           {
             "name": "taskId",
             "in": "query",
@@ -579,7 +561,7 @@
             }
           }
         },
-        "description": "按 `taskId` 查询状态与 `result` — 用于 `create-async` 之后或未使用 Webhook 时的轮询。见 [产品概览](/zh/guides/products/overview)。"
+        "description": "按 `taskId` 查询状态与 `result` — 用于 `create-async` 之后或未使用 Webhook 时的轮询。范围由 **API Key** 限定。见 [产品概览](/zh/guides/products/overview)。"
       }
     },
     "/openapi/v1/tasks/delete": {
@@ -899,15 +881,6 @@
         },
         "parameters": [
           {
-            "name": "projId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "项目 ID（API Key 所属项目）"
-          },
-          {
             "name": "currentPage",
             "in": "query",
             "schema": {
@@ -938,7 +911,7 @@
             }
           }
         },
-        "description": "分页查询项目下的素材库；`materialId` 用于 [音视频翻译](/zh/guides/products/media-translation)。见 [素材](/zh/guides/assets/materials) 与 [资产概览](/zh/guides/assets/overview)。"
+        "description": "分页列出当前 **API Key** 下的素材库。在 [音视频翻译](/zh/guides/products/media-translation) 中使用 `materialId`。见 [素材](/zh/guides/assets/materials) 与 [资产概览](/zh/guides/assets/overview)。"
       }
     },
     "/openapi/v1/assets/material/delete": {
@@ -2618,14 +2591,9 @@
       "OpenApiTaskDeleteRequest": {
         "type": "object",
         "required": [
-          "projId",
           "taskId"
         ],
         "properties": {
-          "projId": {
-            "type": "string",
-            "description": "项目 ID（API Key 所属项目）"
-          },
           "taskId": {
             "type": "string",
             "description": "要删除的任务 ID"

@@ -27,6 +27,10 @@ curl "https://api.vmeg.ai/openapi/v1/tasks/list" \
 
 Replace `YOUR_API_KEY` with the key from <a href={apiKeyUrl}>API Configuration</a>.
 
+## Scope
+
+Your API Key determines which **tasks**, **materials**, and **cloned voices** you can list, query, and delete. Send only the fields documented for each endpoint.
+
 <Warning>
   Do not expose API Keys in client apps or public repositories. Store keys in environment variables or a secrets manager.
 </Warning>

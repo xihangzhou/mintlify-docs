@@ -475,15 +475,6 @@
         },
         "parameters": [
           {
-            "name": "projId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Project ID (from API Key auth context)"
-          },
-          {
             "name": "taskType",
             "in": "query",
             "schema": {
@@ -530,7 +521,7 @@
             }
           }
         },
-        "description": "Paginated list of tasks created via product APIs (TTS, text translation, voice clone, media translation). See [Products overview](/guides/products/overview); async deliverables arrive via [Webhooks](/guides/webhooks)."
+        "description": "Paginated list of tasks created via product APIs (TTS, text translation, voice clone, media translation). Results are scoped to your **API Key**. See [Products overview](/guides/products/overview); async deliverables arrive via [Webhooks](/guides/webhooks)."
       }
     },
     "/openapi/v1/tasks/detail": {
@@ -548,15 +539,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "projId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Project ID (from API Key scope)"
-          },
           {
             "name": "taskId",
             "in": "query",
@@ -579,7 +561,7 @@
             }
           }
         },
-        "description": "Status and `result` for one `taskId` — use after `create-async` or when polling instead of webhooks. See [Products overview](/guides/products/overview)."
+        "description": "Status and `result` for one `taskId` — use after `create-async` or when polling instead of webhooks. Scoped to your **API Key**. See [Products overview](/guides/products/overview)."
       }
     },
     "/openapi/v1/tasks/delete": {
@@ -899,15 +881,6 @@
         },
         "parameters": [
           {
-            "name": "projId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Project ID (from API Key scope)"
-          },
-          {
             "name": "currentPage",
             "in": "query",
             "schema": {
@@ -938,7 +911,7 @@
             }
           }
         },
-        "description": "Paginated material library for your project. Use `materialId` in [Media translation](/guides/products/media-translation). See [Materials](/guides/assets/materials) and [Assets overview](/guides/assets/overview)."
+        "description": "Paginated material library scoped to your **API Key**. Use `materialId` in [Media translation](/guides/products/media-translation). See [Materials](/guides/assets/materials) and [Assets overview](/guides/assets/overview)."
       }
     },
     "/openapi/v1/assets/material/delete": {
@@ -2618,14 +2591,9 @@
       "OpenApiTaskDeleteRequest": {
         "type": "object",
         "required": [
-          "projId",
           "taskId"
         ],
         "properties": {
-          "projId": {
-            "type": "string",
-            "description": "Project ID (from API Key scope)"
-          },
           "taskId": {
             "type": "string",
             "description": "Task ID to delete"

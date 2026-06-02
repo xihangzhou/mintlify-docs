@@ -85,7 +85,7 @@ Update `snippets/product-urls.jsx` (JSON.parse string only, no raw `{` object li
 - Use **API Key** (not "token") for `/openapi/**` Bearer auth
 - Use **Callback** / **Webhook** for async task delivery to customer URLs
 - Use **materialId**, **taskId**, **voiceId** as field names match the API
-- **projId**: project ID bound to the API Key
+- **API Key**: Bearer auth for all `/openapi/**` endpoints; also scopes tasks and assets (no project ID in public request parameters)
 - Business success: `code === 200` in JSON body (not HTTP status alone)
 
 ## Style preferences

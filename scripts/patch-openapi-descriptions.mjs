@@ -230,10 +230,6 @@ const FIELDS = {
     en: "Current task status",
     zh: "当前任务状态",
   },
-  "OpenApiTaskDeleteRequest.projId": {
-    en: "Project ID (from API Key scope)",
-    zh: "项目 ID（API Key 所属项目）",
-  },
   "OpenApiTaskDeleteRequest.taskId": {
     en: "Task ID to delete",
     zh: "要删除的任务 ID",
@@ -748,10 +744,6 @@ if (timbrePath) {
 
 // Query params missing descriptions on some operations
 const queryDesc = {
-  projId: {
-    en: "Project ID (from API Key scope)",
-    zh: "项目 ID（API Key 所属项目）",
-  },
   currentPage: { en: "Page number (1-based)", zh: "页码（从 1 开始）" },
   pageSize: { en: "Page size", zh: "每页条数" },
   taskId: { en: "Open API task ID", zh: "Open API 任务 ID" },
