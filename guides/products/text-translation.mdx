@@ -1,10 +1,85 @@
 ---
 title: "Text translation"
-description: "Translate text segments synchronously or asynchronously"
+description: "Dubbing-oriented segment translation with precise context, scenes, and speaker metadata"
 icon: "language"
 ---
 
-Translate one or more text segments between locales supported in [Supported languages](/guides/supported-languages).
+VMEG text translation is built for **localization pipelines** — especially **dubbing, subtitles, and voiceover** — not as a generic “paste a paragraph” machine translation endpoint. You send an ordered list of **segments** (lines or cues), and the engine uses **context, scene, speaker, and locale hints** so translations read naturally when spoken or timed, and stay consistent across a script.
+
+Locales must appear in [Supported languages](/guides/supported-languages). For full audio/video translation (ASR → translate → TTS in one job), use [Media translation](/guides/products/media-translation) instead.
+
+## How this differs from generic translation APIs
+
+| Capability | Typical translation API | VMEG text translation |
+|------------|-------------------------|------------------------|
+| Unit of work | Long documents or single strings | Up to **50 segments** per request, index-aligned `data.items` |
+| Context | Document-level or none | **Per-segment** `context`, global `sourceContext` modes, optional **timeline** (`start` / `end`) |
+| Dubbing fit | Neutral written style | **`sceneCustomized.scene`**: `video`, `audio`, `subtitle`, `voiceover` |
+| Speakers | Rarely modeled | **`speaker`**, **`gender`** (`male` / `female`), per-segment **`locale`** |
+| Terminology | Optional glossary elsewhere | Built-in **`options.glossary`** map |
+| Downstream TTS / media | Separate products | Same locale and phrasing assumptions as [TTS](/guides/products/text-to-speech) and [Media translation](/guides/products/media-translation) |
+
+<Info>
+  Billing is by **source character count** (all `segments[].text`), not by duration. See [Pricing](/guides/pricing).
+</Info>
+
+## Request shape
+
+| Field | Role |
+|-------|------|
+| `language.source` / `language.target` | BCP-47 pair for the batch (required `target`; `source` recommended) |
+| `segments[]` | Lines to translate; response `data.items[i]` matches input index |
+| `options` | Context strategy, scene, glossary, custom `prompt` |
+
+Each segment supports:
+
+| Segment field | Purpose |
+|---------------|---------|
+| `text` | Source line (required) |
+| `speaker` | Speaker id or label — keeps pronouns and voice assignment consistent across segments |
+| `gender` | `male` or `female` — disambiguates languages where gender affects grammar or delivery |
+| `locale` | Overrides `language.source` for that line (mixed-language scripts) |
+| `context` | Neighbor source lines for **this** segment only (highest priority for context) |
+| `start` / `end` | Source timeline in seconds — use with ordered segments when context follows playback time |
+
+Field-level OpenAPI detail: [Create text translation (sync)](/api-reference/text-translation/create-text-translation-sync).
+
+## Context management
+
+Ambiguous lines (“that”, “he”, homophones) need **controlled** context — not the whole document dumped in every time.
+
+### Global strategy: `options.sourceContext`
+
+| `mode` | Behavior |
+|--------|----------|
+| `independent` | Default. Each segment translated without neighbors |
+| `provided_only` | Use only `segments[i].context` you supply — best when segments are **not contiguous** in time or order |
+| `neighbor` | Auto-include nearby segments from the **same request**; window size via `contextWindow` (1–20 segments before and after) |
+
+**Priority:** segment-level `context` **overrides** global `sourceContext` for that line.
+
+### When to use which mode
+
+- **Subtitle / dubbing script in order** — `neighbor` with a small `contextWindow` (e.g. 3–5) for pronoun and tone continuity without leaking unrelated lines.
+- **Cherry-picked cues or A/B takes** — `provided_only` + explicit `context` per segment.
+- **Isolated UI strings or glossary checks** — `independent`.
+
+Pair `start` / `end` with ordered `segments` when your pipeline already has timecodes; the API uses segment order and timing together with `neighbor` mode.
+
+## Scene and delivery: `options.sceneCustomized`
+
+| Field | Values / default | Effect |
+|-------|------------------|--------|
+| `scene` | `video` (default), `audio`, `subtitle`, `voiceover` | Tells the model how the line will be **used** — pacing, brevity, and oral vs on-screen style differ by scene |
+| `allowStutter` | `true` (default) | When `true`, disfluencies in the source may be preserved where appropriate for natural speech |
+
+Use `subtitle` for burn-in or caption constraints; `voiceover` or `audio` when the line is spoken without lip sync; `video` for general dubbed video dialogue.
+
+## Terminology and instructions
+
+- **`options.glossary`** — map of source term → preferred translation (brand names, character names, fixed phrases).
+- **`options.prompt`** — extra instruction appended to the translation task (tone, audience, “keep informal”, etc.).
+- **`options.skipMissingTranslationCheck`** — when `true`, skips validation that every segment returned a translation (advanced; default `false`).
 
 ## Sync vs async
 
@@ -13,34 +88,54 @@ Translate one or more text segments between locales supported in [Supported lang
 | Sync | `POST /openapi/v1/task/translate/create` | `data.items` in HTTP response |
 | Async | `POST /openapi/v1/task/translate/create-async` | [Webhook](/guides/webhook-request) when `event` is `openapi-translate` (`data.items`) |
 
-Every `create` and `create-async` call requires [`X-Idempotency-Key`](/guides/idempotency). Async also needs a configured [Webhook](/guides/webhooks).
+Every `create` and `create-async` call requires [`X-Idempotency-Key`](/guides/idempotency). Async also needs a configured [Webhook](/guides/webhooks). Async-only `extraData` is echoed in webhooks — see [Create text translation (async)](/api-reference/text-translation/create-text-translation-async).
 
-## Workflow (sync)
+## Example: multi-speaker dubbing batch
 
 ```bash
 curl -X POST "https://api.vmeg.ai/openapi/v1/task/translate/create" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
+  -H "X-Idempotency-Key: translate-demo-001" \
   -d '{
-    "language": { "source": "zh-CN", "target": "en-US" },
-    "segments": [{ "text": "你好" }]
+    "language": { "source": "ja-JP", "target": "en-US" },
+    "segments": [
+      {
+        "text": "彼はもう知っている。",
+        "speaker": "A",
+        "gender": "male",
+        "start": 12.4,
+        "end": 14.1
+      },
+      {
+        "text": "本当に？",
+        "speaker": "B",
+        "gender": "female",
+        "start": 14.2,
+        "end": 15.0
+      }
+    ],
+    "options": {
+      "sourceContext": { "mode": "neighbor", "contextWindow": 3 },
+      "sceneCustomized": { "scene": "video", "allowStutter": false },
+      "glossary": { "VMEG": "VMEG" },
+      "prompt": "Natural dubbing dialogue; keep lines short for lip sync."
+    }
   }'
 ```
 
-Translated text appears in `data.items`, aligned with input segments.
+Translated lines appear in `data.items` in the same order as `segments`.
 
 ## Workflow (async)
 
 1. Configure [Webhooks](/guides/webhooks)
 2. POST to `create-async` with idempotency key
-3. Save `taskId` from acceptance response
+3. Save `taskId` from the acceptance response
 4. Read translated segments from webhook `data.items`
-
-## Request details
-
-For segment structure and `options`, see [Create text translation (sync)](/api-reference/text-translation/create-text-translation-sync). For async-only `extraData` (echoed in webhooks), see [Create text translation (async)](/api-reference/text-translation/create-text-translation-async).
 
 ## Related
 
 - [Products overview](/guides/products/overview)
-- [Pricing](/guides/pricing) — credit consumption
+- [Pricing](/guides/pricing) — credits per 100 characters of source text
+- [Usage limits](/guides/usage-limits) — max 50 segments per request
+- [Media translation](/guides/products/media-translation) — end-to-end audio/video localization

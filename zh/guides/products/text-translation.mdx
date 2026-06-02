@@ -1,10 +1,85 @@
 ---
 title: "文本翻译"
-description: "同步或异步翻译文本片段"
+description: "面向配音与脚本的片段级翻译：精确上下文、场景与说话人元数据"
 icon: "language"
 ---
 
-在 [支持的语言](/zh/guides/supported-languages) 所列 locale 之间翻译一个或多个文本片段。
+VMEG 文本翻译面向 **本地化流水线** — 尤其是 **配音、字幕与旁白** — 而不是通用的「整段粘贴翻译」接口。你提交有序的 **segments**（台词或字幕条），引擎会结合 **上下文、场景、说话人与 locale 提示** 生成更适合 **口播、对时与多角色** 的译文，并在整段脚本内保持一致。
+
+locale 须在 [支持的语言](/zh/guides/supported-languages) 中。若需要 **ASR → 翻译 → TTS** 的一站式音视频任务，请使用 [音视频翻译](/zh/guides/products/media-translation)。
+
+## 与通用翻译服务的区别
+
+| 能力 | 常见翻译 API | VMEG 文本翻译 |
+|------|--------------|---------------|
+| 处理单元 | 长文档或单条字符串 | 单次最多 **50 个 segment**，`data.items` 与输入下标一一对应 |
+| 上下文 | 文档级或无 | **片段级** `context`、全局 `sourceContext` 策略、可选时间轴 **`start` / `end`** |
+| 配音适配 | 偏书面中性 | **`sceneCustomized.scene`**：`video`、`audio`、`subtitle`、`voiceover` |
+| 多说话人 | 少见 | **`speaker`**、**`gender`**（`male` / `female`）、片段级 **`locale`** |
+| 术语 | 需自建 | 内置 **`options.glossary`** |
+| 与 TTS / 音视频 | 独立产品 | 与 [文本转语音](/zh/guides/products/text-to-speech)、[音视频翻译](/zh/guides/products/media-translation) 的 locale 与表述习惯一致 |
+
+<Info>
+  按 **源文字符数**（所有 `segments[].text` 合计）计费，不按时长。见 [价格](/zh/guides/pricing)。
+</Info>
+
+## 请求结构
+
+| 字段 | 作用 |
+|------|------|
+| `language.source` / `language.target` | BCP-47 语言对（`target` 必填；建议提供 `source`） |
+| `segments[]` | 待翻译行；响应 `data.items[i]` 与输入下标对齐 |
+| `options` | 上下文策略、场景、术语表、自定义 `prompt` |
+
+每个 segment 支持：
+
+| 片段字段 | 作用 |
+|----------|------|
+| `text` | 原文（必填） |
+| `speaker` | 说话人标识 — 跨片段保持人称与音色分配一致 |
+| `gender` | `male` 或 `female` — 在语法或口吻依赖性别的语言中消歧 |
+| `locale` | 覆盖该行的 `language.source`（混语脚本） |
+| `context` | **仅该行** 的邻近原文（上下文优先级最高） |
+| `start` / `end` | 源时间轴（秒）— 与有序 segments 配合，按播放顺序取邻句 |
+
+字段说明见 [创建文本翻译（同步）](/zh/api-reference/text-translation/create-text-translation-sync)。
+
+## 上下文管理
+
+含糊指代（「他」「那个」、同音歧义）需要 **可控** 的上下文，而不是每次塞入整篇文档。
+
+### 全局策略：`options.sourceContext`
+
+| `mode` | 行为 |
+|--------|------|
+| `independent` | 默认。各片段独立翻译，不使用邻句 |
+| `provided_only` | 仅使用你在 `segments[i].context` 中提供的邻句 — 适合时间轴或顺序 **不连续** 的片段 |
+| `neighbor` | 从 **同一次请求** 的有序列表中自动取前后片段；窗口大小由 `contextWindow` 指定（前后各 1–20 条） |
+
+**优先级：** 片段级 `context` **高于** 全局 `sourceContext`。
+
+### 如何选择模式
+
+- **按顺序的字幕 / 配音稿** — 使用 `neighbor`，`contextWindow` 取 3–5，兼顾指代与语气，又避免无关行干扰。
+- **挑选的 cue 或多条试音** — `provided_only` + 每段显式 `context`。
+- **孤立 UI 文案或术语校验** — `independent`。
+
+若流水线已有时间码，可为有序 `segments` 填写 `start` / `end`，与 `neighbor` 模式配合使用。
+
+## 场景与表达：`options.sceneCustomized`
+
+| 字段 | 取值 / 默认 | 作用 |
+|------|-------------|------|
+| `scene` | 默认 `video`；另有 `audio`、`subtitle`、`voiceover` | 说明台词的 **用途** — 口播节奏、长短、屏幕字与配音口吻因场景而异 |
+| `allowStutter` | 默认 `true` | 为 `true` 时，在适合口语的场景可保留源文中的口吃等不流畅表达 |
+
+字幕烧录用 `subtitle`；纯旁白或音频用 `voiceover` / `audio`；一般视频对白用 `video`。
+
+## 术语与补充说明
+
+- **`options.glossary`** — 源词 → 首选译法（品牌、人名、固定说法）。
+- **`options.prompt`** — 追加到翻译任务的自然语言说明（语气、受众、「保持口语」等）。
+- **`options.skipMissingTranslationCheck`** — 为 `true` 时跳过「每段均有译文」的校验（高级用法；默认 `false`）。
 
 ## 同步与异步
 
@@ -13,21 +88,43 @@ icon: "language"
 | 同步 | `POST /openapi/v1/task/translate/create` | HTTP 响应 `data.items` |
 | 异步 | `POST /openapi/v1/task/translate/create-async` | [Webhook](/zh/guides/webhook-request)，`event` 为 `openapi-translate`（`data.items`） |
 
-`create` 与 `create-async` 均须 [`X-Idempotency-Key`](/zh/guides/idempotency)；异步还须配置 [Webhook](/zh/guides/webhooks)。
+`create` 与 `create-async` 均须 [`X-Idempotency-Key`](/zh/guides/idempotency)；异步还须配置 [Webhook](/zh/guides/webhooks)。仅异步的 `extraData` 会在 Webhook 中回显 — 见 [创建文本翻译（异步）](/zh/api-reference/text-translation/create-text-translation-async)。
 
-## 流程（同步）
+## 示例：多说话人配音批次
 
 ```bash
 curl -X POST "https://api.vmeg.ai/openapi/v1/task/translate/create" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
+  -H "X-Idempotency-Key: translate-demo-001" \
   -d '{
-    "language": { "source": "zh-CN", "target": "en-US" },
-    "segments": [{ "text": "你好" }]
+    "language": { "source": "ja-JP", "target": "en-US" },
+    "segments": [
+      {
+        "text": "彼はもう知っている。",
+        "speaker": "A",
+        "gender": "male",
+        "start": 12.4,
+        "end": 14.1
+      },
+      {
+        "text": "本当に？",
+        "speaker": "B",
+        "gender": "female",
+        "start": 14.2,
+        "end": 15.0
+      }
+    ],
+    "options": {
+      "sourceContext": { "mode": "neighbor", "contextWindow": 3 },
+      "sceneCustomized": { "scene": "video", "allowStutter": false },
+      "glossary": { "VMEG": "VMEG" },
+      "prompt": "Natural dubbing dialogue; keep lines short for lip sync."
+    }
   }'
 ```
 
-译文在 `data.items` 中，与输入 segments 对齐。
+译文在 `data.items` 中，顺序与 `segments` 一致。
 
 ## 流程（异步）
 
@@ -36,11 +133,9 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/task/translate/create" \
 3. 保存受理响应中的 `taskId`
 4. 从 Webhook `data.items` 读取译文
 
-## 请求细节
-
-segments 与 `options` 见 [创建文本翻译（同步）](/api-reference/text-translation/create-text-translation-sync)。仅异步可用的 `extraData`（Webhook 回显）见 [创建文本翻译（异步）](/api-reference/text-translation/create-text-translation-async)。
-
 ## 相关
 
 - [产品概览](/zh/guides/products/overview)
-- [价格](/zh/guides/pricing) — 积分消耗
+- [价格](/zh/guides/pricing) — 按源文每 100 字符计费
+- [使用限制](/zh/guides/usage-limits) — 单次最多 50 个 segment
+- [音视频翻译](/zh/guides/products/media-translation) — 端到端音视频本地化

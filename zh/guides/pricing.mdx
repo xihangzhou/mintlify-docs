@@ -23,13 +23,15 @@ Open API 面向 **付费用户**。免费账户访问 <a href={productUrls.apiCo
 | [音视频翻译](/zh/guides/products/media-translation) | `POST /openapi/v1/task/media-translation/create-async` | 按源媒资时长（分钟） | **60 积分 / 分钟** |
 | [文本转语音](/zh/guides/products/text-to-speech) | `POST /openapi/v1/task/tts/create`、`.../create-async` | 按输入文本字符数 | **约 2 积分 / 200 字符** |
 | [声音克隆](/zh/guides/products/voice-clone) | `POST /openapi/v1/task/clone-voice/create`、`.../create-async` | 每次克隆成功 | **10 积分 / 个音色** |
-| [文本翻译](/zh/guides/products/text-translation) | `POST /openapi/v1/task/translate/create`、`.../create-async` | 按计费分钟（由请求体量/时长规则换算） | **1 积分 / 分钟** |
+| [文本翻译](/zh/guides/products/text-translation) | `POST /openapi/v1/task/translate/create`、`.../create-async` | 按源文字符数（所有 `segments[].text` 合计） | **1 积分 / 100 字符** |
 
 ### 按分钟计费的产品
 
-**音视频翻译**、**文本翻译** 不足 1 分钟按 **1 分钟** 计费，与产品内其他按分钟功能一致。
+**音视频翻译** 不足 1 分钟按 **1 分钟** 计费，与产品内其他按分钟功能一致。
 
 **音视频翻译**（`vt` / `at`）按上传素材时长计费。流水线可选项（例如 **唇形同步**）会在基础翻译费用上 **叠加** 积分 — 例如唇形同步常见为在翻译基础上 **+60 积分 / 分钟**。实际扣费取决于 `create` 请求中的 `options`；余额不足会在受理阶段返回 `402`。
+
+**文本翻译** 按源文字符数累计：每 **100 字符** 为 1 个计费单位（各片段 `text` 长度相加），**向上取整**。例如 1–100 字符扣 **1 积分**，101–200 字符扣 **2 积分**。单位单价默认为 **1 积分**，具体以产品配置为准。
 
 **文本转语音** 按字符数累计（约每 200 字符 2 积分；不足部分按产品规则取整）。
 
