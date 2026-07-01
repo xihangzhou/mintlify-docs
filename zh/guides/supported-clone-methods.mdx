@@ -33,6 +33,18 @@ icon: "microphone-lines"
 | 以英语为主 | `V3` |
 | 以非英语或多语言为主 | `V5` |
 
+## 文本转语音：`provider` 与 `voiceId`
+
+[文本转语音](/zh/guides/products/text-to-speech) 每次请求最多可在 `data[]` 中提交 50 条文本。每条需要 `voiceId`，且整个请求只设置一个顶层的 `provider`。请按以下规则组批，避免请求被拒：
+
+**使用系统预设音色时，`provider` 必须与该音色一致。** 在 [系统音色列表](/zh/api-reference/assets/voices/list-system-voices) 中查看该音色的 `provider`，并在 TTS 请求中传入**相同**取值。例如音色标注为 `V3`，请求里就要写 `"provider": "V3"`。不一致时 API 会返回错误，并说明该音色需要匹配的引擎版本。
+
+**不要在同一请求里混用系统音色与克隆音色。** 系统预设 `voiceId`（来自基础音色列表）和克隆 `voiceId`（来自[声音克隆](/zh/guides/products/voice-clone)）必须分开发起 TTS 请求。若放在同一个 `data[]` 批次里，API 会拒绝并说明两类音色不能合并组批。
+
+**同一批次里若全是系统音色，`provider` 必须统一。** 一次请求中的所有系统音色必须属于同一引擎版本（`V1`–`V5`）。若需要的音色对应不同 `provider`，请拆成多次请求。混用不同 `provider` 时 API 会拒绝并说明原因。
+
+**仅使用克隆音色时**，按内容特点选择 `provider`（见上文表格）。克隆音色与系统音色仍不能放在同一请求中。
+
 <Note>
   语言 locale 见 [支持的语言](/zh/guides/supported-languages)。`provider` 表示 **克隆引擎**，不是语言代码。
 </Note>

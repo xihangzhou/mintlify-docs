@@ -33,6 +33,18 @@ Pass a **`provider`** value of `V1` through `V5` to choose the voice clone / syn
 | Mostly English source/target | `V3` |
 | Mostly non-English or multilingual | `V5` |
 
+## Text to speech: `provider` and `voiceId`
+
+[Text to speech](/guides/products/text-to-speech) accepts up to 50 lines in `data[]` per request. Each line needs a `voiceId`, and the request also sets a single top-level `provider`. Follow these rules so your batch is accepted:
+
+**If you use a system preset voice**, look up its `provider` in [List system voices](/api-reference/assets/voices/list-system-voices) and pass the **same** value on your TTS request. For example, if the voice’s `provider` is `V3`, your request must use `"provider": "V3"`. A mismatch is rejected with an error that tells you the voice requires a different engine version.
+
+**Do not mix system and cloned voices in one request.** System preset `voiceId`s (from the basic voice list) and cloned `voiceId`s (from [Voice clone](/guides/products/voice-clone)) must go in **separate** TTS calls. If you combine them in one `data[]` batch, the API rejects the request and explains that the two voice types cannot be batched together.
+
+**When every line uses a system voice, use one `provider` for the whole batch.** All system voices in the same request must belong to the same engine version (`V1`–`V5`). If you need voices that require different `provider` values, split them into separate requests. The API rejects mixed providers in one batch and tells you why.
+
+For **cloned voices only**, pick the `provider` that best fits your content (see the tables above). You still cannot put cloned and system `voiceId`s in the same request.
+
 <Note>
   Locale codes for languages are listed separately in [Supported languages](/guides/supported-languages). `provider` selects the **clone engine**, not the language.
 </Note>
