@@ -56,6 +56,7 @@
   "Synthesis engine version. Use `V1` through `V5`.": "合成引擎版本，填写 `V1` 至 `V5`。",
   "Clone engine version. Use `V1` through `V5`.": "克隆引擎版本，填写 `V1` 至 `V5`。",
   "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+  "Deprecated — do not send. The server infers `provider` from each `data[].voiceId` (system or clone voice library) and uses that value for synthesis. If present, it is ignored. Batch rules: every `voiceId` must exist; all resolved providers in one request must match. See [Text to speech](/guides/products/text-to-speech) and [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-provider).": "已弃用 — 请勿传入。服务端会根据每条 `data[].voiceId` 查询系统音色或克隆音色库，自动推断 `provider` 并用于合成；若请求中带上了该字段会被忽略。批次规则：每个 `voiceId` 必须存在于音色库；同一请求内解析出的 `provider` 必须一致。见 [文本转语音](/zh/guides/products/text-to-speech) 与 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与-provider)。",
   "Engine version tag for this preset (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).": "该预设对应的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
   "Engine version used when cloning (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).": "克隆时使用的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
   "Use either voiceId or timbreRefAudio": "使用 voiceId 或 timbreRefAudio 之一",

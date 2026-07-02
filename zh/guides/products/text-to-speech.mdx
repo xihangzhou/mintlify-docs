@@ -21,10 +21,11 @@ icon: "volume-high"
 
 主要字段：
 
-- `provider` — 克隆引擎版本（`V1`–`V5`）；见[支持的克隆方式](/zh/guides/supported-clone-methods)
 - `language.target` — [支持的语言](/zh/guides/supported-languages)
 - `data[]` — 最多 50 条；每条需 `text` 与 `voiceId`（或 `timbreRefAudio`）
 - `outputFormat` — `wav`、`mp3`、`m4a`
+
+`provider` **无需传入**。服务端根据 `data[].voiceId` 在系统/克隆音色库中查询并自动推断，再传给合成引擎。批内所有 `voiceId` 的 `provider` 必须一致。规则与错误说明见 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与-provider) 与 [错误码](/zh/guides/errors)。
 
 ## 流程（异步）
 

@@ -1225,15 +1225,8 @@
         "properties": {
           "provider": {
             "type": "string",
-            "enum": [
-              "V1",
-              "V2",
-              "V3",
-              "V4",
-              "V5"
-            ],
-            "example": "V1",
-            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "deprecated": true,
+            "description": "Deprecated — do not send. The server infers `provider` from each `data[].voiceId` (system or clone voice library) and uses that value for synthesis. If present, it is ignored. Batch rules: every `voiceId` must exist; all resolved providers in one request must match. See [Text to speech](/guides/products/text-to-speech) and [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-provider)."
           },
           "language": {
             "type": "object",

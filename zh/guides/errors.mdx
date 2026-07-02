@@ -48,4 +48,13 @@ Open API 使用 JSON 字段 **`code`** 表示业务结果。HTTP 状态码用于
   <Accordion title="502 上游失败">
     上游服务调用失败或超时。使用 `taskId` 轮询 `GET /openapi/v1/tasks/detail`（vmeg.ai 网页任务记录不包含 Open API 任务）；若已配置 Webhook，可等待重试。
   </Accordion>
+  <Accordion title="TTS 音色校验（400）">
+    `data[].voiceId` 不符合批处理规则时返回。常见 `message` 模式：
+
+    - **voiceId 不存在** — `voiceId not found in system or clone voice library: data[0] voiceId=... Use POST /openapi/v1/assets/voice/basic/list for system voices or POST /openapi/v1/assets/voice/clone/list for clone voices.`
+    - **同批 provider 不一致** — `all voiceId in one batch must share the same provider, but found multiple: Microsoft, GC. Voice mapping: ... Please use voices from the same provider, or split into separate requests.`
+    - **系统音色与 timbreRefAudio 混批** — `timbreRefAudio requires a clone provider (V1-V5), but voiceId in this batch resolved to provider Microsoft. ...`
+
+    见 [文本转语音](/zh/guides/products/text-to-speech) 与 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与-provider)。
+  </Accordion>
 </AccordionGroup>

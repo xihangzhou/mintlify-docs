@@ -10,7 +10,7 @@ icon: "microphone-lines"
 
 | 产品 | 字段 |
 |------|------|
-| [文本转语音](/zh/guides/products/text-to-speech) | `create` / `create-async` 上的 `provider` |
+| [文本转语音](/zh/guides/products/text-to-speech) | **无需传入** `provider`；由 `data[].voiceId` 自动推断 |
 | [声音克隆](/zh/guides/products/voice-clone) | 创建克隆音色时的 `provider` |
 | [音视频翻译](/zh/guides/products/media-translation) | 启用克隆时 `options.voiceClone.provider` |
 
@@ -33,17 +33,19 @@ icon: "microphone-lines"
 | 以英语为主 | `V3` |
 | 以非英语或多语言为主 | `V5` |
 
-## 文本转语音：`provider` 与 `voiceId`
+## 文本转语音：`voiceId` 与 provider
 
-[文本转语音](/zh/guides/products/text-to-speech) 每次请求最多可在 `data[]` 中提交 50 条文本。每条需要 `voiceId`，且整个请求只设置一个顶层的 `provider`。请按以下规则组批，避免请求被拒：
+[文本转语音](/zh/guides/products/text-to-speech) 每次请求最多可在 `data[]` 中提交 50 条文本。**无需在请求中传入 `provider`**。服务端会根据每条 `data[].voiceId` 查询 [系统音色](/zh/api-reference/assets/voices/list-system-voices) 或 [克隆音色](/zh/api-reference/assets/voices/list-cloned-voices)，自动推断 `provider` 并传给合成引擎（请求里若带了 `provider` 会被忽略）。
 
-**使用系统预设音色时，`provider` 必须与该音色一致。** 在 [系统音色列表](/zh/api-reference/assets/voices/list-system-voices) 中查看该音色的 `provider`，并在 TTS 请求中传入**相同**取值。例如音色标注为 `V3`，请求里就要写 `"provider": "V3"`。不一致时 API 会返回错误，并说明该音色需要匹配的引擎版本。
+请按以下规则组批：
 
-**不要在同一请求里混用系统音色与克隆音色。** 系统预设 `voiceId`（来自基础音色列表）和克隆 `voiceId`（来自[声音克隆](/zh/guides/products/voice-clone)）必须分开发起 TTS 请求。若放在同一个 `data[]` 批次里，API 会拒绝并说明两类音色不能合并组批。
+**`voiceId` 必须存在。** 系统库与克隆库都查不到时，API 返回 `400`，并提示通过 `POST /openapi/v1/assets/voice/basic/list` 或 `POST /openapi/v1/assets/voice/clone/list` 获取有效 ID。
 
-**同一批次里若全是系统音色，`provider` 必须统一。** 一次请求中的所有系统音色必须属于同一引擎版本（`V1`–`V5`）。若需要的音色对应不同 `provider`，请拆成多次请求。混用不同 `provider` 时 API 会拒绝并说明原因。
+**同一批次内所有 `voiceId` 解析出的 `provider` 必须一致**（不区分系统音色或克隆音色）。例如不能将 `Microsoft` 系统音色与 `GC` 系统音色放在同一请求，也不能将 `V1` 克隆音色与 `V2` 克隆音色放在同一请求。不一致时 API 会返回 `400`，并附带各 `voiceId` 对应的 provider 映射。
 
-**仅使用克隆音色时**，按内容特点选择 `provider`（见上文表格）。克隆音色与系统音色仍不能放在同一请求中。
+**`timbreRefAudio` 仅适用于克隆引擎。** 若批次中含 `timbreRefAudio`，推断出的 provider 必须为 `V1`–`V5` 克隆引擎；不能与系统音色 `voiceId` 混在同一批次。
+
+完整错误文案见 [错误码](/zh/guides/errors) →「TTS 音色校验」。
 
 <Note>
   语言 locale 见 [支持的语言](/zh/guides/supported-languages)。`provider` 表示 **克隆引擎**，不是语言代码。

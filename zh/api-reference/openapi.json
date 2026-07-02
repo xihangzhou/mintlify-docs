@@ -1225,15 +1225,8 @@
         "properties": {
           "provider": {
             "type": "string",
-            "enum": [
-              "V1",
-              "V2",
-              "V3",
-              "V4",
-              "V5"
-            ],
-            "example": "V1",
-            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "deprecated": true,
+            "description": "已弃用 — 请勿传入。服务端会根据每条 `data[].voiceId` 查询系统音色或克隆音色库，自动推断 `provider` 并用于合成；若请求中带上了该字段会被忽略。批次规则：每个 `voiceId` 必须存在于音色库；同一请求内解析出的 `provider` 必须一致。见 [文本转语音](/zh/guides/products/text-to-speech) 与 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与-provider)。"
           },
           "language": {
             "type": "object",

@@ -21,10 +21,11 @@ See [Quickstart](/guides/quickstart) for a complete curl example.
 
 Key request fields:
 
-- `provider` — clone engine version (`V1`–`V5`); see [Supported clone methods](/guides/supported-clone-methods)
 - `language.target` — locale from [Supported languages](/guides/supported-languages)
 - `data[]` — up to 50 lines; each needs `text` and `voiceId` (or `timbreRefAudio`)
 - `outputFormat` — `wav`, `mp3`, or `m4a`
+
+Do **not** send `provider`. The server looks up each `data[].voiceId` in the system or clone voice library, infers `provider`, and passes it to synthesis. All `voiceId`s in one batch must resolve to the same provider. See [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-provider) and [Error codes](/guides/errors).
 
 ## Workflow (async)
 
