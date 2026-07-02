@@ -1226,7 +1226,7 @@
           "provider": {
             "type": "string",
             "deprecated": true,
-            "description": "Deprecated — do not send. The server infers `provider` from each `data[].voiceId` (system or clone voice library) and uses that value for synthesis. If present, it is ignored. Batch rules: every `voiceId` must exist; all resolved providers in one request must match. See [Text to speech](/guides/products/text-to-speech) and [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-provider)."
+            "description": "Deprecated — do not send. Pass `voiceId` on each line instead. See [Text to speech](/guides/products/text-to-speech) and [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-batch-rules)."
           },
           "language": {
             "type": "object",
@@ -1482,7 +1482,8 @@
             "description": "Source text for this segment"
           },
           "gender": {
-            "$ref": "#/components/schemas/OpenApiTranslateSpeakerGender"
+            "$ref": "#/components/schemas/OpenApiTranslateSpeakerGender",
+            "description": "Speaker gender for this segment. Enum: `male` or `female`."
           },
           "speaker": {
             "type": "string",
@@ -1656,7 +1657,7 @@
               "V5"
             ],
             "example": "V1",
-            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "refAudio": {
             "type": "string",
@@ -1790,7 +1791,7 @@
               "V4",
               "V5"
             ],
-            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           }
         }
       },
@@ -1872,8 +1873,8 @@
         "properties": {
           "provider": {
             "type": "string",
-            "example": "Microsoft",
-            "description": "Voice provider identifier"
+            "example": "S1",
+            "description": "Optional preset tier (`S1`, `S2`, …) when you pick a system voice. Clone voices use `V1`–`V5`. See [Voices](/guides/assets/voices)."
           },
           "voiceId": {
             "type": "string",
@@ -1961,16 +1962,19 @@
             "description": "vt = video translation, at = audio translation. If `at` is used with a video material, the job may run as video translation"
           },
           "source": {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationSource"
+            "$ref": "#/components/schemas/OpenApiMediaTranslationSource",
+            "description": "Input material for this translation job"
           },
           "language": {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage"
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage",
+            "description": "Source and target locales for localization"
           },
           "options": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationOptions"
           },
           "extraData": {
-            "$ref": "#/components/schemas/OpenApiExtraData"
+            "$ref": "#/components/schemas/OpenApiExtraData",
+            "description": "Optional client metadata; echoed in the completion webhook"
           }
         }
       },
@@ -2286,7 +2290,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Voice tier on this line — preset `S1`, `S2`, … or clone `V1`–`V5`. Keep with `voiceId` when you edit or resubmit lines. See [Voices](/guides/assets/voices)."
           },
           "speakerDisplayName": {
             "type": "string"
@@ -2314,7 +2318,7 @@
         "properties": {
           "provider": {
             "type": "string",
-            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "mode": {
             "type": "string"
@@ -2336,7 +2340,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "exampleLanguage": {
             "type": "string"
@@ -2376,7 +2380,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Voice tier on this line — preset `S1`, `S2`, … or clone `V1`–`V5`. Keep with `voiceId` when you edit or resubmit lines. See [Voices](/guides/assets/voices)."
           },
           "voiceId": {
             "type": "string"
@@ -2997,7 +3001,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "Engine version tag for this preset (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Preset tier code (`S1`, `S2`, …). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "gender": {
             "type": "string",
@@ -3049,10 +3053,6 @@
             "type": "number",
             "description": "Ranking score in list results"
           },
-          "model": {
-            "type": "string",
-            "description": "Catalog model tag (not a request `provider` value)"
-          },
           "cover": {
             "type": "string",
             "description": "Cover image URL"
@@ -3084,7 +3084,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "Engine version used when cloning (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "exampleLanguage": {
             "type": "string",

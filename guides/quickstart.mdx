@@ -33,6 +33,8 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/task/tts/create" \
 
 On success, `code` is `200` and `data.results` contains CDN audio URLs. Field-level detail: [Create TTS (sync)](/api-reference/introduction) in API reference.
 
+Replace `YOUR_VOICE_ID` with a `voiceId` from [List system voices](/api-reference/assets/voices/list-system-voices) (e.g. `sv_…`).
+
 ## Async tasks
 
 For async tasks:

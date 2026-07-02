@@ -4,7 +4,7 @@ description: "System and cloned voices for TTS"
 icon: "waveform-lines"
 ---
 
-Voices are API-only — referenced by `voiceId` in TTS; not shared with voices on vmeg.ai. See [Assets overview](/guides/assets/overview).
+Voices are API-only — referenced by `voiceId` in TTS and media translation; not shared with voices on vmeg.ai. See [Assets overview](/guides/assets/overview).
 
 ## Two voice types
 
@@ -12,6 +12,24 @@ Voices are API-only — referenced by `voiceId` in TTS; not shared with voices o
 |------|--------|------------|
 | **System (basic)** | Platform presets | `POST /openapi/v1/assets/voice/basic/list` |
 | **Cloned** | [Voice clone](/guides/products/voice-clone) task success | `POST /openapi/v1/assets/voice/clone/list`, `update`, `delete` |
+
+## `voiceId` and `provider`
+
+Each voice in list or task responses includes:
+
+| Field | System presets | Cloned voices |
+|-------|----------------|---------------|
+| **`voiceId`** | Stable ID from [List system voices](/api-reference/assets/voices/list-system-voices) (e.g. `sv_…`) | Stable ID from clone list or clone task (e.g. `cv_…`) |
+| **`provider`** | Preset tier code `S1`, `S2`, … | Clone engine `V1`–`V5` |
+
+**Use the values exactly as the API returns them** — do not build or guess IDs.
+
+- For [Text to speech](/guides/products/text-to-speech), **`voiceId` is enough**; do not send `provider` on TTS requests.
+- For [Media translation](/guides/products/media-translation) webhooks, translated lines may include both fields. **Keep `voiceId` and `provider` together** when you store or edit a line for later updates.
+
+<Note>
+  Preset tier codes (`S1`, `S2`, …) and clone engines (`V1`–`V5`) are product codes for API use. They are not vendor or model names.
+</Note>
 
 ## System voices
 
@@ -28,7 +46,7 @@ You can rename or delete clones via the clone asset endpoints. Request and respo
 ## Typical flow
 
 ```text
-List basic voices → pick voiceId → TTS
+List basic voices → copy voiceId → TTS
         or
 Voice clone → voiceId in webhook/sync response → TTS
 ```

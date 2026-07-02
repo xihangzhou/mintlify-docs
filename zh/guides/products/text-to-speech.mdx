@@ -4,7 +4,7 @@ description: "文本合成语音"
 icon: "volume-high"
 ---
 
-使用系统或克隆 **voiceId** 将文本合成为语音。获取 ID 见 [音色](/zh/guides/assets/voices)。
+使用系统或克隆 **voiceId** 将文本合成为语音。从 [音色](/zh/guides/assets/voices) 列表或克隆结果中复制 ID。
 
 ## 同步与异步
 
@@ -25,7 +25,7 @@ icon: "volume-high"
 - `data[]` — 最多 50 条；每条需 `text` 与 `voiceId`（或 `timbreRefAudio`）
 - `outputFormat` — `wav`、`mp3`、`m4a`
 
-`provider` **无需传入**。服务端根据 `data[].voiceId` 在系统/克隆音色库中查询并自动推断，再传给合成引擎。批内所有 `voiceId` 的 `provider` 必须一致。规则与错误说明见 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与-provider) 与 [错误码](/zh/guides/errors)。
+**不要传 `provider`。** 使用音色列表或克隆结果里的 **`voiceId`** 即可，服务会自动匹配对应引擎。同一请求内所有音色须属于 **同一预设档位或同一克隆引擎**（见 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与-provider) 与 [错误码](/zh/guides/errors)）。
 
 ## 流程（异步）
 
@@ -35,8 +35,8 @@ icon: "volume-high"
 
 ## 音色
 
-- **系统音色**：`POST /openapi/v1/assets/voice/basic/list`
-- **克隆音色**：[声音克隆](/zh/guides/products/voice-clone) 成功后使用返回的 `voiceId`
+- **系统音色**：`POST /openapi/v1/assets/voice/basic/list` → 复制 `voiceId`
+- **克隆音色**：[声音克隆](/zh/guides/products/voice-clone) → 复制返回的 `voiceId`
 
 完整 schema：**API 参考 → TTS**。
 

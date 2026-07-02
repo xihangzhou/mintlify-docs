@@ -1,30 +1,41 @@
 ---
 title: "支持的克隆方式"
-description: "Open API 请求中的克隆引擎版本 V1–V5"
+description: "音色 provider 代号与克隆引擎 V1–V5"
 icon: "microphone-lines"
 ---
 
-在请求中传入 **`provider`**，取值为 `V1`–`V5`，用于选择声音克隆 / 合成引擎。与 [vmeg.ai](https://www.vmeg.ai/home) 网页端音视频翻译、声音克隆中的模型选项一致。
+Open API 在音色列表、翻译结果与克隆请求中使用简短的 **provider 代号**，用于指定引擎类型，不对客暴露厂商或模型名称。
 
-## 在哪些接口使用
+## 代号一览
+
+| 代号 | 用途 | 常见出现位置 |
+|------|------|--------------|
+| **`S1`、`S2`、…** | 系统预设音色 | [列出系统音色](/zh/api-reference/assets/voices/list-system-voices)、音视频翻译逐句结果 |
+| **`V1`–`V5`** | 克隆音色与克隆任务 | [声音克隆](/zh/guides/products/voice-clone)、克隆列表、启用克隆的音视频翻译 |
+
+需要改句或再次提交时，请 **成对复制 API 返回的 `voiceId` 与 `provider`**（音视频翻译尤其如此）。见 [音色](/zh/guides/assets/voices)。
+
+## 在哪些接口需要传 `provider`
 
 | 产品 | 字段 |
 |------|------|
-| [文本转语音](/zh/guides/products/text-to-speech) | **无需传入** `provider`；由 `data[].voiceId` 自动推断 |
-| [声音克隆](/zh/guides/products/voice-clone) | 创建克隆音色时的 `provider` |
-| [音视频翻译](/zh/guides/products/media-translation) | 启用克隆时 `options.voiceClone.provider` |
+| [文本转语音](/zh/guides/products/text-to-speech) | **无需传入** — 只传 `voiceId` |
+| [声音克隆](/zh/guides/products/voice-clone) | 创建克隆时的 `provider`（`V1`–`V5`） |
+| [音视频翻译](/zh/guides/products/media-translation) | 启用克隆时 `options.voiceClone.provider`（`V1`–`V5`）；若已选定预设档位，`selectedVoicesList` 可附带对应 `S*` 代号 |
 
-## 引擎版本
+## 克隆引擎（`V1`–`V5`）
 
-| `provider` | 模型 | 适用场景 |
-|------------|------|----------|
-| `V1` | 基础通用 | 简单克隆：短句、日常对话 |
-| `V2` | 影视情感 | 影视、剧情、叙事 — 情绪起伏与语气细节 |
-| `V3` | 英语优化 | 通用场景下 **英语** 音色更准、更自然 |
-| `V4` | 增强情感 | 需要真实情绪与细腻语气变化的内容 |
-| `V5` | 多语言通用 | **非英语** 及多语言音色 |
+创建克隆音色，或音视频翻译启用声音克隆时，传入 **`V1`–`V5`**。与 [vmeg.ai](https://www.vmeg.ai/home) 网页端克隆选项一致。
 
-## 选型建议
+| `provider` | 适用场景 |
+|------------|----------|
+| `V1` | 简单克隆：短句、日常对话 |
+| `V2` | 影视、剧情、叙事 — 情绪起伏与语气细节 |
+| `V3` | 通用场景下 **英语** 音色更准、更自然 |
+| `V4` | 需要真实情绪与细腻语气变化的内容 |
+| `V5` | **非英语** 及多语言音色 |
+
+### 选型建议
 
 | 内容特点 | 建议 `provider` |
 |----------|-----------------|
@@ -33,20 +44,22 @@ icon: "microphone-lines"
 | 以英语为主 | `V3` |
 | 以非英语或多语言为主 | `V5` |
 
-## 文本转语音：`voiceId` 与 provider
+## 文本转语音：`voiceId` 与组批规则
 
-[文本转语音](/zh/guides/products/text-to-speech) 每次请求最多可在 `data[]` 中提交 50 条文本。**无需在请求中传入 `provider`**。服务端会根据每条 `data[].voiceId` 查询 [系统音色](/zh/api-reference/assets/voices/list-system-voices) 或 [克隆音色](/zh/api-reference/assets/voices/list-cloned-voices)，自动推断 `provider` 并传给合成引擎（请求里若带了 `provider` 会被忽略）。
+[文本转语音](/zh/guides/products/text-to-speech) 每次请求最多可在 `data[]` 中提交 50 条。
 
-请按以下规则组批：
+**请使用 [音色](/zh/guides/assets/voices) 接口返回的 `voiceId`。** TTS 请求中 **不要传 `provider`**。
 
-**`voiceId` 必须存在。** 系统库与克隆库都查不到时，API 返回 `400`，并提示通过 `POST /openapi/v1/assets/voice/basic/list` 或 `POST /openapi/v1/assets/voice/clone/list` 获取有效 ID。
+组批规则：
 
-**同一批次内所有 `voiceId` 解析出的 `provider` 必须一致**（不区分系统音色或克隆音色）。例如不能将 `Microsoft` 系统音色与 `GC` 系统音色放在同一请求，也不能将 `V1` 克隆音色与 `V2` 克隆音色放在同一请求。不一致时 API 会返回 `400`，并附带各 `voiceId` 对应的 provider 映射。
+**`voiceId` 必须有效。** 若不在您的系统或克隆库中，API 返回 `400`，并提示通过 `POST /openapi/v1/assets/voice/basic/list` 或 `POST /openapi/v1/assets/voice/clone/list` 获取。
 
-**`timbreRefAudio` 仅适用于克隆引擎。** 若批次中含 `timbreRefAudio`，推断出的 provider 必须为 `V1`–`V5` 克隆引擎；不能与系统音色 `voiceId` 混在同一批次。
+**同一请求内音色须兼容** — 系统预设须同一档位（同为 `S*` 系列），克隆须同一引擎（同为 `V1`–`V5` 之一）。例如不能在同一请求中混用 `S1` 与 `S2`，或 `V1` 与 `V2`。
 
-完整错误文案见 [错误码](/zh/guides/errors) →「TTS 音色校验」。
+**`timbreRefAudio` 仅适用于克隆引擎。** 若批次中含 `timbreRefAudio`，该批须全部为克隆引擎（`V1`–`V5`），不能与系统预设 `voiceId` 混用。
+
+示例错误文案见 [错误码](/zh/guides/errors) →「TTS 音色校验」。
 
 <Note>
-  语言 locale 见 [支持的语言](/zh/guides/supported-languages)。`provider` 表示 **克隆引擎**，不是语言代码。
+  语言 locale 见 [支持的语言](/zh/guides/supported-languages)。`provider` 表示 **引擎类型**，不是语言代码。
 </Note>

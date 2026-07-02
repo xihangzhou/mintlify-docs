@@ -13,16 +13,24 @@ const openapiPath = path.join(root, "api-reference/openapi.json");
 const zhLocalePath = path.join(root, "scripts/locales/zh.json");
 
 const CLONE_PROVIDER = {
-  en: "Clone engine version (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).",
-  zh: "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+  en: "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).",
+  zh: "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
 };
-const CLONE_PROVIDER_PRESET = {
-  en: "Engine version tag for this preset (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).",
-  zh: "该预设对应的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+const SYSTEM_PROVIDER = {
+  en: "Preset tier code (`S1`, `S2`, …). See [Supported clone methods](/guides/supported-clone-methods).",
+  zh: "预设档位代号（`S1`、`S2`、…）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
 };
-const CLONE_PROVIDER_USED = {
-  en: "Engine version used when cloning (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).",
-  zh: "克隆时使用的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+const VOICE_LINE_PROVIDER = {
+  en: "Voice tier on this line — preset `S1`, `S2`, … or clone `V1`–`V5`. Keep with `voiceId` when you edit or resubmit lines. See [Voices](/guides/assets/voices).",
+  zh: "该句使用的音色档位 — 预设 `S1`、`S2`、… 或克隆 `V1`–`V5`。改句或再次提交时请与 `voiceId` 一并保存。见 [音色](/zh/guides/assets/voices)。",
+};
+const SELECTED_VOICE_PROVIDER = {
+  en: "Optional preset tier (`S1`, `S2`, …) when you pick a system voice. Clone voices use `V1`–`V5`. See [Voices](/guides/assets/voices).",
+  zh: "选用系统预设音色时可附带档位代号（`S1`、`S2`、…）。克隆音色为 `V1`–`V5`。见 [音色](/zh/guides/assets/voices)。",
+};
+const TTS_PROVIDER_DEPRECATED = {
+  en: "Deprecated — do not send. Pass `voiceId` on each line instead. See [Text to speech](/guides/products/text-to-speech) and [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-batch-rules).",
+  zh: "已弃用 — 请勿传入。请在每行传入 `voiceId`。见 [文本转语音](/zh/guides/products/text-to-speech) 与 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与组批规则)。",
 };
 
 /** @type {Record<string, { en: string, zh: string }>} */
@@ -47,7 +55,7 @@ const FIELDS = {
     en: "Output audio container: `wav`, `mp3`, or `m4a`",
     zh: "输出音频格式：`wav`、`mp3` 或 `m4a`",
   },
-  "OpenApiTtsCreateRequest.provider": CLONE_PROVIDER,
+  "OpenApiTtsCreateRequest.provider": TTS_PROVIDER_DEPRECATED,
   "OpenApiExtraData": {
     en: "Optional client metadata on async submit; echoed in the completion webhook (`extraData` in callback body). Not used on sync create endpoints.",
     zh: "异步提交时的可选客户端元数据；任务完成时在 Webhook 回调体 `extraData` 中回显。同步创建接口不使用。",
@@ -194,10 +202,11 @@ const FIELDS = {
     zh: "最终任务状态（`finished` 或 `failed`）",
   },
   "OpenApiMediaTranslationVoiceClone.provider": CLONE_PROVIDER,
-  "OpenApiMediaTranslationTranslatedScriptLine.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationTranslatedScriptLine.provider": VOICE_LINE_PROVIDER,
   "OpenApiMediaTranslationVoiceCloneResult.provider": CLONE_PROVIDER,
   "OpenApiMediaTranslationVoiceMatch.provider": CLONE_PROVIDER,
-  "OpenApiMediaTranslationTtsLine.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationTtsLine.provider": VOICE_LINE_PROVIDER,
+  "OpenApiMediaTranslationSelectedVoice.provider": SELECTED_VOICE_PROVIDER,
   "OpenApiTaskSummary.taskId": {
     en: "Open API task ID",
     zh: "Open API 任务 ID",
@@ -394,7 +403,7 @@ const FIELDS = {
     en: "Human-readable locale label",
     zh: "locale 的可读名称",
   },
-  "OpenApiBasicVoiceDto.provider": CLONE_PROVIDER_PRESET,
+  "OpenApiBasicVoiceDto.provider": SYSTEM_PROVIDER,
   "OpenApiBasicVoiceDto.gender": {
     en: "Gender label (e.g. male, female)",
     zh: "性别标签（如 male、female）",
@@ -439,10 +448,6 @@ const FIELDS = {
     en: "Ranking score in list results",
     zh: "列表排序得分",
   },
-  "OpenApiBasicVoiceDto.model": {
-    en: "Catalog model tag (not a request `provider` value)",
-    zh: "目录模型标签（非请求里的 `provider` 取值）",
-  },
   "OpenApiBasicVoiceDto.cover": {
     en: "Cover image URL",
     zh: "封面图 URL",
@@ -467,7 +472,7 @@ const FIELDS = {
     en: "Display name of the clone",
     zh: "克隆音色展示名",
   },
-  "OpenApiCloneVoiceDto.provider": CLONE_PROVIDER_USED,
+  "OpenApiCloneVoiceDto.provider": CLONE_PROVIDER,
   "OpenApiCloneVoiceDto.exampleLanguage": {
     en: "Sample language locale (BCP-47)",
     zh: "样本语言 locale（BCP-47）",
@@ -731,6 +736,27 @@ for (const [path, { en, zh: zhText }] of Object.entries(FIELDS)) {
   }
 }
 
+/** Overwrite stale descriptions (mapping / public API refresh). */
+const FORCE_OVERWRITE = {
+  "OpenApiTtsCreateRequest.provider": TTS_PROVIDER_DEPRECATED,
+  "OpenApiBasicVoiceDto.provider": SYSTEM_PROVIDER,
+  "OpenApiCloneVoiceDto.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationSelectedVoice.provider": SELECTED_VOICE_PROVIDER,
+  "OpenApiMediaTranslationTranslatedScriptLine.provider": VOICE_LINE_PROVIDER,
+  "OpenApiMediaTranslationTtsLine.provider": VOICE_LINE_PROVIDER,
+  "OpenApiMediaTranslationVoiceClone.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationVoiceCloneResult.provider": CLONE_PROVIDER,
+  "OpenApiMediaTranslationVoiceMatch.provider": CLONE_PROVIDER,
+  "OpenApiCloneVoiceCreateRequest.provider": CLONE_PROVIDER,
+};
+let forced = 0;
+for (const [path, { en, zh: zhText }] of Object.entries(FORCE_OVERWRITE)) {
+  if (forceSetByPath(spec.components.schemas, path, en)) {
+    forced++;
+    zh[en] = zhText;
+  }
+}
+
 // Fix timbreRefAudio wording (was S3)
 const timbrePath = spec.components.schemas.OpenApiTtsDataItem?.properties?.timbreRefAudio;
 if (timbrePath) {
@@ -774,8 +800,17 @@ for (const [path, { en, zh: zhText }] of Object.entries(ASSET_LINKS)) {
   }
 }
 
+delete spec.components.schemas.OpenApiBasicVoiceDto?.properties?.model;
+
+const selectedVoiceProvider =
+  spec.components.schemas.OpenApiMediaTranslationSelectedVoice?.properties?.provider;
+if (selectedVoiceProvider) {
+  selectedVoiceProvider.example = "S1";
+}
+
 fs.writeFileSync(openapiPath, JSON.stringify(spec, null, 2) + "\n");
 fs.writeFileSync(zhLocalePath, JSON.stringify(zh, null, 2) + "\n");
 console.log(`Patched ${applied} descriptions (${skipped} already had text).`);
+console.log(`Force-overwrote ${forced} stale descriptions.`);
 console.log(`Applied ${linked} materialId/voiceId guide links.`);
 console.log("Run: node scripts/build-openapi-i18n.mjs zh");

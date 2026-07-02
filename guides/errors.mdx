@@ -51,9 +51,9 @@ The Open API uses the JSON **`code`** field for business outcomes. HTTP status h
   <Accordion title="TTS voice validation (400)">
     Returned when `data[].voiceId` fails batch rules. Common `message` patterns:
 
-    - **Unknown voiceId** — `voiceId not found in system or clone voice library: data[0] voiceId=... Use POST /openapi/v1/assets/voice/basic/list for system voices or POST /openapi/v1/assets/voice/clone/list for clone voices.`
-    - **Mixed providers in one batch** — `all voiceId in one batch must share the same provider, but found multiple: Microsoft, GC. Voice mapping: ... Please use voices from the same provider, or split into separate requests.`
-    - **`timbreRefAudio` with system voice** — `timbreRefAudio requires a clone provider (V1-V5), but voiceId in this batch resolved to provider Microsoft. ...`
+    - **Unknown voiceId** — `voiceId not found in system or clone voice library: data[0] ... Use POST /openapi/v1/assets/voice/basic/list for system voices or POST /openapi/v1/assets/voice/clone/list for clone voices.`
+    - **Mixed voices in one batch** — `all voiceId in one batch must share the same provider, but found multiple: S1, S2. Please use voices from the same provider, or split into separate requests.`
+    - **`timbreRefAudio` with system preset** — `timbreRefAudio requires a clone provider (V1-V5), but voiceId in this batch resolved to a system provider (S1). ...`
 
     See [Text to speech](/guides/products/text-to-speech) and [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-provider).
   </Accordion>

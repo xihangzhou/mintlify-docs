@@ -47,6 +47,17 @@ Use [Supported languages](/guides/supported-languages) for locale codes. For the
 
 Do not expect final video/audio URLs in the `create-async` HTTP response.
 
+## Voice fields in webhook results
+
+Translated script lines and per-line TTS results may include **`voiceId`** and **`provider`**. Copy both exactly as returned — do not build or guess values.
+
+| Field | Meaning |
+|-------|---------|
+| `voiceId` | Stable voice ID (`sv_…` for presets, `cv_…` for clones) |
+| `provider` | Preset tier (`S1`, `S2`, …) or clone engine (`V1`–`V5`) for that line |
+
+If you let users edit translated text and resubmit lines, **store and resend `voiceId` and `provider` together**. See [Voices](/guides/assets/voices).
+
 ## Task management
 
 Poll `GET /openapi/v1/tasks/detail` as a fallback. See [Products overview](/guides/products/overview).

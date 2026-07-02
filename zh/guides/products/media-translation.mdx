@@ -47,6 +47,17 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
 不要在 `create-async` 的 HTTP 响应中等待最终音视频 URL。
 
+## Webhook 结果中的音色字段
+
+翻译脚本逐句结果与逐句 TTS 结果可能包含 **`voiceId`** 与 **`provider`**。请 **原样复制** API 返回值，不要自行拼接或猜测。
+
+| 字段 | 含义 |
+|------|------|
+| `voiceId` | 稳定音色 ID（预设为 `sv_…`，克隆为 `cv_…`） |
+| `provider` | 该句对应的预设档位（`S1`、`S2`、…）或克隆引擎（`V1`–`V5`） |
+
+若支持用户改句并再次提交，**请成对保存并回传 `voiceId` 与 `provider`**。见 [音色](/zh/guides/assets/voices)。
+
 ## 任务管理
 
 可轮询 `GET /openapi/v1/tasks/detail` 作为兜底。见 [产品概览](/zh/guides/products/overview)。

@@ -1,30 +1,41 @@
 ---
 title: "Supported clone methods"
-description: "Voice clone engine versions V1–V5 for Open API requests"
+description: "Voice provider codes and clone engines V1–V5"
 icon: "microphone-lines"
 ---
 
-Pass a **`provider`** value of `V1` through `V5` to choose the voice clone / synthesis engine. These codes match the clone model options on [vmeg.ai](https://www.vmeg.ai/home) for video translation and voice cloning.
+Open API uses short **provider codes** in voice lists, translation results, and clone requests. They tell the service which engine family to use — without exposing vendor or model names.
 
-## Where to set `provider`
+## Provider codes at a glance
+
+| Code pattern | Used for | Where you see it |
+|--------------|----------|------------------|
+| **`S1`, `S2`, …** | System preset voices | [List system voices](/api-reference/assets/voices/list-system-voices), media translation line results |
+| **`V1`–`V5`** | Cloned voices and clone jobs | [Voice clone](/guides/products/voice-clone), clone list, media translation when cloning is enabled |
+
+Copy **`voiceId` and `provider` together** from API responses when you need to resubmit or edit content (especially media translation lines). See [Voices](/guides/assets/voices).
+
+## Where you send `provider`
 
 | Product | Field |
 |---------|--------|
-| [Text to speech](/guides/products/text-to-speech) | **Do not send** `provider`; inferred from each `data[].voiceId` |
-| [Voice clone](/guides/products/voice-clone) | `provider` when creating a cloned voice |
-| [Media translation](/guides/products/media-translation) | `options.voiceClone.provider` when voice cloning is enabled |
+| [Text to speech](/guides/products/text-to-speech) | **Do not send** — use `voiceId` only |
+| [Voice clone](/guides/products/voice-clone) | `provider` (`V1`–`V5`) when creating a clone |
+| [Media translation](/guides/products/media-translation) | `options.voiceClone.provider` (`V1`–`V5`) when voice cloning is enabled; optional on `selectedVoicesList` if you already know the preset tier |
 
-## Engine versions
+## Clone engines (`V1`–`V5`)
 
-| `provider` | Model | Best for |
-|------------|-------|----------|
-| `V1` | Basic universal | Simple cloning — short sentences, everyday dialogue |
-| `V2` | Film & TV emotional | Films, dramas, storytelling — emotional shifts and tone detail |
-| `V3` | English-focused | General use with more accurate, natural cloning for **English** voices |
-| `V4` | Enhanced emotional | Authentic emotion and subtle mood changes; strongest nuance |
-| `V5` | Multilingual universal | **Non-English** and multilingual voices |
+Pass **`V1` through `V5`** when creating a cloned voice or when media translation uses voice cloning. These match the clone options on [vmeg.ai](https://www.vmeg.ai/home).
 
-## Choosing a version
+| `provider` | Best for |
+|------------|----------|
+| `V1` | Simple cloning — short sentences, everyday dialogue |
+| `V2` | Films, dramas, storytelling — emotional shifts and tone detail |
+| `V3` | General use with more accurate, natural cloning for **English** voices |
+| `V4` | Authentic emotion and subtle mood changes; strongest nuance |
+| `V5` | **Non-English** and multilingual voices |
+
+### Choosing a clone engine
 
 | Your content | Suggested `provider` |
 |--------------|---------------------|
@@ -33,20 +44,22 @@ Pass a **`provider`** value of `V1` through `V5` to choose the voice clone / syn
 | Mostly English source/target | `V3` |
 | Mostly non-English or multilingual | `V5` |
 
-## Text to speech: `voiceId` and provider
+## Text to speech: `voiceId` and batch rules
 
-[Text to speech](/guides/products/text-to-speech) accepts up to 50 lines in `data[]` per request. **You do not need to send `provider`.** The server looks up each `data[].voiceId` in the [system voice](/api-reference/assets/voices/list-system-voices) or [cloned voice](/api-reference/assets/voices/list-cloned-voices) library, infers `provider`, and passes it to the synthesis engine (any `provider` in the request body is ignored).
+[Text to speech](/guides/products/text-to-speech) accepts up to 50 lines in `data[]` per request.
+
+**Use `voiceId` from [Voices](/guides/assets/voices).** Do not send `provider` on TTS requests.
 
 Batch rules:
 
-**Every `voiceId` must exist.** If a ID is missing from both libraries, the API returns `400` and points you to `POST /openapi/v1/assets/voice/basic/list` or `POST /openapi/v1/assets/voice/clone/list`.
+**Every `voiceId` must exist.** If an ID is not in your system or clone library, the API returns `400` and points you to `POST /openapi/v1/assets/voice/basic/list` or `POST /openapi/v1/assets/voice/clone/list`.
 
-**All `voiceId`s in one batch must resolve to the same `provider`** (system or clone). For example, you cannot combine a `Microsoft` system voice with a `GC` system voice, or a `V1` clone with a `V2` clone, in one request. On mismatch, the API returns `400` with a `voiceId` → `provider` mapping.
+**All lines in one request must use compatible voices** — same preset tier (`S*`) for system voices, or the same clone engine (`V1`–`V5`) for clones. For example, you cannot mix `S1` and `S2` presets, or `V1` and `V2` clones, in one request.
 
-**`timbreRefAudio` is clone-only.** If any line uses `timbreRefAudio`, the inferred provider must be a clone engine (`V1`–`V5`). Do not mix `timbreRefAudio` with system `voiceId`s in the same batch.
+**`timbreRefAudio` is clone-only.** If any line uses `timbreRefAudio`, every voice in that batch must be a clone engine (`V1`–`V5`). Do not mix `timbreRefAudio` with system preset `voiceId`s in the same batch.
 
-See [Error codes](/guides/errors) → **TTS voice validation** for exact `message` strings.
+See [Error codes](/guides/errors) → **TTS voice validation** for example messages.
 
 <Note>
-  Locale codes for languages are listed separately in [Supported languages](/guides/supported-languages). `provider` selects the **clone engine**, not the language.
+  Language locale codes are listed in [Supported languages](/guides/supported-languages). `provider` selects the **engine family**, not the language.
 </Note>

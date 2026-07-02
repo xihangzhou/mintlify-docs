@@ -1226,7 +1226,7 @@
           "provider": {
             "type": "string",
             "deprecated": true,
-            "description": "已弃用 — 请勿传入。服务端会根据每条 `data[].voiceId` 查询系统音色或克隆音色库，自动推断 `provider` 并用于合成；若请求中带上了该字段会被忽略。批次规则：每个 `voiceId` 必须存在于音色库；同一请求内解析出的 `provider` 必须一致。见 [文本转语音](/zh/guides/products/text-to-speech) 与 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与-provider)。"
+            "description": "已弃用 — 请勿传入。请在每行传入 `voiceId`。见 [文本转语音](/zh/guides/products/text-to-speech) 与 [支持的克隆方式](/zh/guides/supported-clone-methods#文本转语音voiceid-与组批规则)。"
           },
           "language": {
             "type": "object",
@@ -1482,7 +1482,8 @@
             "description": "该片段的原文"
           },
           "gender": {
-            "$ref": "#/components/schemas/OpenApiTranslateSpeakerGender"
+            "$ref": "#/components/schemas/OpenApiTranslateSpeakerGender",
+            "description": "该片段说话人性别。枚举：`male` 或 `female`。"
           },
           "speaker": {
             "type": "string",
@@ -1656,7 +1657,7 @@
               "V5"
             ],
             "example": "V1",
-            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "refAudio": {
             "type": "string",
@@ -1790,7 +1791,7 @@
               "V4",
               "V5"
             ],
-            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           }
         }
       },
@@ -1872,8 +1873,8 @@
         "properties": {
           "provider": {
             "type": "string",
-            "example": "Microsoft",
-            "description": "音色提供方标识"
+            "example": "S1",
+            "description": "选用系统预设音色时可附带档位代号（`S1`、`S2`、…）。克隆音色为 `V1`–`V5`。见 [音色](/zh/guides/assets/voices)。"
           },
           "voiceId": {
             "type": "string",
@@ -1961,16 +1962,19 @@
             "description": "vt = 视频翻译，at = 音频翻译。若 `at` 对应视频素材，任务可能按视频翻译执行"
           },
           "source": {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationSource"
+            "$ref": "#/components/schemas/OpenApiMediaTranslationSource",
+            "description": "本任务的输入素材"
           },
           "language": {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage"
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage",
+            "description": "本地化源语言与目标语言"
           },
           "options": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationOptions"
           },
           "extraData": {
-            "$ref": "#/components/schemas/OpenApiExtraData"
+            "$ref": "#/components/schemas/OpenApiExtraData",
+            "description": "可选客户端元数据；完成时在 Webhook 中回传"
           }
         }
       },
@@ -2286,7 +2290,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "该句使用的音色档位 — 预设 `S1`、`S2`、… 或克隆 `V1`–`V5`。改句或再次提交时请与 `voiceId` 一并保存。见 [音色](/zh/guides/assets/voices)。"
           },
           "speakerDisplayName": {
             "type": "string"
@@ -2314,7 +2318,7 @@
         "properties": {
           "provider": {
             "type": "string",
-            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "mode": {
             "type": "string"
@@ -2336,7 +2340,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "exampleLanguage": {
             "type": "string"
@@ -2376,7 +2380,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "克隆引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "该句使用的音色档位 — 预设 `S1`、`S2`、… 或克隆 `V1`–`V5`。改句或再次提交时请与 `voiceId` 一并保存。见 [音色](/zh/guides/assets/voices)。"
           },
           "voiceId": {
             "type": "string"
@@ -2997,7 +3001,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "该预设对应的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "预设档位代号（`S1`、`S2`、…）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "gender": {
             "type": "string",
@@ -3049,10 +3053,6 @@
             "type": "number",
             "description": "列表排序得分"
           },
-          "model": {
-            "type": "string",
-            "description": "目录模型标签（非请求里的 `provider` 取值）"
-          },
           "cover": {
             "type": "string",
             "description": "封面图 URL"
@@ -3084,7 +3084,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "克隆时使用的引擎版本（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "exampleLanguage": {
             "type": "string",

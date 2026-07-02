@@ -4,7 +4,7 @@ description: "Synthesize speech from text"
 icon: "volume-high"
 ---
 
-Convert text to speech using a system or cloned **voiceId**. See [Voices](/guides/assets/voices) for how to obtain IDs.
+Convert text to speech using a system or cloned **voiceId**. Copy IDs from [Voices](/guides/assets/voices) list or clone responses.
 
 ## Sync vs async
 
@@ -25,7 +25,7 @@ Key request fields:
 - `data[]` — up to 50 lines; each needs `text` and `voiceId` (or `timbreRefAudio`)
 - `outputFormat` — `wav`, `mp3`, or `m4a`
 
-Do **not** send `provider`. The server looks up each `data[].voiceId` in the system or clone voice library, infers `provider`, and passes it to synthesis. All `voiceId`s in one batch must resolve to the same provider. See [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-provider) and [Error codes](/guides/errors).
+Do **not** send `provider`. Pass the **`voiceId` from the voice list or clone result**; the service picks the matching engine automatically. All lines in one request must use voices from the **same tier or clone engine** (see [Supported clone methods](/guides/supported-clone-methods#text-to-speech-voiceid-and-provider) and [Error codes](/guides/errors)).
 
 ## Workflow (async)
 
@@ -35,8 +35,8 @@ Do **not** send `provider`. The server looks up each `data[].voiceId` in the sys
 
 ## Voices
 
-- **System voices**: `POST /openapi/v1/assets/voice/basic/list`
-- **Cloned voices**: create via [Voice clone](/guides/products/voice-clone), then use returned `voiceId`
+- **System voices**: `POST /openapi/v1/assets/voice/basic/list` → copy `voiceId`
+- **Cloned voices**: [Voice clone](/guides/products/voice-clone) → copy returned `voiceId`
 
 Full request schema: **API reference → TTS** operations.
 
