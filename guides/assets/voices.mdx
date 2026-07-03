@@ -20,7 +20,7 @@ Each voice in list or task responses includes:
 | Field | System presets | Cloned voices |
 |-------|----------------|---------------|
 | **`voiceId`** | Stable ID from [List system voices](/api-reference/assets/voices/list-system-voices) (e.g. `sv_…`) | Stable ID from clone list or clone task (e.g. `cv_…`) |
-| **`provider`** | Preset tier code `S1`, `S2`, … | Clone engine `V1`–`V5` |
+| **`provider`** | Preset tier code `S1`–`S7` | Clone engine `V1`–`V5` |
 
 **Use the values exactly as the API returns them** — do not build or guess IDs.
 
@@ -28,7 +28,7 @@ Each voice in list or task responses includes:
 - For [Media translation](/guides/products/media-translation) webhooks, translated lines may include both fields. **Keep `voiceId` and `provider` together** when you store or edit a line for later updates.
 
 <Note>
-  Preset tier codes (`S1`, `S2`, …) and clone engines (`V1`–`V5`) are product codes for API use. They are not vendor or model names.
+  Preset tiers use codes **`S1`–`S7`**; clone engines use **`V1`–`V5`**. Copy values from API responses — do not guess or construct them.
 </Note>
 
 ## System voices
@@ -36,6 +36,10 @@ Each voice in list or task responses includes:
 List available preset voices and pick a `voiceId` for [Text to speech](/guides/products/text-to-speech).
 
 Filter options and response fields: [List system voices](/api-reference/assets/voices/list-system-voices).
+
+Use **`displayName`** and **`localName`** for UI labels.
+
+**`cover`** and **`audio`** are HTTPS preview URLs you can fetch directly. Use each URL exactly as returned.
 
 ## Cloned voices
 

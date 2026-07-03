@@ -2978,10 +2978,6 @@
             "type": "string",
             "description": "系统预设音色 ID。见 [音色](/zh/guides/assets/voices)"
           },
-          "name": {
-            "type": "string",
-            "description": "Internal voice name"
-          },
           "localName": {
             "type": "string",
             "description": "本地化名称"
@@ -3001,7 +2997,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "预设档位代号（`S1`、`S2`、…）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "预设档位代号（`S1`–`S7`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           },
           "gender": {
             "type": "string",
@@ -3055,11 +3051,11 @@
           },
           "cover": {
             "type": "string",
-            "description": "封面图 URL"
+            "description": "封面图 URL（HTTPS）。请原样使用 API 返回的地址。"
           },
           "audio": {
             "type": "string",
-            "description": "试听音频 URL"
+            "description": "试听音频 URL（HTTPS）。请原样使用 API 返回的地址。"
           },
           "createTime": {
             "type": "string",

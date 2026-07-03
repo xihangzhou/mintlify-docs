@@ -20,7 +20,7 @@ icon: "waveform-lines"
 | 字段 | 系统预设 | 克隆音色 |
 |------|----------|----------|
 | **`voiceId`** | [列出系统音色](/zh/api-reference/assets/voices/list-system-voices) 返回的稳定 ID（如 `sv_…`） | 克隆列表或克隆任务返回的稳定 ID（如 `cv_…`） |
-| **`provider`** | 预设档位代号 `S1`、`S2`、… | 克隆引擎 `V1`–`V5` |
+| **`provider`** | 预设档位代号 `S1`–`S7` | 克隆引擎 `V1`–`V5` |
 
 **请原样使用 API 返回的值**，不要自行拼接或猜测。
 
@@ -28,7 +28,7 @@ icon: "waveform-lines"
 - [音视频翻译](/zh/guides/products/media-translation) Webhook 里，翻译句可能同时带两个字段；若后续要改句或重提，**请把 `voiceId` 与 `provider` 成对保存**。
 
 <Note>
-  `S1`、`S2` 等是面向 API 的预设档位代号；`V1`–`V5` 是克隆引擎版本。它们不是厂商名或底层模型名。
+  系统预设档位为 **`S1`–`S7`**，克隆引擎为 **`V1`–`V5`**。请从 API 响应中原样复制，不要自行拼接或猜测。
 </Note>
 
 ## 系统音色
@@ -36,6 +36,10 @@ icon: "waveform-lines"
 列出可用预设，选取 `voiceId` 用于 [文本转语音](/zh/guides/products/text-to-speech)。
 
 筛选与响应字段：[列出系统音色](/zh/api-reference/assets/voices/list-system-voices)。
+
+界面展示请用 **`displayName`**、**`localName`**。
+
+**`cover`**、**`audio`** 为可直接 GET 的 HTTPS 预览 URL，请原样使用 API 返回的地址。
 
 ## 克隆音色
 

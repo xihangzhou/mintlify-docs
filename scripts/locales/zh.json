@@ -397,5 +397,8 @@
   "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods).": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
   "Voice tier on this line — preset `S1`, `S2`, … or clone `V1`–`V5`. Keep with `voiceId` when you edit or resubmit lines. See [Voices](/guides/assets/voices).": "该句使用的音色档位 — 预设 `S1`、`S2`、… 或克隆 `V1`–`V5`。改句或再次提交时请与 `voiceId` 一并保存。见 [音色](/zh/guides/assets/voices)。",
   "Optional preset tier (`S1`, `S2`, …) when you pick a system voice. Clone voices use `V1`–`V5`. See [Voices](/guides/assets/voices).": "选用系统预设音色时可附带档位代号（`S1`、`S2`、…）。克隆音色为 `V1`–`V5`。见 [音色](/zh/guides/assets/voices)。",
-  "Preset tier code (`S1`, `S2`, …). See [Supported clone methods](/guides/supported-clone-methods).": "预设档位代号（`S1`、`S2`、…）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+  "Preset tier code (`S1`, `S2`, …). See [Supported clone methods](/guides/supported-clone-methods).": "预设档位代号（`S1`、`S2`、…）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+  "Preset tier code (`S1`–`S7`). See [Supported clone methods](/guides/supported-clone-methods).": "预设档位代号（`S1`–`S7`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+  "Cover image URL (HTTPS). Use the URL as returned.": "封面图 URL（HTTPS）。请原样使用 API 返回的地址。",
+  "Sample preview audio URL (HTTPS). Use the URL as returned.": "试听音频 URL（HTTPS）。请原样使用 API 返回的地址。"
 }

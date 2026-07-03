@@ -4,14 +4,16 @@ description: "音色 provider 代号与克隆引擎 V1–V5"
 icon: "microphone-lines"
 ---
 
-Open API 在音色列表、翻译结果与克隆请求中使用简短的 **provider 代号**，用于指定引擎类型，不对客暴露厂商或模型名称。
+Open API 在音色列表、翻译结果与克隆请求中使用简短的 **provider 代号** — 系统预设为 **`S1`–`S7`**，克隆为 **`V1`–`V5`**。
 
 ## 代号一览
 
 | 代号 | 用途 | 常见出现位置 |
 |------|------|--------------|
-| **`S1`、`S2`、…** | 系统预设音色 | [列出系统音色](/zh/api-reference/assets/voices/list-system-voices)、音视频翻译逐句结果 |
+| **`S1`–`S7`** | 系统预设音色 | [列出系统音色](/zh/api-reference/assets/voices/list-system-voices)、音视频翻译逐句结果 |
 | **`V1`–`V5`** | 克隆音色与克隆任务 | [声音克隆](/zh/guides/products/voice-clone)、克隆列表、启用克隆的音视频翻译 |
+
+系统预设档位为 **`S1` 至 `S7`**，其中 **`S7`** 含粤语预设音色。
 
 需要改句或再次提交时，请 **成对复制 API 返回的 `voiceId` 与 `provider`**（音视频翻译尤其如此）。见 [音色](/zh/guides/assets/voices)。
 

@@ -4,14 +4,16 @@ description: "Voice provider codes and clone engines V1–V5"
 icon: "microphone-lines"
 ---
 
-Open API uses short **provider codes** in voice lists, translation results, and clone requests. They tell the service which engine family to use — without exposing vendor or model names.
+Open API uses short **provider codes** in voice lists, translation results, and clone requests — **`S1`–`S7`** for system presets and **`V1`–`V5`** for clones.
 
 ## Provider codes at a glance
 
 | Code pattern | Used for | Where you see it |
 |--------------|----------|------------------|
-| **`S1`, `S2`, …** | System preset voices | [List system voices](/api-reference/assets/voices/list-system-voices), media translation line results |
+| **`S1`–`S7`** | System preset voices | [List system voices](/api-reference/assets/voices/list-system-voices), media translation line results |
 | **`V1`–`V5`** | Cloned voices and clone jobs | [Voice clone](/guides/products/voice-clone), clone list, media translation when cloning is enabled |
+
+System preset tiers are **`S1` through `S7`**, including Cantonese presets on **`S7`**.
 
 Copy **`voiceId` and `provider` together** from API responses when you need to resubmit or edit content (especially media translation lines). See [Voices](/guides/assets/voices).
 

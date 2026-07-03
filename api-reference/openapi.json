@@ -2978,10 +2978,6 @@
             "type": "string",
             "description": "System preset voice ID. See [Voices](/guides/assets/voices)"
           },
-          "name": {
-            "type": "string",
-            "description": "Internal voice name"
-          },
           "localName": {
             "type": "string",
             "description": "Localized voice name"
@@ -3001,7 +2997,7 @@
           },
           "provider": {
             "type": "string",
-            "description": "Preset tier code (`S1`, `S2`, …). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Preset tier code (`S1`–`S7`). See [Supported clone methods](/guides/supported-clone-methods)."
           },
           "gender": {
             "type": "string",
@@ -3055,11 +3051,11 @@
           },
           "cover": {
             "type": "string",
-            "description": "Cover image URL"
+            "description": "Cover image URL (HTTPS). Use the URL as returned."
           },
           "audio": {
             "type": "string",
-            "description": "Sample preview audio URL"
+            "description": "Sample preview audio URL (HTTPS). Use the URL as returned."
           },
           "createTime": {
             "type": "string",
