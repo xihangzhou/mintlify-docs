@@ -1,7 +1,13 @@
 ---
 title: "API overview"
-description: "How VMEG Open API endpoints are organized"
+description: "What VMEG Open API does and how endpoints are organized"
 ---
+
+VMEG Open API lets you automate what users do on [vmeg.ai](https://www.vmeg.ai/home) from your own backend: **translate and dub** video or audio, **synthesize speech**, **clone voices**, and **translate plain text**.
+
+<Info>
+  **Video/audio translation = translate + dub.** The API transcribes speech, translates the script, generates new AI-dubbed audio (and video when applicable), and returns dubbed media files. It is **not** the same as the text-only translation API.
+</Info>
 
 ## URLs
 
@@ -26,18 +32,37 @@ Enter the key in the Playground **Authorization** field to try requests.
 
 List, detail, and delete operations for **tasks** and **materials**, and queries for **cloned voices**, return only data tied to the API Key you authenticate with. You do not pass a project identifier in query parameters or request bodies.
 
+## Typical translate-and-dub flow
+
+Most integrators start here when localizing video or audio:
+
+<Steps>
+  <Step title="Upload your file">
+    Use **Upload files (materials)** to get a `materialId` for your video or audio. See [Material upload](/guides/assets/material-upload).
+  </Step>
+  <Step title="Configure webhook">
+    Set your webhook URL on [API Configuration](https://www.vmeg.ai/open-api-setting) so dubbed results can be delivered when the job finishes.
+  </Step>
+  <Step title="Create translate and dub job">
+    `POST /openapi/v1/task/media-translation/create-async` — VMEG transcribes, translates, dubs, and renders output. See [Create translate and dub job](/api-reference/media-translation/create-media-translation-async).
+  </Step>
+  <Step title="Receive dubbed media">
+    Your webhook receives CDN URLs for the dubbed video or audio. Poll **Query job status** if you need a fallback.
+  </Step>
+</Steps>
+
 ## Endpoint groups
 
-| Group | Description |
-|-------|-------------|
-| TTS | Speech synthesis (sync and async) |
-| Text translation | Batch sentence translation |
-| Voice clone | Clone from reference audio |
-| Media translation | Video/audio localization pipeline |
-| Task management | List, detail, delete |
-| Assets - Materials | Upload and material library |
-| Assets - Voices | System and cloned voices |
+| Group | What it does | When to use |
+|-------|----------------|-------------|
+| **Video & audio translate and dub** | Full localization pipeline: ASR → translation → AI dubbing → rendered media | You have a video or audio file and want a dubbed version in another language |
+| **Text to speech (TTS)** | Turn text into speech with preset or cloned voices | You already have a script and need audio only |
+| **Voice cloning** | Clone a speaker from a short sample | You need a custom `voiceId` for TTS or dubbing |
+| **Text translation (text only)** | Translate plain text segments | You have strings only — **not** spoken content in media |
+| **Task status and history** | List, query, or delete jobs | Track progress, recover from missed webhooks |
+| **Upload files (materials)** | Upload and manage video/audio inputs | Required before translate-and-dub jobs |
+| **Voices (presets and clones)** | Browse voices available for TTS | Pick a `voiceId` before synthesizing speech |
 
 Async **`create-async`** endpoints document the **Callbacks** webhook request body (task-specific `data` schema) on the same page.
 
-Concept guides (idempotency, webhooks, errors) are under the **Guides** tab.
+Concept guides (idempotency, webhooks, errors, pricing) are under the **Guides** tab. Product walkthroughs: [Media translation](/guides/products/media-translation), [Products overview](/guides/products/overview).

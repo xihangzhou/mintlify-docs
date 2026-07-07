@@ -1,7 +1,13 @@
 ---
 title: "API 概览"
-description: "VMEG Open API 接口组织方式"
+description: "VMEG Open API 能做什么，以及接口如何组织"
 ---
+
+VMEG Open API 让你在自己的后端里自动化 [vmeg.ai](https://www.vmeg.ai/home) 上的能力：**翻译并配音**视频或音频、**语音合成**、**声音克隆**、以及**纯文本翻译**。
+
+<Info>
+  **视频/音频翻译 = 翻译 + 配音。** 接口会识别语音、翻译文稿、生成 AI 配音（必要时合成新视频），并返回配音后的媒体文件。这与**仅翻译文本**的接口不是一回事。
+</Info>
 
 ## 地址
 
@@ -26,18 +32,37 @@ Authorization: Bearer <api_key>
 
 **任务** 与 **素材** 的列表、详情、删除，以及 **克隆音色** 的查询，均只返回当前 API Key 下的数据。查询参数与请求体中无需也不应携带项目标识。
 
+## 典型的翻译配音流程
+
+本地化视频或音频时，大多数集成从以下步骤开始：
+
+<Steps>
+  <Step title="上传文件">
+    通过 **上传文件（素材）** 获取 `materialId`。见 [素材上传](/zh/guides/assets/material-upload)。
+  </Step>
+  <Step title="配置 Webhook">
+    在 [API 配置](https://www.vmeg.ai/open-api-setting) 设置 Webhook URL，以便任务完成后接收配音结果。
+  </Step>
+  <Step title="创建翻译配音任务">
+    `POST /openapi/v1/task/media-translation/create-async` — VMEG 会完成识别、翻译、配音与渲染。见 [创建翻译配音任务](/zh/api-reference/media-translation/create-media-translation-async)。
+  </Step>
+  <Step title="接收配音媒体">
+    Webhook 回调中包含配音后视频/音频的 CDN 地址。也可轮询 **查询任务状态** 作为兜底。
+  </Step>
+</Steps>
+
 ## 接口分组
 
-| 分组 | 说明 |
-|-------|-------------|
-| TTS | 语音合成（同步与异步） |
-| 文本翻译 | 批量句子翻译 |
-| 声音克隆 | 从参考音频克隆 |
-| 媒体翻译 | 视频/音频本地化流水线 |
-| 任务管理 | 列表、详情、删除 |
-| 资产 - 素材 | 上传与素材库 |
-| 资产 - 音色 | 系统音色与克隆音色 |
+| 分组 | 作用 | 适用场景 |
+|------|------|----------|
+| **视频与音频翻译配音** | 完整本地化流水线：语音识别 → 翻译 → AI 配音 → 渲染输出 | 有视频或音频文件，需要另一种语言的配音版本 |
+| **文本转语音（TTS）** | 用预设或克隆音色将文本合成为语音 | 已有文稿，只需生成音频 |
+| **声音克隆** | 从短样本克隆说话人 | 需要自定义 `voiceId` 用于 TTS 或配音 |
+| **文本翻译（仅文本）** | 翻译纯文本片段 | 只有字符串，**不是**媒体里的口语内容 |
+| **任务状态与历史** | 列表、查询、删除任务 | 跟踪进度，或 Webhook 丢失时补查 |
+| **上传文件（素材）** | 上传与管理视频/音频输入 | 翻译配音任务的前置步骤 |
+| **音色（预设与克隆）** | 浏览可用于 TTS 的音色 | 合成语音前选择 `voiceId` |
 
 各 **`create-async`** 接口在同一页 **Callbacks** 中说明 Webhook 回调请求体（含任务专属的 `data` 结构）。
 
-概念说明（幂等、Webhook、错误码）见 **指南** 标签页。
+概念说明（幂等、Webhook、错误码、计费）见 **指南** 标签页。产品说明：[媒体翻译](/zh/guides/products/media-translation)、[产品概览](/zh/guides/products/overview)。

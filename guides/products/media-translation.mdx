@@ -6,7 +6,11 @@ icon: "film"
 
 import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
-Localize uploaded video or audio: translation, dubbing, and related pipeline options. **Async only** — results arrive via [Webhook](/guides/webhooks).
+Localize uploaded video or audio with a full **translate and dub** pipeline: speech recognition, script translation, AI dubbing (cloned or preset voices), and rendered output. Optional subtitles and lip sync. **Async only** — dubbed files arrive via [Webhook](/guides/webhooks).
+
+<Info>
+  This API **re-dubs** your media in the target language. It is not plain text translation and does not return only subtitles — you get new dubbed video or audio files.
+</Info>
 
 ## Task types
 

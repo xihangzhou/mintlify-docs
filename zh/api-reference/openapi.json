@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG Open API",
-    "description": "VMEG 公开 Open API，支持 TTS、文本翻译、媒体翻译、声音克隆与资产管理。响应格式为 `{ code, message, data }`；`code === 200` 表示成功。",
+    "description": "将 VMEG 集成到产品中：翻译并配音视频或音频、语音合成、声音克隆、纯文本翻译，以及管理 API 侧文件。响应格式为 `{ code, message, data }`；`code === 200` 表示成功。",
     "version": "1.0.0"
   },
   "servers": [
@@ -18,32 +18,39 @@
   ],
   "tags": [
     {
+      "name": "媒体翻译",
+      "x-group": "视频与音频翻译配音",
+      "description": "对上传的视频或音频做端到端本地化：识别语音、翻译文稿、生成 AI 配音（克隆或预设音色），并返回配音后的媒体。可选字幕与口型同步。**仅异步** — 配音文件通过 [Webhook](/zh/guides/webhooks) 投递。这不是纯文本翻译；见 [媒体翻译](/zh/guides/products/media-translation)。"
+    },
+    {
       "name": "TTS",
-      "description": "Speech synthesis tasks (sync and async)"
+      "x-group": "文本转语音（TTS）",
+      "description": "用预设或克隆音色将文本合成为自然语音。**同步**在 HTTP 响应中返回音频 URL；**异步**通过 [Webhook](/zh/guides/webhooks) 投递结果。见 [文本转语音](/zh/guides/products/text-to-speech)。"
     },
     {
-      "name": "Text translation",
-      "description": "Atomic text translation tasks"
+      "name": "声音克隆",
+      "x-group": "声音克隆",
+      "description": "从短参考录音创建可复用音色，返回可用于 TTS 或翻译配音任务的 `voiceId`。见 [声音克隆](/zh/guides/products/voice-clone)。"
     },
     {
-      "name": "Voice clone",
-      "description": "Voice cloning tasks"
+      "name": "文本翻译",
+      "x-group": "文本翻译（仅文本）",
+      "description": "翻译纯文本片段，不处理音频或视频。媒体中的口语内容请使用 **视频与音频翻译配音**。见 [文本翻译](/zh/guides/products/text-translation)。"
     },
     {
-      "name": "Media translation",
-      "description": "Async video and audio translation tasks"
+      "name": "任务管理",
+      "x-group": "任务状态与历史",
+      "description": "列出、查看或删除通过各产品 API 创建的任务。无法依赖 Webhook 时可轮询 `GET .../tasks/detail`。范围限定于当前 **API Key**。见 [产品概览](/zh/guides/products/overview)。"
     },
     {
-      "name": "Task management",
-      "description": "List, detail, and delete Open API tasks across all products. See [Products overview](/guides/products/overview) for sync vs async, task types, and integration flow."
+      "name": "资产 - 素材",
+      "x-group": "上传文件（素材）",
+      "description": "上传并管理用于翻译配音任务的视频/音频。流程：预签名上传 → 登记素材 → 将 `materialId` 传入 create-async。见 [素材上传](/zh/guides/assets/material-upload)。"
     },
     {
-      "name": "Assets - Materials",
-      "description": "Upload, list, and delete API-scoped video/audio. See [Assets overview](/guides/assets/overview), [Materials](/guides/assets/materials), and [Material upload](/guides/assets/material-upload)."
-    },
-    {
-      "name": "Assets - Voices",
-      "description": "System presets and cloned voices for TTS. See [Assets overview](/guides/assets/overview) and [Voices](/guides/assets/voices). Clones come from [Voice clone](/guides/products/voice-clone)."
+      "name": "资产 - 音色",
+      "x-group": "音色（预设与克隆）",
+      "description": "列出 TTS 预设音色，或管理已克隆音色。克隆音色通过 **声音克隆** 创建。见 [音色](/zh/guides/assets/voices)。"
     }
   ],
   "paths": {
@@ -52,8 +59,8 @@
         "tags": [
           "TTS"
         ],
-        "summary": "创建 TTS 任务（同步）",
-        "description": "同步文本转语音，合成结果在 HTTP 响应中返回。",
+        "summary": "合成语音（同步）",
+        "description": "一次请求完成文本转语音。音频 URL 立即在 HTTP `data` 中返回，无需 Webhook。",
         "operationId": "ttsCreateSync",
         "parameters": [
           {
@@ -89,8 +96,8 @@
         "tags": [
           "TTS"
         ],
-        "summary": "创建 TTS 任务（异步）",
-        "description": "异步 TTS 提交。",
+        "summary": "合成语音（异步）",
+        "description": "提交较长或批量的 TTS 任务。HTTP 仅返回受理信息（`taskId`）。完成后的音频通过 [Webhook](/zh/guides/webhooks) 回调投递（`event`: `openapi-tts`）。",
         "operationId": "ttsCreateAsync",
         "parameters": [
           {
@@ -159,13 +166,13 @@
         "tags": [
           "文本翻译"
         ],
-        "summary": "创建文本翻译（同步）",
+        "summary": "翻译文本片段（同步）",
         "operationId": "translateCreateSync",
         "x-mint": {
           "href": "/zh/api-reference/text-translation/create-text-translation-sync",
           "metadata": {
-            "sidebarTitle": "创建文本翻译（同步）",
-            "title": "创建文本翻译（同步）"
+            "sidebarTitle": "翻译文本（同步）",
+            "title": "翻译文本片段（同步）"
           }
         },
         "parameters": [
@@ -195,7 +202,7 @@
             }
           }
         },
-        "description": "同步文本翻译，译文在 HTTP 响应中返回。"
+        "description": "一次请求翻译纯文本片段，译文立即在 HTTP `data` 中返回。**不**处理视频或音频 — 媒体请使用 **创建翻译配音任务**。"
       }
     },
     "/openapi/v1/task/translate/create-async": {
@@ -203,14 +210,14 @@
         "tags": [
           "文本翻译"
         ],
-        "summary": "创建文本翻译（异步）",
+        "summary": "翻译文本片段（异步）",
         "operationId": "translateCreateAsync",
-        "description": "异步文本翻译提交。",
+        "description": "提交批量文本翻译任务。HTTP 仅返回受理信息（`taskId`）。译文通过 [Webhook](/zh/guides/webhooks) 回调投递（`event`: `openapi-translate`）。",
         "x-mint": {
           "href": "/zh/api-reference/text-translation/create-text-translation-async",
           "metadata": {
-            "sidebarTitle": "创建文本翻译（异步）",
-            "title": "创建文本翻译（异步）"
+            "sidebarTitle": "翻译文本（异步）",
+            "title": "翻译文本片段（异步）"
           }
         },
         "parameters": [
@@ -280,7 +287,7 @@
         "tags": [
           "声音克隆"
         ],
-        "summary": "创建声音克隆（同步）",
+        "summary": "从样本音频克隆音色（同步）",
         "operationId": "cloneVoiceCreateSync",
         "parameters": [
           {
@@ -309,7 +316,7 @@
             }
           }
         },
-        "description": "同步声音克隆，成功时返回可用于 TTS 的 `voiceId`。"
+        "description": "一次请求从短参考录音克隆说话人。成功时返回 `voiceId`，可用于 TTS 或翻译配音任务。"
       }
     },
     "/openapi/v1/task/clone-voice/create-async": {
@@ -317,9 +324,9 @@
         "tags": [
           "声音克隆"
         ],
-        "summary": "创建声音克隆（异步）",
+        "summary": "从样本音频克隆音色（异步）",
         "operationId": "cloneVoiceCreateAsync",
-        "description": "异步声音克隆提交。",
+        "description": "提交声音克隆任务。HTTP 仅返回受理信息（`taskId`）。新 `voiceId` 通过 [Webhook](/zh/guides/webhooks) 回调投递（`event`: `openapi-clone-voice`）。",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -387,14 +394,14 @@
         "tags": [
           "媒体翻译"
         ],
-        "summary": "创建媒体翻译（异步）",
-        "description": "异步媒体翻译。若请求 `taskType` 为 `at` 但素材为视频，服务端可能按 `vt` 执行（见受理响应中的 `taskType`）。",
+        "summary": "创建翻译配音任务",
+        "description": "为已上传的视频或音频启动异步 **翻译配音** 流水线：识别语音 → 翻译文稿 → 生成 AI 配音（克隆或预设音色）→ 渲染输出。可通过 `options` 配置字幕与口型同步。HTTP 仅返回受理信息（`taskId`）。配音后视频/音频 URL 通过 [Webhook](/zh/guides/webhooks) 回调投递（`event`: `openapi-media-translation`）。\n\n若请求音频翻译（`taskType`: `at`）但素材为视频，服务端可能按视频翻译（`vt`）执行 — 请以受理响应中的 `taskType` 为准。",
         "operationId": "mediaTranslationCreateAsync",
         "x-mint": {
           "href": "/zh/api-reference/media-translation/create-media-translation-async",
           "metadata": {
-            "sidebarTitle": "创建媒体翻译（异步）",
-            "title": "创建媒体翻译（异步）"
+            "sidebarTitle": "创建翻译配音任务",
+            "title": "创建翻译配音任务"
           }
         },
         "parameters": [
@@ -464,13 +471,13 @@
         "tags": [
           "任务管理"
         ],
-        "summary": "任务列表",
+        "summary": "API 任务列表",
         "operationId": "tasksList",
         "x-mint": {
           "href": "/zh/api-reference/tasks/list-tasks",
           "metadata": {
-            "sidebarTitle": "任务列表",
-            "title": "任务列表"
+            "sidebarTitle": "API 任务列表",
+            "title": "API 任务列表"
           }
         },
         "parameters": [
@@ -521,7 +528,7 @@
             }
           }
         },
-        "description": "分页列出各产品 API 创建的任务（TTS、文本翻译、声音克隆、音视频翻译）。结果按 **API Key** 限定范围。见 [产品概览](/zh/guides/products/overview)；异步交付物通过 [Webhook](/zh/guides/webhooks) 送达。"
+        "description": "分页列出已提交的任务（翻译配音、TTS、文本翻译、声音克隆）。可按 `taskType` 与 `status` 筛选。范围限定于当前 **API Key**。异步结果仍通过 [Webhook](/zh/guides/webhooks) 投递 — 本接口用于浏览历史或补查丢失的回调。"
       }
     },
     "/openapi/v1/tasks/detail": {
@@ -529,13 +536,13 @@
         "tags": [
           "任务管理"
         ],
-        "summary": "任务详情",
+        "summary": "查询任务状态与结果",
         "operationId": "tasksDetail",
         "x-mint": {
           "href": "/zh/api-reference/tasks/get-task-detail",
           "metadata": {
-            "sidebarTitle": "任务详情",
-            "title": "任务详情"
+            "sidebarTitle": "查询任务状态",
+            "title": "查询任务状态与结果"
           }
         },
         "parameters": [
@@ -561,7 +568,7 @@
             }
           }
         },
-        "description": "按 `taskId` 查询状态与 `result` — 用于 `create-async` 之后或未使用 Webhook 时的轮询。范围由 **API Key** 限定。见 [产品概览](/zh/guides/products/overview)。"
+        "description": "轮询单个 `taskId` 的状态与 `result` — 适用于任意 `create-async` 之后，或 Webhook 不可用时。翻译配音任务完成后，`result` 含配音媒体 CDN 地址。范围限定于当前 **API Key**。"
       }
     },
     "/openapi/v1/tasks/delete": {
@@ -569,13 +576,13 @@
         "tags": [
           "任务管理"
         ],
-        "summary": "删除任务",
+        "summary": "删除 API 任务",
         "operationId": "tasksDelete",
         "x-mint": {
           "href": "/zh/api-reference/tasks/delete-task",
           "metadata": {
-            "sidebarTitle": "删除任务",
-            "title": "删除任务"
+            "sidebarTitle": "删除 API 任务",
+            "title": "删除 API 任务"
           }
         },
         "parameters": [
@@ -649,7 +656,7 @@
             }
           }
         },
-        "description": "单文件上传 **第 1 步**：预签名 PUT URL（及 `materialId`）。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。流程见 [素材上传](/zh/guides/assets/material-upload)、[资产概览](/zh/guides/assets/overview)。"
+        "description": "单文件上传 **第 1 步**：获取预签名 PUT URL 与 `materialId`。向该 URL 上传文件后，调用 **完成单文件上传**。在 **创建翻译配音任务** 之前必须完成。见 [素材上传](/zh/guides/assets/material-upload)。"
       }
     },
     "/openapi/v1/assets/material/upload/complete": {
@@ -911,7 +918,7 @@
             }
           }
         },
-        "description": "分页列出当前 **API Key** 下的素材库。在 [音视频翻译](/zh/guides/products/media-translation) 中使用 `materialId`。见 [素材](/zh/guides/assets/materials) 与 [资产概览](/zh/guides/assets/overview)。"
+        "description": "分页列出为翻译配音任务上传的视频/音频。将 `materialId` 传入 **创建翻译配音任务**。见 [素材](/zh/guides/assets/materials)。"
       }
     },
     "/openapi/v1/assets/material/delete": {
@@ -993,7 +1000,7 @@
             }
           }
         },
-        "description": "列出只读系统预设音色，选取 `voiceId` 用于 [文本转语音](/zh/guides/products/text-to-speech)。见 [音色](/zh/guides/assets/voices) 与 [资产概览](/zh/guides/assets/overview)。"
+        "description": "列出 **合成语音** 可用的只读预设音色。从响应中选择 `voiceId`。见 [音色](/zh/guides/assets/voices)。"
       }
     },
     "/openapi/v1/assets/voice/clone/list": {

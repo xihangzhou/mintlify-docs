@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG Open API",
-    "description": "VMEG public Open API for TTS, text translation, media translation, voice cloning, and asset management. Responses use `{ code, message, data }`; `code === 200` means success.",
+    "description": "Integrate VMEG into your product: translate and dub video or audio, synthesize speech, clone voices, translate plain text, and manage API-side files. All responses use `{ code, message, data }`; `code === 200` means success.",
     "version": "1.0.0"
   },
   "servers": [
@@ -18,32 +18,39 @@
   ],
   "tags": [
     {
-      "name": "TTS",
-      "description": "Speech synthesis tasks (sync and async)"
+      "name": "Media translation",
+      "x-group": "Video & audio translate and dub",
+      "description": "Localize uploaded video or audio end-to-end: transcribe speech, translate the script, generate AI dubbing (cloned or preset voices), and return new dubbed media. Optional subtitles and lip sync. **Async only** — dubbed files arrive via [Webhook](/guides/webhooks). This is not plain text translation; see [Media translation](/guides/products/media-translation)."
     },
     {
-      "name": "Text translation",
-      "description": "Atomic text translation tasks"
+      "name": "TTS",
+      "x-group": "Text to speech (TTS)",
+      "description": "Turn text into natural speech with preset or cloned voices. **Sync** returns audio URLs in the HTTP response; **async** delivers results via [Webhook](/guides/webhooks). See [Text to speech](/guides/products/text-to-speech)."
     },
     {
       "name": "Voice clone",
-      "description": "Voice cloning tasks"
+      "x-group": "Voice cloning",
+      "description": "Create a reusable voice from a short reference recording. Returns a `voiceId` you can pass to TTS or translate-and-dub jobs. See [Voice clone](/guides/products/voice-clone)."
     },
     {
-      "name": "Media translation",
-      "description": "Async video and audio translation tasks"
+      "name": "Text translation",
+      "x-group": "Text translation (text only)",
+      "description": "Translate plain text segments — no audio or video processing. For spoken content in media files, use **Video & audio translate and dub** instead. See [Text translation](/guides/products/text-translation)."
     },
     {
       "name": "Task management",
-      "description": "List, detail, and delete Open API tasks across all products. See [Products overview](/guides/products/overview) for sync vs async, task types, and integration flow."
+      "x-group": "Task status and history",
+      "description": "List, inspect, or delete jobs created through any product API. Poll `GET .../tasks/detail` when you cannot rely on webhooks. Scoped to your **API Key**. See [Products overview](/guides/products/overview)."
     },
     {
       "name": "Assets - Materials",
-      "description": "Upload, list, and delete API-scoped video/audio. See [Assets overview](/guides/assets/overview), [Materials](/guides/assets/materials), and [Material upload](/guides/assets/material-upload)."
+      "x-group": "Upload files (materials)",
+      "description": "Upload and manage video/audio files used as input for translate-and-dub jobs. Flow: presigned upload → register material → pass `materialId` to create-async. See [Material upload](/guides/assets/material-upload)."
     },
     {
       "name": "Assets - Voices",
-      "description": "System presets and cloned voices for TTS. See [Assets overview](/guides/assets/overview) and [Voices](/guides/assets/voices). Clones come from [Voice clone](/guides/products/voice-clone)."
+      "x-group": "Voices (presets and clones)",
+      "description": "List preset voices for TTS, or manage voices you cloned. Cloned voices are created via **Voice cloning**. See [Voices](/guides/assets/voices)."
     }
   ],
   "paths": {
@@ -52,8 +59,8 @@
         "tags": [
           "TTS"
         ],
-        "summary": "Create TTS task (sync)",
-        "description": "Synchronous TTS. Synthesis results are returned in the HTTP response.",
+        "summary": "Synthesize speech (sync)",
+        "description": "Convert text to speech in one request. Audio URLs are returned immediately in the HTTP `data` payload — no webhook required.",
         "operationId": "ttsCreateSync",
         "parameters": [
           {
@@ -89,8 +96,8 @@
         "tags": [
           "TTS"
         ],
-        "summary": "Create TTS task (async)",
-        "description": "Async TTS submission.",
+        "summary": "Synthesize speech (async)",
+        "description": "Submit a long or batch TTS job. The HTTP response only confirms acceptance (`taskId`). Finished audio arrives in your [Webhook](/guides/webhooks) callback (`event`: `openapi-tts`).",
         "operationId": "ttsCreateAsync",
         "parameters": [
           {
@@ -159,13 +166,13 @@
         "tags": [
           "Text translation"
         ],
-        "summary": "Create text translation (sync)",
+        "summary": "Translate text segments (sync)",
         "operationId": "translateCreateSync",
         "x-mint": {
           "href": "/api-reference/text-translation/create-text-translation-sync",
           "metadata": {
-            "sidebarTitle": "Create text translation (sync)",
-            "title": "Create text translation (sync)"
+            "sidebarTitle": "Translate text (sync)",
+            "title": "Translate text segments (sync)"
           }
         },
         "parameters": [
@@ -195,7 +202,7 @@
             }
           }
         },
-        "description": "Synchronous text translation. Translated segments are returned in the HTTP response."
+        "description": "Translate plain text segments in one request. Translated strings are returned immediately in the HTTP `data` payload. Does **not** process video or audio — use **Create translate and dub job** for media."
       }
     },
     "/openapi/v1/task/translate/create-async": {
@@ -203,14 +210,14 @@
         "tags": [
           "Text translation"
         ],
-        "summary": "Create text translation (async)",
+        "summary": "Translate text segments (async)",
         "operationId": "translateCreateAsync",
-        "description": "Async text translation submission.",
+        "description": "Submit a batch text translation job. The HTTP response only confirms acceptance (`taskId`). Translated segments arrive in your [Webhook](/guides/webhooks) callback (`event`: `openapi-translate`).",
         "x-mint": {
           "href": "/api-reference/text-translation/create-text-translation-async",
           "metadata": {
-            "sidebarTitle": "Create text translation (async)",
-            "title": "Create text translation (async)"
+            "sidebarTitle": "Translate text (async)",
+            "title": "Translate text segments (async)"
           }
         },
         "parameters": [
@@ -280,7 +287,7 @@
         "tags": [
           "Voice clone"
         ],
-        "summary": "Create voice clone (sync)",
+        "summary": "Clone voice from sample audio (sync)",
         "operationId": "cloneVoiceCreateSync",
         "parameters": [
           {
@@ -309,7 +316,7 @@
             }
           }
         },
-        "description": "Synchronous voice clone. On success, returns `voiceId` for use in TTS."
+        "description": "Clone a speaker from a short reference recording in one request. On success, returns `voiceId` — reuse it in TTS or translate-and-dub jobs."
       }
     },
     "/openapi/v1/task/clone-voice/create-async": {
@@ -317,9 +324,9 @@
         "tags": [
           "Voice clone"
         ],
-        "summary": "Create voice clone (async)",
+        "summary": "Clone voice from sample audio (async)",
         "operationId": "cloneVoiceCreateAsync",
-        "description": "Async voice clone submission.",
+        "description": "Submit a voice cloning job. The HTTP response only confirms acceptance (`taskId`). The new `voiceId` arrives in your [Webhook](/guides/webhooks) callback (`event`: `openapi-clone-voice`).",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -387,14 +394,14 @@
         "tags": [
           "Media translation"
         ],
-        "summary": "Create media translation (async)",
-        "description": "Async media translation. If request `taskType` is `at` but the material is video, the server may run `vt` instead (see `taskType` in the acceptance response).",
+        "summary": "Create translate and dub job",
+        "description": "Start an async **translate and dub** pipeline for uploaded video or audio: transcribe speech → translate script → generate AI dubbing (voice clone or presets) → render dubbed output. Optional subtitles and lip sync via `options`. The HTTP response only confirms acceptance (`taskId`). Dubbed video/audio URLs arrive in your [Webhook](/guides/webhooks) callback (`event`: `openapi-media-translation`).\n\nIf you request audio translation (`taskType`: `at`) but the material is video, the server may run video translation (`vt`) instead — check `taskType` in the acceptance response.",
         "operationId": "mediaTranslationCreateAsync",
         "x-mint": {
           "href": "/api-reference/media-translation/create-media-translation-async",
           "metadata": {
-            "sidebarTitle": "Create media translation (async)",
-            "title": "Create media translation (async)"
+            "sidebarTitle": "Create translate and dub job",
+            "title": "Create translate and dub job"
           }
         },
         "parameters": [
@@ -464,13 +471,13 @@
         "tags": [
           "Task management"
         ],
-        "summary": "List tasks",
+        "summary": "List API jobs",
         "operationId": "tasksList",
         "x-mint": {
           "href": "/api-reference/tasks/list-tasks",
           "metadata": {
-            "sidebarTitle": "List tasks",
-            "title": "List tasks"
+            "sidebarTitle": "List API jobs",
+            "title": "List API jobs"
           }
         },
         "parameters": [
@@ -521,7 +528,7 @@
             }
           }
         },
-        "description": "Paginated list of tasks created via product APIs (TTS, text translation, voice clone, media translation). Results are scoped to your **API Key**. See [Products overview](/guides/products/overview); async deliverables arrive via [Webhooks](/guides/webhooks)."
+        "description": "Paginated list of jobs you submitted (translate-and-dub, TTS, text translation, voice clone). Filter by `taskType` and `status`. Scoped to your **API Key**. Async deliverables still arrive via [Webhooks](/guides/webhooks) — use this endpoint to browse history or reconcile missed callbacks."
       }
     },
     "/openapi/v1/tasks/detail": {
@@ -529,13 +536,13 @@
         "tags": [
           "Task management"
         ],
-        "summary": "Get task detail",
+        "summary": "Query job status and results",
         "operationId": "tasksDetail",
         "x-mint": {
           "href": "/api-reference/tasks/get-task-detail",
           "metadata": {
-            "sidebarTitle": "Get task detail",
-            "title": "Get task detail"
+            "sidebarTitle": "Query job status",
+            "title": "Query job status and results"
           }
         },
         "parameters": [
@@ -561,7 +568,7 @@
             }
           }
         },
-        "description": "Status and `result` for one `taskId` — use after `create-async` or when polling instead of webhooks. Scoped to your **API Key**. See [Products overview](/guides/products/overview)."
+        "description": "Poll status and `result` for one `taskId` — use after any `create-async`, or when webhooks are unavailable. For translate-and-dub jobs, `result` includes dubbed media CDN URLs when `status` is complete. Scoped to your **API Key**."
       }
     },
     "/openapi/v1/tasks/delete": {
@@ -569,13 +576,13 @@
         "tags": [
           "Task management"
         ],
-        "summary": "Delete task",
+        "summary": "Delete an API job",
         "operationId": "tasksDelete",
         "x-mint": {
           "href": "/api-reference/tasks/delete-task",
           "metadata": {
-            "sidebarTitle": "Delete task",
-            "title": "Delete task"
+            "sidebarTitle": "Delete API job",
+            "title": "Delete an API job"
           }
         },
         "parameters": [
@@ -649,7 +656,7 @@
             }
           }
         },
-        "description": "Single-file upload **step 1**: presigned PUT URL (and `materialId`). Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/assets/material-upload) · [Assets overview](/guides/assets/overview)."
+        "description": "Single-file upload **step 1**: get a presigned PUT URL and `materialId`. Upload the file to the URL, then call **Complete single-file upload**. Required before **Create translate and dub job**. See [Material upload](/guides/assets/material-upload)."
       }
     },
     "/openapi/v1/assets/material/upload/complete": {
@@ -911,7 +918,7 @@
             }
           }
         },
-        "description": "Paginated material library scoped to your **API Key**. Use `materialId` in [Media translation](/guides/products/media-translation). See [Materials](/guides/assets/materials) and [Assets overview](/guides/assets/overview)."
+        "description": "Paginated library of video/audio files you uploaded for translate-and-dub jobs. Pass `materialId` to **Create translate and dub job**. See [Materials](/guides/assets/materials)."
       }
     },
     "/openapi/v1/assets/material/delete": {
@@ -993,7 +1000,7 @@
             }
           }
         },
-        "description": "List read-only system preset voices; pick a `voiceId` for [Text to speech](/guides/products/text-to-speech). See [Voices](/guides/assets/voices) and [Assets overview](/guides/assets/overview)."
+        "description": "List read-only preset voices for **Synthesize speech** requests. Pick a `voiceId` from the response. See [Voices](/guides/assets/voices)."
       }
     },
     "/openapi/v1/assets/voice/clone/list": {

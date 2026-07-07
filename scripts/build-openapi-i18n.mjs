@@ -73,9 +73,18 @@ function walk(node) {
   if (node && typeof node === "object") {
     const out = {};
     for (const [key, value] of Object.entries(node)) {
-      if (key === "description" || key === "summary" || key === "name") {
+      if (
+        key === "description" ||
+        key === "summary" ||
+        key === "name" ||
+        key === "x-group"
+      ) {
         out[key] = translateValue(value);
-      } else if (key === "tags" && Array.isArray(value)) {
+      } else if (
+        key === "tags" &&
+        Array.isArray(value) &&
+        value.every((item) => typeof item === "string")
+      ) {
         out[key] = value.map(translateValue);
       } else if (key === "x-mint" && value && typeof value === "object") {
         out[key] = walk(localizeXMint(value, node.summary));

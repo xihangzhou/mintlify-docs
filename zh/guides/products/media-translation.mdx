@@ -6,7 +6,11 @@ icon: "film"
 
 import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
-对已上传视频或音频做翻译、配音等流水线处理。**仅异步** — 结果通过 [Webhook](/zh/guides/webhooks) 送达。
+对已上传视频或音频执行完整的 **翻译配音** 流水线：语音识别、文稿翻译、AI 配音（克隆或预设音色）与渲染输出。可选字幕与口型同步。**仅异步** — 配音文件通过 [Webhook](/zh/guides/webhooks) 投递。
+
+<Info>
+  本接口会在目标语言下 **重新配音** 你的媒体。它不是纯文本翻译，也不会只返回字幕 — 你会得到新的配音视频或音频文件。
+</Info>
 
 ## 任务类型
 
