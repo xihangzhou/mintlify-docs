@@ -1,0 +1,74 @@
+---
+title: "工具参考"
+description: "VMEG Remote MCP（/api/mcp）暴露的全部工具"
+icon: "list"
+---
+
+import { apiKeyUrl, mcpMaterialUploadUrl } from "/snippets/product-urls.jsx";
+
+VMEG 在 Remote MCP 服务上注册**同步工具**，名称稳定（`vmeg_*`）。除非特别说明，**不要传 `projId`** — 项目由 OAuth 或 <a href={apiKeyUrl}>API Key</a> 提供。
+
+<Info>
+  完整 JSON Schema 由 MCP `tools/list` 返回。本文档汇总名称与行为；对应 REST 接口（如有）见 [API 参考](/zh/api-reference/introduction)。
+</Info>
+
+## 素材
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_list_materials` | 列出项目中已上传的视频/音频素材，含 `materialId`、名称、分类、URL 与元数据。支持 `category`、`keyword`、`materialId`、`mimeType` 过滤与分页。 |
+| `vmeg_delete_material` | 按 `materialId` 删除素材。**调用前须用户明确确认。** |
+
+**HTTP 上传（非 MCP 工具）：** `POST {mcpMaterialUploadUrl}`，`multipart/form-data` 传 `file`，返回的 `materialId` 用于建任务工具。
+
+## 音色
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_list_basic_voices` | 列出系统音色库，可按 locale（BCP-47，如 `en-US`）过滤。用于 `voiceGenerationMode=manual`。 |
+| `vmeg_list_clone_voices` | 列出克隆音色（`voiceId`、provider、预览 URL）。与系统音色列表配合手动选音。 |
+
+## 任务 — 创建与管理
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_create_video_translation_task` | 创建**视频或音频翻译**任务。必填 `targetLanguage` 与一种媒体来源：`materialId`、`sourceUrl`（HTTPS 直链，如 ChatGPT 附件）或 `youtubeUrl`（仅视频）。按素材分类自动区分产品类型。需询问用户 `voiceGenerationMode`（`clone`、`clone-accent` 默认、`smart`、`manual`）。返回 `taskId`、`status`、`product`、`editorUrl`。 |
+| `vmeg_create_subtitle_translation_task` | 创建**字幕翻译**任务。支持预览（媒体 + `targetLanguage`）、合并（`subtitleType`）、渲染导出（`taskId` + `translatedScripts`）。YouTube 导入可能异步下载，先返回 `pending`。 |
+| `vmeg_list_tasks` | 列出或轮询任务（轻量模式，不含完整 config JSON）。 |
+| `vmeg_delete_task` | 按 `taskId` 删除任务。**调用前须用户明确确认。** |
+
+## 任务 — 编辑器查询
+
+查询类工具均需 `taskId`，过滤器可选。时间轴一般为**翻译后**时间（见各工具说明）。
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_query_task_scripts` | 查询译文字幕行（`content.translated_scripts`）。支持关键词、时间范围、索引、`speakerId`。 |
+| `vmeg_query_task_subtitles` | 查询字幕片段（`content.subtitle_clips`）。 |
+| `vmeg_query_task_asr` | 查询转写任务的 ASR 行（`content.asr_scripts`）。 |
+| `vmeg_query_task_speakers` | 查询说话人（`content.voice_match` 或脚本说话人）。 |
+| `vmeg_query_task_tracks` | 查询音视频轨道块（`content.build_tracks`），可按 `kind`（`audio` / `video`）过滤。 |
+
+## 任务 — 编辑器变更
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_save_task_draft` | 一次性事务保存草稿。传 `ops` 操作数组（`entity`、`action`、`value` 等），全成功或全失败。 |
+| `vmeg_retranslate_task_scripts` | 对已有任务全部脚本重新翻译。**调用前须与用户确认。** 用 `vmeg_get_retranslate_status` 轮询。 |
+| `vmeg_trigger_video_translation_all_tts` | 对全部或指定脚本重新配音。**调用前须与用户确认。** 用 `vmeg_get_tts_status` 轮询。 |
+| `vmeg_compose_task_draft` | 根据已保存草稿提交付费合成导出。**调用前须与用户确认。** 返回新的渲染 `taskId`。 |
+| `vmeg_get_retranslate_status` | 轮询整任务重新翻译状态。 |
+| `vmeg_get_tts_status` | 轮询逐句配音状态。 |
+
+## Agent 行为（服务端 instructions）
+
+MCP 服务会向客户端注入使用说明，要点包括：
+
+- 工具参数中不要传 `projId`。
+- 无媒体来源时不要盲目调用建任务工具，先询问用户提供方式。
+- 删除、合成、重新翻译、批量配音前须确认。
+- 任务异步，用 `vmeg_list_tasks` 与查询类工具轮询。
+
+## OAuth 挑战
+
+无有效 Bearer token 时，工具返回带 `_meta` 的 MCP OAuth 挑战，引导客户端（如 ChatGPT Apps SDK）发起登录。授权后重试工具调用即可。

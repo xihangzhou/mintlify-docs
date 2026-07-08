@@ -1,0 +1,74 @@
+---
+title: "Tools reference"
+description: "All VMEG Remote MCP tools exposed at /api/mcp"
+icon: "list"
+---
+
+import { apiKeyUrl, mcpMaterialUploadUrl } from "/snippets/product-urls.jsx";
+
+VMEG registers **sync MCP tools** on the Remote MCP server. Tool names are stable (`vmeg_*`). Unless noted, **do not pass `projId`** — the authenticated OAuth session or <a href={apiKeyUrl}>API Key</a> supplies the project.
+
+<Info>
+  Field-level JSON schemas are returned by the MCP `tools/list` response. This page summarizes names and behavior. REST equivalents (where they exist) live in [API reference](/api-reference/introduction).
+</Info>
+
+## Materials
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_list_materials` | List uploaded video/audio materials in your project. Returns `materialId`, name, category, URLs, and metadata. Supports filters (`category`, `keyword`, `materialId`, `mimeType`) and pagination. |
+| `vmeg_delete_material` | Delete an uploaded material by `materialId`. **Requires explicit user confirmation** before the agent calls this tool. |
+
+**HTTP upload (not an MCP tool):** `POST {mcpMaterialUploadUrl}` with `multipart/form-data` file field. Returns `materialId` for create-task tools.
+
+## Voices
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_list_basic_voices` | List system (library) voices. Filter by locale (BCP-47, e.g. `en-US`). Use with manual voice selection. |
+| `vmeg_list_clone_voices` | List your cloned voices (`voiceId`, provider, preview URLs). Use with `voiceGenerationMode=manual`. |
+
+## Tasks — create and manage
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_create_video_translation_task` | Create a **video or audio translation** task. Requires `targetLanguage` and one media source: `materialId`, `sourceUrl` (HTTPS direct link, e.g. ChatGPT attachment), or `youtubeUrl` (video only). Product is auto-detected from material category. Ask the user for `voiceGenerationMode` (`clone`, `clone-accent` default, `smart`, `manual`). Returns `taskId`, `status`, `product`, `editorUrl`. |
+| `vmeg_create_subtitle_translation_task` | Create a **subtitle translation** task. Modes: preview with media + `targetLanguage`; merge with `subtitleType`; render/export with `taskId` + `translatedScripts`. YouTube imports may return `pending` while download runs asynchronously. |
+| `vmeg_list_tasks` | List or poll tasks (lite mode, no heavy config JSON). |
+| `vmeg_delete_task` | Delete a task by `taskId`. **Requires explicit user confirmation** before calling. |
+
+## Tasks — editor queries
+
+All query tools take `taskId` and optional filters. Times are on the **post-translation** timeline unless noted.
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_query_task_scripts` | Query translated script lines (`content.translated_scripts`). Filter by keywords, time range, index range, `speakerId`. |
+| `vmeg_query_task_subtitles` | Query subtitle clips (`content.subtitle_clips`). |
+| `vmeg_query_task_asr` | Query ASR lines for transcription tasks (`content.asr_scripts`). |
+| `vmeg_query_task_speakers` | Query speakers (`content.voice_match`, or distinct script speakers). |
+| `vmeg_query_task_tracks` | Query video/audio track blocks (`content.build_tracks`). Filter by `kind` (`audio` / `video`). |
+
+## Tasks — editor mutations
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_save_task_draft` | Apply draft edits in one transactional call. Pass `ops`: an array of typed operations (`entity`, `action`, `value`, …). All-or-nothing. |
+| `vmeg_retranslate_task_scripts` | Re-translate all scripts for an existing task. **Confirm with the user** before calling. Poll with `vmeg_get_retranslate_status`. |
+| `vmeg_trigger_video_translation_all_tts` | Re-dub all (or selected) translated scripts. **Confirm with the user** before calling. Poll with `vmeg_get_tts_status`. |
+| `vmeg_compose_task_draft` | Render (compose) the saved draft into a paid export job. **Confirm with the user** before calling. Returns a new render `taskId`. |
+| `vmeg_get_retranslate_status` | Poll whole-task re-translation status. |
+| `vmeg_get_tts_status` | Poll per-script TTS dubbing status. |
+
+## Agent behavior (server instructions)
+
+The MCP server injects instructions for connected clients. Highlights:
+
+- Never pass `projId` in tool arguments.
+- Do not call create-task tools without a media source — ask how the user wants to provide media first.
+- Confirm before delete, compose, re-translate, or bulk TTS.
+- Tasks are asynchronous; poll `vmeg_list_tasks` and editor query tools until work completes.
+
+## OAuth challenge
+
+If a tool is called without a valid Bearer token, the server returns an MCP error with `_meta` OAuth challenge headers so clients (e.g. ChatGPT Apps SDK) can start login. After authorization, retry the tool call.

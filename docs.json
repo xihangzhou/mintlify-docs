@@ -47,6 +47,15 @@
                 "pages": ["guides/authentication"]
               },
               {
+                "group": "MCP",
+                "icon": "plug",
+                "pages": [
+                  "guides/mcp/overview",
+                  "guides/mcp/setup",
+                  "guides/mcp/tools"
+                ]
+              },
+              {
                 "group": "Reliable requests",
                 "icon": "shield-check",
                 "pages": [
@@ -122,6 +131,15 @@
                 "group": "鉴权",
                 "icon": "key",
                 "pages": ["zh/guides/authentication"]
+              },
+              {
+                "group": "MCP",
+                "icon": "plug",
+                "pages": [
+                  "zh/guides/mcp/overview",
+                  "zh/guides/mcp/setup",
+                  "zh/guides/mcp/tools"
+                ]
               },
               {
                 "group": "可靠请求",

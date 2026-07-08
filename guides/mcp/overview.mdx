@@ -1,0 +1,100 @@
+---
+title: "Overview"
+description: "Connect MCP-compatible AI agents to VMEG media translation"
+icon: "plug"
+---
+
+import { productUrls, apiKeyUrl, mcpUrl } from "/snippets/product-urls.jsx";
+
+Connect any **MCP-compatible** AI agent to VMEG by **manually** adding the remote MCP endpoint and your <a href={apiKeyUrl}>API Key</a>. Your agent can list materials, create translation tasks, edit drafts, and poll job status — using the same account credits as the website.
+
+<Info>
+  **Marketplace / app-store connectors are not supported yet.** Use [manual setup](/guides/mcp/setup) with an <a href={apiKeyUrl}>API Key</a> for now.
+</Info>
+
+## Remote MCP endpoint
+
+Point your MCP client at:
+
+```text
+{mcpUrl}
+```
+
+The server uses **Streamable HTTP** (Spring AI MCP Server, sync tools).
+
+## Authentication
+
+**Recommended today:** if your client supports a Bearer token, send your <a href={apiKeyUrl}>API Key</a> on every MCP request (same key as the [Open API](/guides/authentication)):
+
+```http
+Authorization: Bearer YOUR_API_KEY
+```
+
+Create and rotate keys on <a href={apiKeyUrl}>API Configuration</a>.
+
+| Mode | Status | Notes |
+|------|--------|-------|
+| **API Key (Bearer)** | Supported | Manual MCP config in Cursor or any compatible client. Key from <a href={apiKeyUrl}>API Configuration</a>. |
+| **OAuth 2.1 (PKCE)** | Available on server | For future connector flows; not needed for manual setup. |
+
+<Info>
+  You do **not** pass `projId` in MCP tool arguments. The authenticated project comes from your <a href={apiKeyUrl}>API Key</a> (or OAuth token when using connectors later).
+</Info>
+
+## What you can do
+
+Once connected, your agent can call tools for:
+
+- **Materials** — list, upload (`POST /api/mcp/material/upload`), delete
+- **Tasks** — create video/audio/subtitle translation, list and poll status, delete
+- **Voices** — list system and cloned voices for manual voice selection
+- **Editor workflows** — query scripts/subtitles/ASR/speakers/tracks, save draft edits, re-translate, trigger TTS, compose final render
+
+See the full [MCP tools reference](/guides/mcp/tools) for every tool name and description.
+
+## Typical flow
+
+<Steps>
+  <Step title="Connect manually">
+    Add `{mcpUrl}` to your MCP client and set `Authorization: Bearer` plus your <a href={apiKeyUrl}>API Key</a>. See [Setup](/guides/mcp/setup).
+  </Step>
+  <Step title="Provide media">
+    Upload a file (`POST /api/mcp/material/upload`), pick from `vmeg_list_materials`, or pass a YouTube URL.
+  </Step>
+  <Step title="Create a task">
+    Call `vmeg_create_video_translation_task` or `vmeg_create_subtitle_translation_task` with `targetLanguage` and a media source.
+  </Step>
+  <Step title="Poll and edit">
+    Use `vmeg_list_tasks` and editor tools to query content, save draft changes, re-dub, or compose the final output.
+  </Step>
+</Steps>
+
+Tasks are **asynchronous**. Creating a job returns a `taskId` and `editorUrl`; poll until the task finishes.
+
+## Remote MCP vs Open API
+
+| | Remote MCP | [Open API](/guides/introduction) |
+| --- | --- | --- |
+| Setup | Manual MCP URL + <a href={apiKeyUrl}>API Key</a> | <a href={apiKeyUrl}>API Key</a> only |
+| Host | `www.vmeg.ai` (`/api/mcp`) | `api.vmeg.ai` (`/openapi/v1/**`) |
+| Best for | AI agents (conversational workflows) | Your backend (REST integration) |
+| Billing | Account credits (same plan) | Account credits (same plan) |
+
+Both access the same VMEG project, materials, and tasks.
+
+## FAQ
+
+**Do I need a separate MCP API Key?**  
+No. Reuse the same <a href={apiKeyUrl}>API Key</a> as the Open API — send it as the Bearer token.
+
+**Can I install VMEG from the Cursor marketplace or ChatGPT app store?**  
+Not yet. Use [manual setup](/guides/mcp/setup) until marketplace connectors are published.
+
+**Does MCP cost extra?**  
+No. Tool calls consume the same credits as tasks created on <a href={productUrls.home}>vmeg.ai</a>. See [Pricing](/guides/pricing).
+
+**Can I use MCP and the Open API together?**  
+Yes. They operate on the same project scope; choose MCP for agents and REST for programmatic backends.
+
+**Why does the agent ask me to confirm before delete or compose?**  
+Delete tools (`vmeg_delete_material`, `vmeg_delete_task`) and destructive editor actions require explicit user confirmation by design.

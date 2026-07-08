@@ -1,0 +1,100 @@
+---
+title: "概览"
+description: "将支持 MCP 的 AI Agent 接入 VMEG 媒体翻译能力"
+icon: "plug"
+---
+
+import { productUrls, apiKeyUrl, mcpUrl } from "/snippets/product-urls.jsx";
+
+通过**手动配置**远程 MCP 端点与 <a href={apiKeyUrl}>API Key</a>，将任意 **MCP 兼容** Agent 接入 VMEG。Agent 可列出素材、创建翻译任务、编辑草稿并轮询任务状态，消耗与网页端相同的账户积分。
+
+<Info>
+  **应用市场 / 商店 Connector 暂不支持。** 请先按 [接入配置](/zh/guides/mcp/setup) 使用 <a href={apiKeyUrl}>API Key</a> 手动接入。
+</Info>
+
+## 远程 MCP 端点
+
+在 MCP 客户端中填写：
+
+```text
+{mcpUrl}
+```
+
+服务端使用 **Streamable HTTP**（Spring AI MCP Server，同步工具）。
+
+## 鉴权
+
+**当前推荐：** 若客户端支持 Bearer token，在每次 MCP 请求中携带 <a href={apiKeyUrl}>API Key</a>（与 [Open API](/zh/guides/authentication) 相同）：
+
+```http
+Authorization: Bearer YOUR_API_KEY
+```
+
+在 <a href={apiKeyUrl}>API 配置</a> 创建与轮换密钥。
+
+| 方式 | 状态 | 说明 |
+|------|------|------|
+| **API Key（Bearer）** | 已支持 | 在 Cursor 等客户端手动配置 MCP。密钥来自 <a href={apiKeyUrl}>API 配置</a>。 |
+| **OAuth 2.1（PKCE）** | 服务端已具备 | 供未来 Connector 使用；手动接入不需要。 |
+
+<Info>
+  MCP 工具参数中**不要传 `projId`**。项目范围由 <a href={apiKeyUrl}>API Key</a>（或日后 OAuth）绑定决定。
+</Info>
+
+## 能做什么
+
+连接后可调用工具完成：
+
+- **素材** — 列表、上传（`POST /api/mcp/material/upload`）、删除
+- **任务** — 创建视频/音频/字幕翻译、列表与轮询、删除
+- **音色** — 列出系统音色与克隆音色（手动选音）
+- **编辑器工作流** — 查询脚本/字幕/ASR/说话人/轨道、保存草稿、重新翻译、触发配音、合成成片
+
+完整工具列表见 [MCP 工具参考](/zh/guides/mcp/tools)。
+
+## 典型流程
+
+<Steps>
+  <Step title="手动连接">
+    添加 `{mcpUrl}` 并设置 `Authorization: Bearer` 加 <a href={apiKeyUrl}>API Key</a>。见 [接入配置](/zh/guides/mcp/setup)。
+  </Step>
+  <Step title="提供媒体">
+    上传文件（`POST /api/mcp/material/upload`）、从 `vmeg_list_materials` 选择，或提供 YouTube 链接。
+  </Step>
+  <Step title="创建任务">
+    调用 `vmeg_create_video_translation_task` 或 `vmeg_create_subtitle_translation_task`，传入 `targetLanguage` 与媒体来源。
+  </Step>
+  <Step title="轮询与编辑">
+    使用 `vmeg_list_tasks` 与编辑器工具查询内容、保存草稿、重新配音或合成导出。
+  </Step>
+</Steps>
+
+任务为**异步**。创建成功返回 `taskId` 与 `editorUrl`，需轮询直至完成。
+
+## Remote MCP 与 Open API
+
+| | Remote MCP | [Open API](/zh/guides/introduction) |
+| --- | --- | --- |
+| 接入 | 手动 MCP URL + <a href={apiKeyUrl}>API Key</a> | 仅 <a href={apiKeyUrl}>API Key</a> |
+| 域名 | `www.vmeg.ai`（`/api/mcp`） | `api.vmeg.ai`（`/openapi/v1/**`） |
+| 适合 | AI Agent（对话式编排） | 自有后端（REST 集成） |
+| 计费 | 账户积分（同套餐） | 账户积分（同套餐） |
+
+两者访问同一 VMEG 项目、素材与任务。
+
+## 常见问题
+
+**需要单独的 MCP API Key 吗？**  
+不需要。复用 <a href={apiKeyUrl}>API 配置</a> 中的同一 API Key，以 Bearer token 发送即可。
+
+**能从 Cursor 应用市场或 ChatGPT 商店一键安装吗？**  
+暂不支持。请使用 [手动接入](/zh/guides/mcp/setup)，待市场上架后再看更新说明。
+
+**MCP 是否额外收费？**  
+不额外收费。工具调用消耗与 <a href={productUrls.home}>vmeg.ai</a> 创建任务相同的积分。见 [定价](/zh/guides/pricing)。
+
+**MCP 与 Open API 能同时使用吗？**  
+可以。同一项目范围内，Agent 走 MCP，后端走 REST。
+
+**为何删除或合成前 Agent 会要求确认？**  
+`vmeg_delete_material`、`vmeg_delete_task` 及破坏性编辑操作按设计需用户明确确认。
