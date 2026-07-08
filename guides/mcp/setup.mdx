@@ -1,0 +1,102 @@
+---
+title: "Setup"
+description: "Manually connect VMEG Remote MCP with an API Key and endpoint URL"
+icon: "wrench"
+---
+
+import { productUrls, apiKeyUrl, mcpUrl, mcpOAuthUrl, mcpMaterialUploadUrl } from "/snippets/product-urls.jsx";
+
+Today, connect VMEG Remote MCP by **manually** adding the server URL and your <a href={apiKeyUrl}>API Key</a>. One-click marketplace or app-store connectors are **not supported yet**.
+
+## Manual setup (recommended)
+
+<Steps>
+  <Step title="Get an API Key">
+    Create a key on <a href={apiKeyUrl}>API Configuration</a> (<a href={productUrls.signInToApiSettings}>sign in</a> if needed). You need a paid plan with credits — see [Pricing](/guides/pricing).
+  </Step>
+  <Step title="Add the MCP server">
+    In your MCP client, add a **custom / remote** MCP server (not a marketplace listing):
+    - **URL:** `{mcpUrl}`
+    - **Auth:** `Authorization: Bearer YOUR_API_KEY` (use the key from <a href={apiKeyUrl}>API Configuration</a>)
+  </Step>
+  <Step title="Reload the client">
+    Restart or reload your editor so the new MCP server is picked up.
+  </Step>
+  <Step title="Verify">
+    Ask the agent to list materials (for example: "List my VMEG materials"). It should call `vmeg_list_materials`.
+  </Step>
+</Steps>
+
+### Cursor example
+
+Add to your project or user MCP config (`.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "VMEG": {
+      "url": "https://www.vmeg.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Reload Cursor (**Cmd+Shift+P** → **Developer: Reload Window**). In chat, confirm the **VMEG** MCP server is connected before calling tools.
+
+<Warning>
+  Do not commit API Keys to git. Use environment-specific config or a local-only `mcp.json` entry.
+</Warning>
+
+### Other MCP clients
+
+Any client that supports **Streamable HTTP** remote MCP can use the same values:
+
+| Field | Value |
+|-------|-------|
+| Server URL | `{mcpUrl}` |
+| Authorization header | `Bearer YOUR_API_KEY` |
+
+The <a href={apiKeyUrl}>API Key</a> binds to one VMEG project — the same scope as [Open API](/guides/authentication). You do **not** pass `projId` in tool arguments.
+
+## Material upload (HTTP)
+
+Create-task tools accept `materialId`, `sourceUrl`, or `youtubeUrl`. To upload a file before creating a task:
+
+```bash
+curl -X POST "{mcpMaterialUploadUrl}" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@/path/to/video.mp4"
+```
+
+The response `data.id` is the `materialId` for `vmeg_create_video_translation_task` or `vmeg_create_subtitle_translation_task`.
+
+## OAuth (connectors, advanced)
+
+VMEG also exposes **OAuth 2.1 (PKCE)** for clients that cannot embed an <a href={apiKeyUrl}>API Key</a> (for example, future ChatGPT Apps / Connector flows). This path is **not** required for manual setup above.
+
+| Endpoint | Purpose |
+|----------|---------|
+| `{mcpOAuthUrl}/.well-known/oauth-authorization-server` | Authorization server metadata |
+| `{mcpUrl}/.well-known/oauth-protected-resource` | Protected resource metadata |
+
+Resolved issuer for tokens: `{mcpOAuthUrl}`.
+
+## Marketplace and app-store connectors
+
+**Not supported yet.** Do not rely on Cursor marketplace listings or ChatGPT Connector one-click install until VMEG publishes them. Use [manual setup](#manual-setup-recommended) with your <a href={apiKeyUrl}>API Key</a> instead.
+
+When marketplace support ships, this page will add product-specific steps. Until then, only custom / remote MCP configuration is documented.
+
+## Troubleshooting
+
+| Symptom | What to check |
+|---------|----------------|
+| MCP server not listed | Reload the client after editing `mcp.json`. |
+| Tool returns auth error | <a href={apiKeyUrl}>API Key</a> is valid and sent as `Bearer` on every MCP request. |
+| `vmeg_create_*` fails with no media | Upload, list materials, pass `sourceUrl`, or `youtubeUrl` first. |
+| Wrong project data | Create a new API Key under the intended project on <a href={apiKeyUrl}>API Configuration</a>. |
+
+See [Error codes](/guides/errors) for Open API-style failures surfaced through tools.

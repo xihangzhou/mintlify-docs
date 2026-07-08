@@ -1,0 +1,102 @@
+---
+title: "接入配置"
+description: "使用 API Key 与端点 URL 手动接入 VMEG Remote MCP"
+icon: "wrench"
+---
+
+import { productUrls, apiKeyUrl, mcpUrl, mcpOAuthUrl, mcpMaterialUploadUrl } from "/snippets/product-urls.jsx";
+
+当前请通过**手动配置** MCP 服务器 URL 与 <a href={apiKeyUrl}>API Key</a> 接入。应用市场、一键安装类 Connector **暂不支持**。
+
+## 手动接入（推荐）
+
+<Steps>
+  <Step title="获取 API Key">
+    在 <a href={apiKeyUrl}>API 配置</a> 创建密钥（未登录请先 <a href={productUrls.signInToApiSettings}>登录</a>）。需付费套餐与积分，见 [定价](/zh/guides/pricing)。
+  </Step>
+  <Step title="添加 MCP 服务器">
+    在 MCP 客户端中添加**自定义 / 远程** MCP 服务器（非应用市场条目）：
+    - **URL：** `{mcpUrl}`
+    - **鉴权：** `Authorization: Bearer YOUR_API_KEY`（使用 <a href={apiKeyUrl}>API 配置</a> 中的密钥）
+  </Step>
+  <Step title="重载客户端">
+    重启或重载编辑器，使新 MCP 配置生效。
+  </Step>
+  <Step title="验证">
+    让 Agent 列出素材（例如：「列出我的 VMEG 素材」），应调用 `vmeg_list_materials`。
+  </Step>
+</Steps>
+
+### Cursor 示例
+
+在项目或用户级 MCP 配置（`.cursor/mcp.json`）中添加：
+
+```json
+{
+  "mcpServers": {
+    "VMEG": {
+      "url": "https://www.vmeg.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+重载 Cursor（**Cmd+Shift+P** → **Developer: Reload Window**）。在对话中确认 **VMEG** MCP 已连接后再调用工具。
+
+<Warning>
+  勿将 API Key 提交到 git。请使用仅本机生效的配置，或按环境区分 `mcp.json`。
+</Warning>
+
+### 其他 MCP 客户端
+
+凡支持 **Streamable HTTP** 远程 MCP 的客户端，使用相同参数即可：
+
+| 字段 | 值 |
+|------|-----|
+| 服务器 URL | `{mcpUrl}` |
+| Authorization 头 | `Bearer YOUR_API_KEY` |
+
+<a href={apiKeyUrl}>API Key</a> 绑定一个 VMEG 项目，范围与 [Open API](/zh/guides/authentication) 一致。工具参数中**不要传 `projId`**。
+
+## 素材上传（HTTP）
+
+建任务工具接受 `materialId`、`sourceUrl` 或 `youtubeUrl`。创建任务前可先上传文件：
+
+```bash
+curl -X POST "{mcpMaterialUploadUrl}" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@/path/to/video.mp4"
+```
+
+响应中 `data.id` 即 `materialId`，用于 `vmeg_create_video_translation_task` 或 `vmeg_create_subtitle_translation_task`。
+
+## OAuth（Connector，进阶）
+
+服务端亦提供 **OAuth 2.1（PKCE）**，供无法内嵌 <a href={apiKeyUrl}>API Key</a> 的客户端（例如未来的 ChatGPT Apps / Connector）使用。**手动接入无需 OAuth。**
+
+| 端点 | 用途 |
+|------|------|
+| `{mcpOAuthUrl}/.well-known/oauth-authorization-server` | 授权服务器元数据 |
+| `{mcpUrl}/.well-known/oauth-protected-resource` | 受保护资源元数据 |
+
+Token 的 issuer：`{mcpOAuthUrl}`。
+
+## 应用市场与商店 Connector
+
+**暂不支持。** 在 VMEG 正式上架 Cursor 应用市场或 ChatGPT Connector 之前，请勿依赖一键安装；请改用上文 [手动接入](#手动接入推荐) 与 <a href={apiKeyUrl}>API Key</a>。
+
+上架后会在此补充分产品步骤；当前仅文档化自定义 / 远程 MCP 配置。
+
+## 故障排查
+
+| 现象 | 检查项 |
+|------|--------|
+| 看不到 MCP 服务器 | 修改 `mcp.json` 后是否已重载客户端。 |
+| 工具报鉴权错误 | <a href={apiKeyUrl}>API Key</a> 有效，且每次 MCP 请求均带 `Bearer`。 |
+| `vmeg_create_*` 失败且无媒体 | 先上传、列素材、传 `sourceUrl` 或 `youtubeUrl`。 |
+| 数据属于错误项目 | 在 <a href={apiKeyUrl}>API 配置</a> 下为目标项目重新创建 API Key。 |
+
+工具层错误可参考 [错误码](/zh/guides/errors)。
