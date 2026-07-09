@@ -1,0 +1,78 @@
+---
+title: "Claude Code"
+description: "Connect VMEG Remote MCP in Claude Code from the terminal"
+---
+
+Wire VMEG into Claude Code to translate media from your terminal workflow.
+
+## Manual setup {#manual-setup}
+
+### Prerequisites
+
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
+- A VMEG account — see [Pricing](/guides/pricing) for credits
+- An [API Key](https://www.vmeg.ai/open-api-setting) from API Configuration
+
+### Add the MCP server
+
+Run in your system terminal (not inside the Claude Code REPL):
+
+```bash
+claude mcp add --transport http vmeg https://www.vmeg.ai/api/mcp \
+  --header "Authorization: Bearer YOUR_API_KEY"
+```
+
+For all projects, add user scope:
+
+```bash
+claude mcp add --transport http -s user vmeg https://www.vmeg.ai/api/mcp \
+  --header "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Alternative:** edit `~/.claude.json` or project `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "vmeg": {
+      "type": "http",
+      "url": "https://www.vmeg.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Replace `YOUR_API_KEY` with a key from [API Configuration](https://www.vmeg.ai/open-api-setting). Restart Claude Code after editing.
+
+### Verify
+
+```bash
+claude mcp list
+```
+
+Or inside Claude Code, run `/mcp` — `vmeg` should appear as connected.
+
+### Usage
+
+```text
+Translate /path/to/demo.mp4 to French with VMEG. Target language: fr-FR.
+```
+
+Claude Code uploads the file via `POST /api/mcp/material/upload`, creates a translation task, and polls until complete.
+
+## Scoping
+
+| Scope | Flag | Config location | Availability |
+| --- | --- | --- | --- |
+| Local (default) | none | `~/.claude.json`, keyed by project path | Current project, private to you |
+| Project | `-s project` | `.mcp.json` in project root | Current project, shared via version control |
+| User | `-s user` | `~/.claude.json` | All projects for current user |
+
+## App marketplace {#app-marketplace}
+
+<Note>
+  One-click Claude Code integration is **coming soon**. Use [manual setup](#manual-setup) above for now.
+</Note>

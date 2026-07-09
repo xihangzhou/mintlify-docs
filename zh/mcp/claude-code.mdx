@@ -1,0 +1,78 @@
+---
+title: "Claude Code"
+description: "在 Claude Code 终端中接入 VMEG Remote MCP"
+---
+
+在 Claude Code 中接入 VMEG，从终端工作流完成媒体翻译。
+
+## 手动接入 {#manual-setup}
+
+### 前提条件
+
+- 已安装 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- VMEG 账户 — 见 [价格](/zh/guides/pricing)
+- 在 [API 配置](https://www.vmeg.ai/open-api-setting) 创建 [API Key](https://www.vmeg.ai/open-api-setting)
+
+### 添加 MCP 服务器
+
+在系统终端（非 Claude Code REPL 内）执行：
+
+```bash
+claude mcp add --transport http vmeg https://www.vmeg.ai/api/mcp \
+  --header "Authorization: Bearer YOUR_API_KEY"
+```
+
+若要对所有项目生效，添加 user 作用域：
+
+```bash
+claude mcp add --transport http -s user vmeg https://www.vmeg.ai/api/mcp \
+  --header "Authorization: Bearer YOUR_API_KEY"
+```
+
+**或** 编辑 `~/.claude.json` 或项目 `.mcp.json`：
+
+```json
+{
+  "mcpServers": {
+    "vmeg": {
+      "type": "http",
+      "url": "https://www.vmeg.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+将 `YOUR_API_KEY` 替换为 [API 配置](https://www.vmeg.ai/open-api-setting) 中的密钥。修改后重启 Claude Code。
+
+### 验证
+
+```bash
+claude mcp list
+```
+
+或在 Claude Code 内运行 `/mcp`，应看到已连接的 `vmeg`。
+
+### 使用
+
+```text
+Translate /path/to/demo.mp4 to French with VMEG. Target language: fr-FR.
+```
+
+Claude Code 会通过 `POST /api/mcp/material/upload` 上传文件、创建翻译任务并轮询直至完成。
+
+## 作用域
+
+| 作用域 | 参数 | 配置文件 | 可用范围 |
+| --- | --- | --- | --- |
+| Local（默认） | 无 | `~/.claude.json`（按项目路径区分） | 仅当前项目，私有 |
+| Project | `-s project` | 项目根目录 `.mcp.json` | 当前项目，可通过版本控制共享 |
+| User | `-s user` | `~/.claude.json` | 当前用户全部项目 |
+
+## 应用市场 {#app-marketplace}
+
+<Note>
+  Claude Code 一键集成**即将推出**。请先使用上方的[手动接入](#manual-setup)。
+</Note>

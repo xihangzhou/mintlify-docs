@@ -1,0 +1,160 @@
+---
+title: "快速开始"
+description: "通过 Remote MCP 将 AI Agent 连接到 VMEG 媒体翻译能力"
+---
+
+将 VMEG 接入支持 MCP 的 AI Agent，即可通过对话完成视频、音频或字幕翻译，无需自行编写集成代码。用量计入你现有 VMEG 套餐积分。
+
+<Info>
+  **应用市场 / 一键 Connector 暂不支持。** 请使用下方[手动接入](#add-vmeg-manual) 与 [API Key](https://www.vmeg.ai/open-api-setting)。
+</Info>
+
+## 手动接入 Agent {#add-vmeg-manual}
+
+<Steps>
+  <Step title="获取 API Key">
+    在 [API 配置](https://www.vmeg.ai/open-api-setting) 创建密钥。需付费套餐与积分，见 [价格](/zh/guides/pricing)。
+  </Step>
+  <Step title="添加自定义 MCP 服务器">
+    在[支持 MCP 的 Agent](/zh/mcp/quickstart#supported-products) 中打开 **Connectors** 或 **MCP servers**，选择 **Add custom connector**（不要选应用市场条目）。
+  </Step>
+  <Step title="填写端点与 Bearer">
+    - **名称：** `VMEG`
+    - **URL：** `https://www.vmeg.ai/api/mcp`
+    - **Authorization：** `Bearer YOUR_API_KEY`
+  </Step>
+  <Step title="开始翻译">
+    让 Agent 翻译媒体，例如：「用 VMEG 把这段视频翻译成西班牙语。」Agent 会调用 VMEG 工具并从套餐扣减积分。
+  </Step>
+</Steps>
+
+分 Agent 步骤见 [Cursor](/zh/mcp/cursor)、[Claude](/zh/mcp/claude-web) 及 [支持的产品](#supported-products)。**ChatGPT** [不支持](/zh/mcp/open-ai)。
+
+## 可用工具
+
+连接成功后，Agent 可使用以下工具：
+
+### 素材
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_list_materials` | 列出项目中已上传的视频/音频素材。 |
+| `vmeg_delete_material` | 删除已上传素材。须用户明确确认。 |
+
+### 音色
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_list_basic_voices` | 列出系统音色，可按 locale 过滤（如 `en-US`、`zh-CN`）。 |
+| `vmeg_list_clone_voices` | 列出项目内克隆音色。 |
+
+### 创建任务
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_create_video_translation_task` | 创建音视频翻译任务。需要 `targetLanguage` 和一种媒体来源。 |
+| `vmeg_create_subtitle_translation_task` | 创建字幕翻译任务。需要 `targetLanguage` 和一种媒体来源。 |
+
+### 任务
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_list_tasks` | 列出近期任务或按 `taskId` 轮询单个任务。 |
+| `vmeg_delete_task` | 删除任务。须用户明确确认。 |
+
+### 任务草稿（编辑器）
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_query_task_scripts` | 查询翻译脚本行。 |
+| `vmeg_query_task_subtitles` | 查询字幕片段。 |
+| `vmeg_query_task_asr` | 查询 ASR / 原始识别文本。 |
+| `vmeg_query_task_speakers` | 查询说话人与音色分配。 |
+| `vmeg_query_task_tracks` | 查询音轨/视频轨块。 |
+| `vmeg_save_task_draft` | 应用草稿编辑。不会自动重译或导出。 |
+| `vmeg_compose_task_draft` | 根据已保存草稿渲染/导出新的视频或音频。 |
+
+### 异步后续
+
+| 工具 | 说明 |
+| --- | --- |
+| `vmeg_retranslate_task_scripts` | 对已有任务的全部脚本重新翻译。 |
+| `vmeg_get_retranslate_status` | 轮询重译状态。 |
+| `vmeg_trigger_video_translation_all_tts` | 对全部或指定脚本重新配音。 |
+| `vmeg_get_tts_status` | 轮询各脚本 TTS 配音状态。 |
+
+### 上传（HTTP）
+
+| 端点 | 说明 |
+| --- | --- |
+| `POST /api/mcp/material/upload` | 本地文件 multipart 上传，返回创建任务所需的 `materialId`。 |
+
+## 媒体来源 {#media-sources}
+
+每次创建任务**只能**提供一种来源：
+
+| 来源 | 适用场景 |
+| --- | --- |
+| `materialId` | 文件已在项目中（上传或素材库） |
+| `sourceUrl` | HTTPS 直链 — 如 Agent 附件 URL |
+| `youtubeUrl` | 仅 YouTube 视频链接 |
+
+`sourceUrl` 需为可公开访问的 HTTPS 文件链接。上传本地文件时，先调用 `POST /api/mcp/material/upload`。
+
+## 支持的产品 {#supported-products}
+
+| Agent | 手动自定义 MCP | VMEG 鉴权 | 状态 |
+| --- | --- | --- | --- |
+| [Cursor](/zh/mcp/cursor) | 支持 — `mcp.json` 或设置页 | [API Key](https://www.vmeg.ai/open-api-setting)（Bearer） | 可用 |
+| [Claude](/zh/mcp/claude-web) | 支持 — Add custom connector | 连接时 OAuth | 可用 |
+| [Claude Code](/zh/mcp/claude-code) | 支持 — `claude mcp add` | [API Key](https://www.vmeg.ai/open-api-setting) 或 OAuth | 可用 |
+| [Gemini CLI](/zh/mcp/gemini-cli) | 支持 — `settings.json` | [API Key](https://www.vmeg.ai/open-api-setting)（Bearer） | 可用 |
+| [Manus](/zh/mcp/manus) | 支持 — Custom MCP 连接器 | [API Key](https://www.vmeg.ai/open-api-setting)（仅 Bearer） | 可用 |
+| [ChatGPT](/zh/mcp/open-ai) | **不支持** | — | **不支持** |
+
+上表链接到各 Agent 接入指南。**应用市场**一键安装写在各指南文末，标注为**即将推出**。
+
+其他 MCP 兼容客户端也可使用同一端点：
+
+```text
+https://www.vmeg.ai/api/mcp
+```
+
+## Remote MCP
+
+| | Remote MCP |
+| --- | --- |
+| 配置 | 手动 MCP URL + [API Key](https://www.vmeg.ai/open-api-setting) |
+| 运行位置 | VMEG 托管基础设施 |
+| 鉴权 | OAuth 或 [API Key](https://www.vmeg.ai/open-api-setting) |
+| 计费 | 现有 VMEG 套餐积分 |
+| 适用场景 | 各类支持 MCP 的 Agent |
+
+## 应用市场 {#app-marketplace}
+
+<Note>
+  各类应用市场 / 商店的**一键安装暂不支持**。**ChatGPT [不支持](/zh/mcp/open-ai)。** 支持手动 MCP 的 Agent 请使用[手动接入](#add-vmeg-manual) 与 [API Key](https://www.vmeg.ai/open-api-setting)。
+</Note>
+
+## 常见问题
+
+<AccordionGroup>
+  <Accordion title="需要 API Key 吗？">
+    手动接入需要 — 在 [API 配置](https://www.vmeg.ai/open-api-setting) 创建密钥，并在 MCP 请求中以 `Authorization: Bearer` 发送。未来应用市场 Connector 可能改用 OAuth。
+  </Accordion>
+  <Accordion title="会额外收费吗？">
+    不会。翻译消耗 VMEG 套餐内积分，见 [价格](/zh/guides/pricing)。
+  </Accordion>
+  <Accordion title="哪些套餐支持 MCP？">
+    免费与付费 VMEG 账户均可接入 MCP。提交翻译任务时按账户正常扣减积分 — 见 [价格](/zh/guides/pricing)。
+  </Accordion>
+  <Accordion title="能用网页端已有的素材和音色吗？">
+    可以。MCP 绑定你的 **VMEG 项目**（通过 [API Key](https://www.vmeg.ai/open-api-setting) 或 OAuth），与 vmeg.ai 网页端共用同一套素材、任务与项目资源。
+  </Accordion>
+  <Accordion title="MCP 和 Open API 的资产互通吗？">
+    不互通。[Open API](/zh/guides/introduction) 创建的素材、任务与 `voiceId` 与 MCP 相互独立，不要混用 ID。见 [API 资产](/zh/guides/assets/overview)。
+  </Accordion>
+  <Accordion title="MCP 和 Open API 有什么区别？">
+    MCP 面向 AI Agent 提供对话式翻译工具（OAuth、VMEG 项目范围，与网页端共用资源）。Open API 面向程序化后端提供 REST 接口（API Key、独立资产库）。
+  </Accordion>
+</AccordionGroup>

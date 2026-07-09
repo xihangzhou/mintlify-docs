@@ -1,0 +1,66 @@
+---
+title: "Claude"
+description: "Connect VMEG Remote MCP in Claude via custom connector"
+---
+
+Use VMEG inside Claude (web or desktop) to translate media through conversation.
+
+## Manual setup {#manual-setup}
+
+### Prerequisites
+
+- A Claude account — custom connectors work on all plans (Free is limited to one connector; Pro, Max, Team, and Enterprise allow more). On Team/Enterprise, an owner must add the connector at the organization level first.
+- A VMEG account — see [Pricing](/guides/pricing) for credits
+
+### Register the connector
+
+Claude supports **manual custom connectors** (paste a Remote MCP URL). The connector UI does **not** expose custom `Authorization` headers — authenticate with **OAuth** when you connect.
+
+<Steps>
+  <Step title="Open connector settings">
+    In Claude, go to **Settings** → **Connectors** → **Add custom connector** (or **Customize** → **Connectors** → **+**).
+  </Step>
+  <Step title="Enter the VMEG endpoint">
+    - **Name:** `VMEG`
+    - **Remote MCP server URL:**
+
+    ```text
+    https://www.vmeg.ai/api/mcp
+    ```
+
+    Leave OAuth Client ID / Secret blank unless you run a custom OAuth client.
+  </Step>
+  <Step title="Connect and authorize">
+    Click **Connect**. Complete the VMEG OAuth flow in your browser, approve access, and **select the project** Claude should use.
+  </Step>
+  <Step title="Set permissions (optional)">
+    To avoid repeated prompts, set the VMEG connector to **Always allow**.
+  </Step>
+</Steps>
+
+<Note>
+  Need [API Key](https://www.vmeg.ai/open-api-setting) + Bearer auth instead? Use [Claude Code](/mcp/claude-code) or [Cursor](/mcp/cursor).
+</Note>
+
+### Usage
+
+Open a new Claude chat and request a translation:
+
+```text
+Translate this video to German with VMEG. Target language: de-DE.
+```
+
+Claude calls VMEG tools to create tasks, poll status, and return an editor link when finished.
+
+## Limitations
+
+| Constraint | Detail |
+| --- | --- |
+| Claude plan | Custom connectors work on all plans; Free is limited to one, paid plans allow more |
+| VMEG account | Free and paid accounts can use MCP; tasks deduct credits as usual |
+
+## App marketplace {#app-marketplace}
+
+<Note>
+  One-click Claude connector directory integration is **coming soon**. Use [manual setup](#manual-setup) above for now.
+</Note>

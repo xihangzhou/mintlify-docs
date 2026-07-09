@@ -97,6 +97,18 @@
             ]
           },
           {
+            "tab": "MCP",
+            "pages": [
+              "mcp/quickstart",
+              "mcp/open-ai",
+              "mcp/cursor",
+              "mcp/claude-web",
+              "mcp/claude-code",
+              "mcp/gemini-cli",
+              "mcp/manus"
+            ]
+          },
+          {
             "tab": "API reference",
             "groups": [
               {
@@ -180,6 +192,18 @@
                 "group": "限制",
                 "pages": ["zh/guides/usage-limits", "zh/guides/errors"]
               }
+            ]
+          },
+          {
+            "tab": "MCP",
+            "pages": [
+              "zh/mcp/quickstart",
+              "zh/mcp/open-ai",
+              "zh/mcp/cursor",
+              "zh/mcp/claude-web",
+              "zh/mcp/claude-code",
+              "zh/mcp/gemini-cli",
+              "zh/mcp/manus"
             ]
           },
           {

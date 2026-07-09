@@ -1,0 +1,66 @@
+---
+title: "Claude"
+description: "在 Claude 中通过自定义连接器接入 VMEG Remote MCP"
+---
+
+在 Claude（网页或桌面端）对话中使用 VMEG 完成媒体翻译。
+
+## 手动接入 {#manual-setup}
+
+### 前提条件
+
+- Claude 账户 — 自定义连接器所有套餐均可用（免费版限 1 个，Pro / Max / Team / Enterprise 更多）。Team / Enterprise 需由管理员先在组织层添加。
+- VMEG 账户 — 见 [价格](/zh/guides/pricing)
+
+### 注册连接器
+
+Claude 支持**手动添加自定义连接器**（粘贴 Remote MCP URL）。连接器界面**不提供**自定义 `Authorization` 请求头 — 请在连接时通过 **OAuth** 授权。
+
+<Steps>
+  <Step title="打开连接器设置">
+    在 Claude 中：**Settings** → **Connectors** → **Add custom connector**（或 **Customize** → **Connectors** → **+**）。
+  </Step>
+  <Step title="填写 VMEG 端点">
+    - **名称：** `VMEG`
+    - **Remote MCP server URL：**
+
+    ```text
+    https://www.vmeg.ai/api/mcp
+    ```
+
+    除非你使用自定义 OAuth 客户端，否则 OAuth Client ID / Secret 留空。
+  </Step>
+  <Step title="连接并授权">
+    点击 **Connect**，在浏览器中完成 VMEG OAuth，批准访问并**选择项目**。
+  </Step>
+  <Step title="权限（可选）">
+    将 VMEG 连接器设为 **Always allow**，减少重复确认。
+  </Step>
+</Steps>
+
+<Note>
+  需要 [API Key](https://www.vmeg.ai/open-api-setting) + Bearer？请使用 [Claude Code](/zh/mcp/claude-code) 或 [Cursor](/zh/mcp/cursor)。
+</Note>
+
+### 使用
+
+在新对话中请求翻译：
+
+```text
+Translate this video to German with VMEG. Target language: de-DE.
+```
+
+Claude 会调用 VMEG 工具创建任务、轮询状态并在完成后返回编辑器链接。
+
+## 限制
+
+| 约束 | 说明 |
+| --- | --- |
+| Claude 套餐 | 所有套餐均可用；免费版限 1 个连接器，付费版更多 |
+| VMEG 账户 | 免费与付费账户均可；任务正常扣积分 |
+
+## 应用市场 {#app-marketplace}
+
+<Note>
+  Claude 连接器目录一键接入**即将推出**。请先使用上方的[手动接入](#manual-setup)。
+</Note>

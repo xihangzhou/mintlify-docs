@@ -1,0 +1,62 @@
+---
+title: "Cursor"
+description: "Add VMEG Remote MCP to Cursor manually"
+---
+
+Use VMEG from Cursor's Agent chat to translate media without leaving your editor.
+
+## Manual setup {#manual-setup}
+
+### Prerequisites
+
+- [Cursor](https://cursor.com) installed (latest version recommended)
+- A VMEG account — see [Pricing](/guides/pricing) for credits
+- An [API Key](https://www.vmeg.ai/open-api-setting) from API Configuration
+
+### Add the MCP server
+
+In **Cursor Settings** → **Tools & MCP** → **New MCP Server**, or edit `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "vmeg": {
+      "url": "https://www.vmeg.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Replace `YOUR_API_KEY` with the key from [API Configuration](https://www.vmeg.ai/open-api-setting). If you already have other MCP servers, add `vmeg` alongside them inside the existing `mcpServers` block.
+
+Cursor auto-detects changes to `mcp.json`. If `vmeg` doesn't appear, toggle it off/on or click refresh in **Cursor Settings** → **Tools & MCP** (reloading the window via **Cmd+Shift+P** → **Developer: Reload Window** also works).
+
+### Verify
+
+Open **Cursor Settings** → **MCP** and confirm `vmeg` is listed with tools enabled. In chat, ask *「What MCP tools do you have?」* to confirm VMEG tools appear.
+
+### Usage
+
+In Cursor Agent chat, attach or reference a local file and request translation:
+
+```text
+Upload this video and translate it to Spanish with VMEG. Target language: es-ES.
+```
+
+For local files, the agent should upload via `POST /api/mcp/material/upload`, then call create-task tools. See [Quick start](/mcp/quickstart#media-sources).
+
+## Limitations
+
+| Constraint | Detail |
+| --- | --- |
+| Manual config | Add the Remote MCP URL and Bearer token yourself |
+| Local files | Use multipart upload; local paths are not valid as `sourceUrl` |
+
+## App marketplace {#app-marketplace}
+
+<Note>
+  A one-click Cursor marketplace listing is **coming soon**. Use [manual setup](#manual-setup) above for now.
+</Note>

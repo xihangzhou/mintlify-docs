@@ -1,0 +1,65 @@
+---
+title: "Gemini CLI"
+description: "Connect VMEG Remote MCP in Gemini CLI"
+---
+
+Add VMEG to Gemini CLI and translate media from natural-language prompts in your terminal.
+
+## Manual setup {#manual-setup}
+
+### Prerequisites
+
+- Gemini CLI installed (`npm install -g @google/gemini-cli@latest`)
+- A VMEG account — see [Pricing](/guides/pricing) for credits
+- An [API Key](https://www.vmeg.ai/open-api-setting) from API Configuration
+
+### Add the MCP server
+
+Edit your Gemini CLI settings and add VMEG under `mcpServers`:
+
+- **Global (all projects):** `~/.gemini/settings.json`
+- **Project-scoped:** `.gemini/settings.json` in your project root
+
+```json
+{
+  "mcpServers": {
+    "vmeg": {
+      "httpUrl": "https://www.vmeg.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Replace `YOUR_API_KEY` with your key from [API Configuration](https://www.vmeg.ai/open-api-setting). If you already have other MCP servers, add `vmeg` alongside them. Restart Gemini CLI after saving.
+
+### Verify
+
+Launch Gemini CLI and run:
+
+```text
+/mcp
+```
+
+`vmeg` should appear with its available tools.
+
+### Usage
+
+```text
+Translate demo.mp4 to Korean with VMEG. Target language: ko-KR.
+```
+
+## Configuration scoping
+
+| Scope | File location | Availability |
+| --- | --- | --- |
+| Global | `~/.gemini/settings.json` | All projects |
+| Project | `.gemini/settings.json` (project root) | Current project only |
+
+## App marketplace {#app-marketplace}
+
+<Note>
+  One-click Gemini CLI integration is **coming soon**. Use [manual setup](#manual-setup) above for now.
+</Note>

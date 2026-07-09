@@ -1,0 +1,65 @@
+---
+title: "Gemini CLI"
+description: "在 Gemini CLI 中接入 VMEG Remote MCP"
+---
+
+将 VMEG 加入 Gemini CLI，用自然语言在终端完成媒体翻译。
+
+## 手动接入 {#manual-setup}
+
+### 前提条件
+
+- 已安装 Gemini CLI（`npm install -g @google/gemini-cli@latest`）
+- VMEG 账户 — 见 [价格](/zh/guides/pricing)
+- 在 [API 配置](https://www.vmeg.ai/open-api-setting) 创建 [API Key](https://www.vmeg.ai/open-api-setting)
+
+### 添加 MCP 服务器
+
+在 Gemini CLI 配置的 `mcpServers` 中添加 VMEG：
+
+- **全局：** `~/.gemini/settings.json`
+- **项目级：** 项目根目录 `.gemini/settings.json`
+
+```json
+{
+  "mcpServers": {
+    "vmeg": {
+      "httpUrl": "https://www.vmeg.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+将 `YOUR_API_KEY` 替换为 [API 配置](https://www.vmeg.ai/open-api-setting) 中的密钥。保存后重启 Gemini CLI。
+
+### 验证
+
+启动 Gemini CLI 并运行：
+
+```text
+/mcp
+```
+
+应看到 `vmeg` 及其工具列表。
+
+### 使用
+
+```text
+Translate demo.mp4 to Korean with VMEG. Target language: ko-KR.
+```
+
+## 配置作用域
+
+| 作用域 | 文件位置 | 可用范围 |
+| --- | --- | --- |
+| 全局 | `~/.gemini/settings.json` | 所有项目 |
+| 项目 | 项目根 `.gemini/settings.json` | 仅当前项目 |
+
+## 应用市场 {#app-marketplace}
+
+<Note>
+  Gemini CLI 一键集成**即将推出**。请先使用上方的[手动接入](#manual-setup)。
+</Note>

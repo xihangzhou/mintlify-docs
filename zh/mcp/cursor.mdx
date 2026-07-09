@@ -1,0 +1,62 @@
+---
+title: "Cursor"
+description: "在 Cursor 中手动添加 VMEG Remote MCP"
+---
+
+在 Cursor Agent 对话中直接使用 VMEG 翻译媒体，无需离开编辑器。
+
+## 手动接入 {#manual-setup}
+
+### 前提条件
+
+- 已安装 [Cursor](https://cursor.com)（建议使用最新版）
+- VMEG 账户 — 见 [价格](/zh/guides/pricing)
+- 在 [API 配置](https://www.vmeg.ai/open-api-setting) 创建 [API Key](https://www.vmeg.ai/open-api-setting)
+
+### 添加 MCP 服务器
+
+在 **Cursor Settings** → **Tools & MCP** → **New MCP Server**，或编辑 `~/.cursor/mcp.json`：
+
+```json
+{
+  "mcpServers": {
+    "vmeg": {
+      "url": "https://www.vmeg.ai/api/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+将 `YOUR_API_KEY` 替换为 [API 配置](https://www.vmeg.ai/open-api-setting) 中的密钥。若已有其他 MCP 服务器，在现有 `mcpServers` 中并列添加 `vmeg` 即可。
+
+Cursor 会自动检测 `mcp.json` 的变化。若 `vmeg` 未出现，可在 **Cursor Settings** → **Tools & MCP** 中切换开关或点击刷新（通过 **Cmd+Shift+P** → **Developer: Reload Window** 重载窗口也可以）。
+
+### 验证
+
+打开 **Cursor Settings** → **MCP**，确认 `vmeg` 已列出且工具已启用。在对话中询问 *「What MCP tools do you have?」* 确认出现 VMEG 工具。
+
+### 使用
+
+在 Cursor Agent 对话中附加或引用本地文件并请求翻译：
+
+```text
+Upload this video and translate it to Spanish with VMEG. Target language: es-ES.
+```
+
+本地文件需先通过 `POST /api/mcp/material/upload` 上传，再调用建任务工具。见 [快速开始](/zh/mcp/quickstart#media-sources)。
+
+## 限制
+
+| 约束 | 说明 |
+| --- | --- |
+| 手动配置 | 需自行添加 Remote MCP URL 与 Bearer token |
+| 本地文件 | 使用 multipart 上传；本地路径不能作为 `sourceUrl` |
+
+## 应用市场 {#app-marketplace}
+
+<Note>
+  Cursor 应用市场一键安装**即将推出**。请先使用上方的[手动接入](#manual-setup)。
+</Note>

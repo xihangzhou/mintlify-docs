@@ -1,0 +1,68 @@
+---
+title: "Manus"
+description: "Connect VMEG Remote MCP in Manus agents"
+---
+
+Connect VMEG to Manus so agents can translate media as part of automated workflows.
+
+## Manual setup {#manual-setup}
+
+### Prerequisites
+
+- A Manus account with access to Manus Computer (Agents)
+- A VMEG account — see [Pricing](/guides/pricing) for credits
+- An [API Key](https://www.vmeg.ai/open-api-setting) from API Configuration
+
+### Connect VMEG
+
+Manus supports **custom Remote MCP** connectors (Settings → Connectors → **Add custom MCP**). Authenticate with a Bearer [API Key](https://www.vmeg.ai/open-api-setting) set as a custom `Authorization` header.
+
+<Steps>
+  <Step title="Open connector settings">
+    In [Manus](https://manus.im/app), go to **Settings** → **Connectors** → **Add custom MCP** (or **Direct configuration**).
+  </Step>
+  <Step title="Enter the VMEG endpoint">
+    - **Name:** `VMEG`
+    - **Transport:** `HTTP`
+    - **Server URL:**
+
+    ```text
+    https://www.vmeg.ai/api/mcp
+    ```
+  </Step>
+  <Step title="Add the Authorization header">
+    Click **Add custom header** and set:
+
+    - **Name:** `Authorization`
+    - **Value:** `Bearer YOUR_API_KEY`
+
+    Include the space after `Bearer`. Use a key from [API Configuration](https://www.vmeg.ai/open-api-setting).
+  </Step>
+  <Step title="Save and verify">
+    Save the connector. Manus should list VMEG tools after a successful connection test.
+  </Step>
+</Steps>
+
+### Usage in Manus Computer
+
+Open [Manus Agents](https://manus.im/app/agents), enable VMEG tools for your agent, and describe the translation job:
+
+```text
+Every morning, check for new video files in my folder, translate each to English
+with VMEG, and report task IDs when submission completes.
+```
+
+## Limitations
+
+| Constraint | Detail |
+| --- | --- |
+| Authentication | Use a Bearer [API Key](https://www.vmeg.ai/open-api-setting) in a custom `Authorization` header |
+| Public URL | Manus connects from the cloud; the MCP endpoint must be publicly reachable over HTTPS |
+| VMEG account | Free and paid accounts can use MCP; tasks deduct credits as usual |
+| Async tasks | Translation jobs are async — agents should poll `vmeg_list_tasks` |
+
+## App marketplace {#app-marketplace}
+
+<Note>
+  One-click Manus tool-store integration is **coming soon**. Use [manual setup](#manual-setup) above for now. If only pre-built integrations are shown, use another agent from [supported products](/mcp/quickstart#supported-products) until then.
+</Note>

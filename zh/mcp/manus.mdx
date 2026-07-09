@@ -1,0 +1,68 @@
+---
+title: "Manus"
+description: "在 Manus Agent 中接入 VMEG Remote MCP"
+---
+
+将 VMEG 接入 Manus，在自动化工作流中完成媒体翻译。
+
+## 手动接入 {#manual-setup}
+
+### 前提条件
+
+- 可使用 Manus Computer（Agents）的 Manus 账户
+- VMEG 账户 — 见 [价格](/zh/guides/pricing)
+- 在 [API 配置](https://www.vmeg.ai/open-api-setting) 创建 [API Key](https://www.vmeg.ai/open-api-setting)
+
+### 连接 VMEG
+
+Manus 支持**自定义 Remote MCP** 连接器（**Settings** → **Connectors** → **Add custom MCP**）。使用 Bearer [API Key](https://www.vmeg.ai/open-api-setting)，将其设为自定义 `Authorization` 请求头进行鉴权。
+
+<Steps>
+  <Step title="打开连接器设置">
+    在 [Manus](https://manus.im/app) 中进入 **Settings** → **Connectors** → **Add custom MCP**（或 **Direct configuration**）。
+  </Step>
+  <Step title="填写 VMEG 端点">
+    - **名称：** `VMEG`
+    - **传输：** `HTTP`
+    - **Server URL：**
+
+    ```text
+    https://www.vmeg.ai/api/mcp
+    ```
+  </Step>
+  <Step title="添加 Authorization 请求头">
+    点击 **Add custom header**，设置：
+
+    - **名称：** `Authorization`
+    - **值：** `Bearer YOUR_API_KEY`
+
+    `Bearer` 后需有空格。密钥来自 [API 配置](https://www.vmeg.ai/open-api-setting)。
+  </Step>
+  <Step title="保存并验证">
+    保存连接器。连接测试通过后应能看到 VMEG 工具列表。
+  </Step>
+</Steps>
+
+### 在 Manus Computer 中使用
+
+打开 [Manus Agents](https://manus.im/app/agents)，为 Agent 启用 VMEG 工具并描述任务：
+
+```text
+Every morning, check for new video files in my folder, translate each to English
+with VMEG, and report task IDs when submission completes.
+```
+
+## 限制
+
+| 约束 | 说明 |
+| --- | --- |
+| 鉴权 | 在自定义 `Authorization` 请求头中使用 Bearer [API Key](https://www.vmeg.ai/open-api-setting) |
+| 公网 URL | Manus 从云端连接；MCP 端点须可通过 HTTPS 公网访问 |
+| VMEG 账户 | 免费与付费账户均可；任务正常扣积分 |
+| 异步任务 | 翻译为异步 — Agent 应轮询 `vmeg_list_tasks` |
+
+## 应用市场 {#app-marketplace}
+
+<Note>
+  Manus 工具商店一键接入**即将推出**。请先使用上方的[手动接入](#manual-setup)。若界面仅显示预置集成，在上线前可先使用 [支持的产品](/zh/mcp/quickstart#supported-products) 中的其他 Agent。
+</Note>

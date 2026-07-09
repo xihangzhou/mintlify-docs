@@ -1,0 +1,160 @@
+---
+title: "Quick start"
+description: "Connect AI agents to VMEG media translation via Remote MCP"
+---
+
+Connect VMEG to an MCP-compatible AI agent and translate video, audio, or subtitles through conversation — no custom integration code required. Usage draws on your existing VMEG plan credits.
+
+<Info>
+  **App marketplace / one-click connectors are not supported yet.** Use [manual setup](#add-vmeg-to-your-agent-manual) below with an [API Key](https://www.vmeg.ai/open-api-setting).
+</Info>
+
+## Add VMEG to your agent (manual) {#add-vmeg-to-your-agent-manual}
+
+<Steps>
+  <Step title="Get an API Key">
+    Create a key on [API Configuration](https://www.vmeg.ai/open-api-setting). You need a paid plan with credits — see [Pricing](/guides/pricing).
+  </Step>
+  <Step title="Add a custom MCP server">
+    In your [MCP-compatible agent](/mcp/quickstart#supported-products), open **Connectors** or **MCP servers** and choose **Add custom connector** (not a marketplace listing).
+  </Step>
+  <Step title="Enter the endpoint and Bearer token">
+    - **Name:** `VMEG`
+    - **URL:** `https://www.vmeg.ai/api/mcp`
+    - **Authorization:** `Bearer YOUR_API_KEY`
+  </Step>
+  <Step title="Start translating">
+    Ask your agent to translate media — for example, "Translate this video to Spanish with VMEG." The agent calls VMEG tools and bills against your plan.
+  </Step>
+</Steps>
+
+Per-agent steps: [Cursor](/mcp/cursor), [Claude](/mcp/claude-web), and others in [Supported products](#supported-products). **ChatGPT** is [not supported](/mcp/open-ai).
+
+## What you can do
+
+Once connected, your AI agent has access to the following tools:
+
+### Materials
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_list_materials` | List uploaded video/audio materials in your project. |
+| `vmeg_delete_material` | Delete an uploaded material. Requires explicit user confirmation. |
+
+### Voices
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_list_basic_voices` | List system voices. Filter by locale (e.g. `en-US`, `zh-CN`). |
+| `vmeg_list_clone_voices` | List cloned voices in your project. |
+
+### Create tasks
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_create_video_translation_task` | Create a video or audio translation task. Requires `targetLanguage` and one media source. |
+| `vmeg_create_subtitle_translation_task` | Create a subtitle translation task. Requires `targetLanguage` and one media source. |
+
+### Tasks
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_list_tasks` | List recent tasks or poll a single task by `taskId`. |
+| `vmeg_delete_task` | Delete a task. Requires explicit user confirmation. |
+
+### Task draft (editor)
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_query_task_scripts` | Query translated script lines. |
+| `vmeg_query_task_subtitles` | Query subtitle clips. |
+| `vmeg_query_task_asr` | Query ASR / original recognition lines. |
+| `vmeg_query_task_speakers` | Query speakers and voice assignments. |
+| `vmeg_query_task_tracks` | Query audio/video track blocks. |
+| `vmeg_save_task_draft` | Apply draft edits. Does not auto re-translate or export. |
+| `vmeg_compose_task_draft` | Render/export a new video or audio from the saved draft. |
+
+### Async follow-up
+
+| Tool | Description |
+| --- | --- |
+| `vmeg_retranslate_task_scripts` | Re-translate all scripts for an existing task. |
+| `vmeg_get_retranslate_status` | Poll re-translation status. |
+| `vmeg_trigger_video_translation_all_tts` | Re-dub all or selected scripts. |
+| `vmeg_get_tts_status` | Poll per-script TTS dubbing status. |
+
+### Upload (HTTP)
+
+| Endpoint | Description |
+| --- | --- |
+| `POST /api/mcp/material/upload` | Multipart upload for local files. Returns `materialId` for create-task tools. |
+
+## Media sources {#media-sources}
+
+Each create-task call needs **exactly one** source:
+
+| Source | When to use |
+| --- | --- |
+| `materialId` | File already in your project (from upload or library) |
+| `sourceUrl` | HTTPS direct link — e.g. an agent attachment URL |
+| `youtubeUrl` | YouTube video URL only |
+
+For `sourceUrl`, pass a public HTTPS file URL. For local files, upload via `POST /api/mcp/material/upload` first.
+
+## Supported products {#supported-products}
+
+| Agent | Manual custom MCP | VMEG auth | Status |
+| --- | --- | --- | --- |
+| [Cursor](/mcp/cursor) | Yes — `mcp.json` or Settings | [API Key](https://www.vmeg.ai/open-api-setting) (Bearer) | Available |
+| [Claude](/mcp/claude-web) | Yes — Add custom connector | OAuth on Connect | Available |
+| [Claude Code](/mcp/claude-code) | Yes — `claude mcp add` | [API Key](https://www.vmeg.ai/open-api-setting) or OAuth | Available |
+| [Gemini CLI](/mcp/gemini-cli) | Yes — `settings.json` | [API Key](https://www.vmeg.ai/open-api-setting) (Bearer) | Available |
+| [Manus](/mcp/manus) | Yes — Custom MCP connector | [API Key](https://www.vmeg.ai/open-api-setting) (Bearer only) | Available |
+| [ChatGPT](/mcp/open-ai) | **No** | — | **Not supported** |
+
+Setup guides for each manual-capable agent are linked above. **App marketplace** one-click install is listed at the bottom of each guide as **coming soon**.
+
+Any other MCP-compatible client can use the same endpoint:
+
+```text
+https://www.vmeg.ai/api/mcp
+```
+
+## Remote MCP
+
+| | Remote MCP |
+| --- | --- |
+| Setup | Manual MCP URL + [API Key](https://www.vmeg.ai/open-api-setting) |
+| Runs on | VMEG hosted infrastructure |
+| Authentication | OAuth or [API Key](https://www.vmeg.ai/open-api-setting) |
+| Billing | Your existing VMEG plan credits |
+| Best for | Any MCP-compatible agent |
+
+## App marketplace {#app-marketplace}
+
+<Note>
+  One-click installs from marketplaces or app stores are **not supported yet**. **ChatGPT is [not supported](/mcp/open-ai).** For agents that support manual MCP, use [manual setup](#add-vmeg-to-your-agent-manual) with your [API Key](https://www.vmeg.ai/open-api-setting).
+</Note>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Do I need an API Key?">
+    For manual setup, yes — create an [API Key](https://www.vmeg.ai/open-api-setting) and send it as `Authorization: Bearer` on MCP requests. Some future marketplace connectors may use OAuth instead.
+  </Accordion>
+  <Accordion title="Does this cost extra?">
+    No. Translation uses credits included in your VMEG plan. See [Pricing](/guides/pricing).
+  </Accordion>
+  <Accordion title="Which plans support MCP?">
+    Free and paid VMEG accounts can connect MCP. Submitting translation tasks deducts credits from your account as usual — see [Pricing](/guides/pricing).
+  </Accordion>
+  <Accordion title="Can I use materials and voices from the vmeg.ai web app?">
+    Yes. MCP binds to your **VMEG project** (via [API Key](https://www.vmeg.ai/open-api-setting) or OAuth) and uses the same materials, tasks, and project resources as the website.
+  </Accordion>
+  <Accordion title="Are MCP and Open API assets interchangeable?">
+    No. Materials, tasks, and `voiceId` values created through the [Open API](/guides/introduction) are separate from MCP. Do not mix IDs across the two channels. See [API assets](/guides/assets/overview).
+  </Accordion>
+  <Accordion title="What's the difference between MCP and the Open API?">
+    MCP exposes translation tools for AI agents (OAuth, VMEG project scope, shared with the web app). The Open API exposes REST endpoints for programmatic backends (API Key, separate asset store).
+  </Accordion>
+</AccordionGroup>
