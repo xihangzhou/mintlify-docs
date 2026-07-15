@@ -45,7 +45,7 @@
     {
       "name": "资产 - 素材",
       "x-group": "上传文件（素材）",
-      "description": "上传并管理用于翻译配音任务的视频/音频。流程：预签名上传 → 登记素材 → 将 `materialId` 传入 create-async。见 [素材上传](/zh/guides/assets/material-upload)。"
+      "description": "上传并管理用于翻译配音任务的视频/音频。流程：走完完整上传（预签名或分片 → 登记）→ 将已注册的 `materialId` 传入 create-async。见 [素材上传](/zh/guides/assets/material-upload)。"
     },
     {
       "name": "资产 - 音色",
@@ -1741,7 +1741,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "输入素材 ID。见 [素材](/zh/guides/assets/materials)（通过 [素材上传](/zh/guides/assets/material-upload) 获取）"
+            "description": "已走完完整 [素材上传](/zh/guides/assets/material-upload) 流程后得到的已注册素材 ID（也可来自 [素材列表](/zh/guides/assets/materials)）。不要使用 gen-upload-url / 分片发起返回的进行中 ID。"
           }
         },
         "description": "本任务的输入素材"

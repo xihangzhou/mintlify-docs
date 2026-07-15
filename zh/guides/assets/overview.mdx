@@ -8,7 +8,7 @@ Open API **资产**是你在任务请求中通过 ID 引用的资源。两类：
 
 | 资产 | ID 字段 | 用途 |
 |------|---------|------|
-| **素材（Material）** | `materialId` | 上传的音视频输入（主要用于媒体翻译） |
+| **素材（Material）** | `materialId` | 音视频输入（主要用于媒体翻译）。须走完完整 [上传](/zh/guides/assets/material-upload) 流程后方可使用 |
 | **音色（Voice）** | `voiceId` | 系统预设或克隆音色，用于 TTS |
 
 ## 仅 API 侧存储
@@ -20,7 +20,7 @@ Open API **资产**是你在任务请求中通过 ID 引用的资源。两类：
 ## 典型流程
 
 ```text
-上传素材 → materialId → 媒体翻译任务
+完整素材上传 → 已注册 materialId → 媒体翻译任务
 声音克隆 → voiceId → TTS 任务
 查询系统音色 → voiceId → TTS 任务
 ```

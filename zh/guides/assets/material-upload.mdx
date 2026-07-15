@@ -8,6 +8,10 @@ icon: "cloud-arrow-up"
 
 本流程中所有相关 **POST** 均须携带 [`X-Idempotency-Key`](/zh/guides/idempotency)。
 
+<Warning>
+  获取预签名 URL 或分片发起等前置步骤可能已返回 `materialId`。该 ID **仅用于续传/完成上传**，在整套上传流程结束前 **不要** 把它传给 create-async 或其他产品接口。只有在单文件 **complete**、分片 **complete**，或瞬时上传/去重响应中已返回已注册 `material` 之后，该 `materialId` 才能用于建任务。
+</Warning>
+
 ## 选择上传方式
 
 | 方式 | 适用场景 |
@@ -629,4 +633,4 @@ public final class MultipartMaterialUpload {
 
 ## 上传之后
 
-在 [音视频翻译](/zh/guides/products/media-translation) 的 `source.materialId` 中使用 `materialId`。管理资产见 [素材](/zh/guides/assets/materials)。
+仅在完整上传流程成功后，才能在 [音视频翻译](/zh/guides/products/media-translation) 的 `source.materialId` 中使用已注册的 `materialId`。管理资产见 [素材](/zh/guides/assets/materials)。

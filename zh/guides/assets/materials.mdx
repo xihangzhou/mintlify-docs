@@ -6,9 +6,9 @@ icon: "photo-film"
 
 ## 什么是素材
 
-**素材**是已注册的音视频文件，供 Open API 任务引用。上传完成后 API 返回 **`materialId`**，用于 [音视频翻译](/zh/guides/products/media-translation) 等场景。
+**素材**是已注册的音视频文件，供 Open API 任务引用。走完完整的 [素材上传](/zh/guides/assets/material-upload) 流程后，你才会得到可用于建任务的 **`materialId`**，例如 [音视频翻译](/zh/guides/products/media-translation)。
 
-素材仅属 API 侧，与 vmeg.ai 网页上传的文件不互通。见 [资产概览](/zh/guides/assets/overview)。
+不要使用未完成上传时返回的 `materialId`（例如仅 gen-upload-url 或分片发起）。素材仅属 API 侧，与 vmeg.ai 网页上传的文件不互通。见 [资产概览](/zh/guides/assets/overview)。
 
 ## 素材类型
 
@@ -23,8 +23,8 @@ icon: "photo-film"
 
 ## 生命周期
 
-1. [上传](/zh/guides/assets/material-upload) → 获得 `materialId`
-2. 在产品请求中引用
+1. 走完完整 [上传](/zh/guides/assets/material-upload) 流程 → 已注册的 `materialId`
+2. 在产品请求中引用该 `materialId`
 3. 不需要时 **列表查询** 或 **删除**
 
 ## 操作

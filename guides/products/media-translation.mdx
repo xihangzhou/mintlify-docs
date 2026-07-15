@@ -25,7 +25,7 @@ If you request `at` but the material is video, the server may run **video transl
 
 <Steps>
   <Step title="Upload material">
-    [Material upload](/guides/assets/material-upload) → `materialId`
+    Finish the full [material upload](/guides/assets/material-upload) flow (including complete / instant upload), then use the registered `materialId`
   </Step>
   <Step title="Configure webhook">
     Set your webhook URL on <a href={apiKeyUrl}>API Configuration</a> and copy the generated secret for verification
@@ -41,6 +41,8 @@ If you request `at` but the material is video, the server may run **video transl
 ## Request outline
 
 Required fields include `taskType`, `source.materialId`, `language` (source/target locales), and `options` (dubbing, ASR, translation, etc.).
+
+`source.materialId` must come from a **fully completed** [material upload](/guides/assets/material-upload) (or from [list materials](/guides/assets/materials) after a successful upload). Do not use a `materialId` from an in-progress gen-upload-url / multipart initiate response.
 
 Use [Supported languages](/guides/supported-languages) for locale codes. For the full `options` tree, see the request body in [Create media translation (async)](/api-reference/media-translation/create-media-translation-async).
 

@@ -25,7 +25,7 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
 <Steps>
   <Step title="上传素材">
-    [素材上传](/zh/guides/assets/material-upload) → `materialId`
+    走完完整的 [素材上传](/zh/guides/assets/material-upload) 流程（含 complete / 瞬时上传）后，再使用已注册的 `materialId`
   </Step>
   <Step title="配置 Webhook">
     在 <a href={apiKeyUrl}>API 配置</a> 设置 Webhook URL，并复制页面展示的 Secret 用于验签
@@ -41,6 +41,8 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 ## 请求概要
 
 必填包括 `taskType`、`source.materialId`、`language`（源/目标 locale）、`options`（配音、ASR、翻译等）。
+
+`source.materialId` 必须来自 **已走完完整流程** 的 [素材上传](/zh/guides/assets/material-upload)（或上传成功后的 [素材列表](/zh/guides/assets/materials)）。不要使用仅出现在 gen-upload-url / 分片发起响应中的进行中 `materialId`。
 
 区域代码见 [支持的语言](/zh/guides/supported-languages)。完整 `options` 树见 [创建媒体翻译（异步）](/api-reference/media-translation/create-media-translation-async) 的请求体。
 

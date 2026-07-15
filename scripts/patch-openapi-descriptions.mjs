@@ -651,8 +651,8 @@ const ASSET_LINKS = {
     zh: "可用于 TTS 的新克隆音色 ID。见 [音色](/zh/guides/assets/voices)",
   },
   "OpenApiMediaTranslationCreateRequest.source.materialId": {
-    en: "Input material ID. See [Materials](/guides/assets/materials) (from [Material upload](/guides/assets/material-upload))",
-    zh: "输入素材 ID。见 [素材](/zh/guides/assets/materials)（通过 [素材上传](/zh/guides/assets/material-upload) 获取）",
+    en: "Registered material ID from a **fully completed** [Material upload](/guides/assets/material-upload) (or from [List materials](/guides/assets/materials)). Do not use a mid-upload ID from gen-upload-url / multipart initiate.",
+    zh: "已走完完整 [素材上传](/zh/guides/assets/material-upload) 流程后得到的已注册素材 ID（也可来自 [素材列表](/zh/guides/assets/materials)）。不要使用 gen-upload-url / 分片发起返回的进行中 ID。",
   },
   "OpenApiMaterialUploadCompleteRequest.materialId": {
     en: "Material ID from presigned upload. See [Materials](/guides/assets/materials)",

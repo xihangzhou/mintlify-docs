@@ -8,6 +8,10 @@ Materials are uploaded **directly to CDN/object storage** via presigned URLs, th
 
 Every upload-related **POST** in this flow requires [`X-Idempotency-Key`](/guides/idempotency).
 
+<Warning>
+  Early steps (gen-upload-url or multipart initiate) may already return a `materialId`. That ID is only for continuing the upload. Do **not** pass it to create-async or other product APIs until the full upload finishes — single-file **complete**, multipart **complete**, or an instant-upload / dedup response that already includes a registered `material`.
+</Warning>
+
 ## Choose an upload mode
 
 | Mode | When to use |
@@ -629,4 +633,4 @@ public final class MultipartMaterialUpload {
 
 ## After upload
 
-Use `materialId` in `source.materialId` for [media translation](/guides/products/media-translation). Manage assets via [Materials](/guides/assets/materials).
+Only after the full upload flow succeeds, use the registered `materialId` in `source.materialId` for [media translation](/guides/products/media-translation). Manage assets via [Materials](/guides/assets/materials).

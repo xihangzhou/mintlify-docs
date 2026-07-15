@@ -6,9 +6,9 @@ icon: "photo-film"
 
 ## What a material is
 
-A **material** is a registered video or audio file stored for Open API use. After upload completes, the API returns a **`materialId`** you pass to tasks such as [media translation](/guides/products/media-translation).
+A **material** is a registered video or audio file stored for Open API use. After the full [material upload](/guides/assets/material-upload) flow completes, you get a usable **`materialId`** to pass to tasks such as [media translation](/guides/products/media-translation).
 
-Materials are API-only — not shared with uploads on vmeg.ai. See [Assets overview](/guides/assets/overview).
+Do not use a `materialId` from an unfinished upload (for example, only gen-upload-url or multipart initiate). Materials are API-only — not shared with uploads on vmeg.ai. See [Assets overview](/guides/assets/overview).
 
 ## Material type
 
@@ -23,8 +23,8 @@ Other fields on a material include `name`, CDN URLs (`addressUrl`, `thumbnailUrl
 
 ## Lifecycle
 
-1. [Upload](/guides/assets/material-upload) → receive `materialId`
-2. Reference `materialId` in a product request
+1. Finish the full [upload](/guides/assets/material-upload) flow → registered `materialId`
+2. Reference that `materialId` in a product request
 3. **List** or **delete** when no longer needed
 
 ## Operations

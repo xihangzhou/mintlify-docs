@@ -8,7 +8,7 @@ Open API **assets** are resources you create and reference by ID in task request
 
 | Asset | ID field | Purpose |
 |-------|----------|---------|
-| **Material** | `materialId` | Uploaded video or audio used as input (mainly media translation) |
+| **Material** | `materialId` | Video or audio used as input (mainly media translation). Usable only after the full [upload](/guides/assets/material-upload) flow completes |
 | **Voice** | `voiceId` | System preset or cloned voice used in TTS |
 
 ## API-only storage
@@ -20,7 +20,7 @@ List and delete operations return only assets tied to your **API Key**. Voice li
 ## Typical flow
 
 ```text
-Upload material → materialId → media translation task
+Complete full material upload → registered materialId → media translation task
 Voice clone task → voiceId → TTS task
 List basic voices → voiceId → TTS task
 ```

@@ -45,7 +45,7 @@
     {
       "name": "Assets - Materials",
       "x-group": "Upload files (materials)",
-      "description": "Upload and manage video/audio files used as input for translate-and-dub jobs. Flow: presigned upload → register material → pass `materialId` to create-async. See [Material upload](/guides/assets/material-upload)."
+      "description": "Upload and manage video/audio files used as input for translate-and-dub jobs. Flow: finish the full upload (presigned or multipart → register) → pass the registered `materialId` to create-async. See [Material upload](/guides/assets/material-upload)."
     },
     {
       "name": "Assets - Voices",
@@ -1741,7 +1741,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "Input material ID. See [Materials](/guides/assets/materials) (from [Material upload](/guides/assets/material-upload))"
+            "description": "Registered material ID from a **fully completed** [Material upload](/guides/assets/material-upload) (or from [List materials](/guides/assets/materials)). Do not use a mid-upload ID from gen-upload-url / multipart initiate."
           }
         },
         "description": "Input material for this translation job"
