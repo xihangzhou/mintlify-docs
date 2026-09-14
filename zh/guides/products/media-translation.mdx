@@ -40,11 +40,33 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
 ## 请求概要
 
-必填包括 `taskType`、`source.materialId`、`language`（源/目标 locale）、`options`（配音、ASR、翻译等）。
+必填字段包括 `taskType`、`source.materialId`、`language.target`、`options.voiceClone.mode` 和 `options.voiceClone.provider`。
 
 `source.materialId` 必须来自 **已走完完整流程** 的 [素材上传](/zh/guides/assets/material-upload)（或上传成功后的 [素材列表](/zh/guides/assets/materials)）。不要使用仅出现在 gen-upload-url / 分片发起响应中的进行中 `materialId`。
 
 区域代码见 [支持的语言](/zh/guides/supported-languages)。完整 `options` 树见 [创建媒体翻译（异步）](/api-reference/media-translation/create-media-translation-async) 的请求体。
+
+```json 请求体
+{
+  "taskType": "vt",
+  "source": {
+    "materialId": "YOUR_REGISTERED_MATERIAL_ID"
+  },
+  "language": {
+    "source": "auto",
+    "target": "en-US"
+  },
+  "options": {
+    "voiceClone": {
+      "mode": "role",
+      "provider": "V3",
+      "style": "emotional"
+    }
+  }
+}
+```
+
+`options.voiceClone.provider` 用于选择克隆引擎且为必填字段，取值为 `V1`–`V5`。各引擎特点与选型建议见 [支持的克隆方式](/zh/guides/supported-clone-methods)。`options.voiceClone.mode` 同样必填，可取 `role`、`mix` 或 `sentence`。
 
 ## 响应
 

@@ -40,11 +40,33 @@ If you request `at` but the material is video, the server may run **video transl
 
 ## Request outline
 
-Required fields include `taskType`, `source.materialId`, `language` (source/target locales), and `options` (dubbing, ASR, translation, etc.).
+Required fields include `taskType`, `source.materialId`, `language.target`, `options.voiceClone.mode`, and `options.voiceClone.provider`.
 
 `source.materialId` must come from a **fully completed** [material upload](/guides/assets/material-upload) (or from [list materials](/guides/assets/materials) after a successful upload). Do not use a `materialId` from an in-progress gen-upload-url / multipart initiate response.
 
 Use [Supported languages](/guides/supported-languages) for locale codes. For the full `options` tree, see the request body in [Create media translation (async)](/api-reference/media-translation/create-media-translation-async).
+
+```json Request body
+{
+  "taskType": "vt",
+  "source": {
+    "materialId": "YOUR_REGISTERED_MATERIAL_ID"
+  },
+  "language": {
+    "source": "auto",
+    "target": "en-US"
+  },
+  "options": {
+    "voiceClone": {
+      "mode": "role",
+      "provider": "V3",
+      "style": "emotional"
+    }
+  }
+}
+```
+
+`options.voiceClone.provider` selects the clone engine and is required. Use one of `V1`–`V5`; for engine characteristics and selection guidance, see [Supported clone methods](/guides/supported-clone-methods). `options.voiceClone.mode` is also required and accepts `role`, `mix`, or `sentence`.
 
 ## Responses
 

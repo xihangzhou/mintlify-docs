@@ -1768,6 +1768,10 @@
       },
       "OpenApiMediaTranslationVoiceClone": {
         "type": "object",
+        "required": [
+          "mode",
+          "provider"
+        ],
         "description": "配音/音色克隆设置（`options` 内必填）",
         "properties": {
           "style": {

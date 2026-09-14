@@ -1768,6 +1768,10 @@
       },
       "OpenApiMediaTranslationVoiceClone": {
         "type": "object",
+        "required": [
+          "mode",
+          "provider"
+        ],
         "description": "Dubbing / voice clone settings (required inside `options`)",
         "properties": {
           "style": {
