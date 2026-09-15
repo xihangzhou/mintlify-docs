@@ -1742,6 +1742,14 @@
           "materialId": {
             "type": "string",
             "description": "已走完完整 [素材上传](/zh/guides/assets/material-upload) 流程后得到的已注册素材 ID（也可来自 [素材列表](/zh/guides/assets/materials)）。不要使用 gen-upload-url / 分片发起返回的进行中 ID。"
+          },
+          "subtitleMaterialId": {
+            "type": "string",
+            "description": "可选。通过完整素材上传流程注册的 SRT 素材 ID。传入后，其原文文本和时间轴将替代自动语音识别结果。该 SRT 必须属于同一 Open API 项目。"
+          },
+          "targetSubtitleMaterialId": {
+            "type": "string",
+            "description": "可选。通过完整素材上传流程注册的译文 SRT 素材 ID。其语言应与 `language.target` 一致，且必须属于同一 Open API 项目。"
           }
         },
         "description": "本任务的输入素材"

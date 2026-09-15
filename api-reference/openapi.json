@@ -1742,6 +1742,14 @@
           "materialId": {
             "type": "string",
             "description": "Registered material ID from a **fully completed** [Material upload](/guides/assets/material-upload) (or from [List materials](/guides/assets/materials)). Do not use a mid-upload ID from gen-upload-url / multipart initiate."
+          },
+          "subtitleMaterialId": {
+            "type": "string",
+            "description": "Optional registered SRT material ID from a fully completed Material upload. When provided, its source text and timeline replace automatic speech recognition. The SRT must belong to the same Open API project."
+          },
+          "targetSubtitleMaterialId": {
+            "type": "string",
+            "description": "Optional registered translated SRT material ID from a fully completed Material upload. Its language should match `language.target`, and it must belong to the same Open API project."
           }
         },
         "description": "Input material for this translation job"

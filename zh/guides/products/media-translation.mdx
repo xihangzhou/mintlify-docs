@@ -44,13 +44,17 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
 `source.materialId` 必须来自 **已走完完整流程** 的 [素材上传](/zh/guides/assets/material-upload)（或上传成功后的 [素材列表](/zh/guides/assets/materials)）。不要使用仅出现在 gen-upload-url / 分片发起响应中的进行中 `materialId`。
 
+如需使用自定义字幕，请通过同一套素材上传流程分别上传 `.srt` 文件。原文 SRT 使用 `source.subtitleMaterialId`，会替代自动语音识别的文本和时间轴；译文 SRT 使用 `source.targetSubtitleMaterialId`。两个 SRT 都必须属于当前 Open API 项目，且译文 SRT 的语言应与 `language.target` 一致。
+
 区域代码见 [支持的语言](/zh/guides/supported-languages)。完整 `options` 树见 [创建媒体翻译（异步）](/api-reference/media-translation/create-media-translation-async) 的请求体。
 
 ```json 请求体
 {
   "taskType": "vt",
   "source": {
-    "materialId": "YOUR_REGISTERED_MATERIAL_ID"
+    "materialId": "YOUR_REGISTERED_MATERIAL_ID",
+    "subtitleMaterialId": "YOUR_REGISTERED_SOURCE_SRT_MATERIAL_ID",
+    "targetSubtitleMaterialId": "YOUR_REGISTERED_TARGET_SRT_MATERIAL_ID"
   },
   "language": {
     "source": "auto",
