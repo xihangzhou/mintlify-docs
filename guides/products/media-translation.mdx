@@ -40,27 +40,13 @@ If you request `at` but the material is video, the server may run **video transl
 
 ## Request outline
 
-Required fields include `taskType`, `source.materialId`, `language.target`, and either:
-
-- **Dubbing version V1** (default): `options.voiceClone.mode` and `options.voiceClone.provider`
-- **Dubbing version V2**: `options.dubbingVersion` = `V2` (`voiceClone` not required)
+Required fields include `taskType`, `source.materialId`, `language.target`, `options.voiceClone.mode`, and `options.voiceClone.provider`.
 
 `source.materialId` must come from a **fully completed** [material upload](/guides/assets/material-upload) (or from [list materials](/guides/assets/materials) after a successful upload). Do not use a `materialId` from an in-progress gen-upload-url / multipart initiate response.
 
 Use [Supported languages](/guides/supported-languages) for locale codes. For the full `options` tree, see the request body in [Create media translation (async)](/api-reference/media-translation/create-media-translation-async).
 
-### Dubbing version (`options.dubbingVersion`)
-
-Same options as the **Dubbing version** field on [vmeg.ai](https://www.vmeg.ai/home):
-
-| Value | Label | Description |
-|-------|-------|-------------|
-| `V2` | VMEG OpenDub V2 | More natural voices, richer emotions, and finer control for a more polished dubbing experience. |
-| `V1` | VMEG OpenDub V1 | Mature and reliable, with flexible voice selection. Auto-match a voice or choose one yourself. |
-
-Defaults to `V1` when omitted. With `V2`, `voiceClone` is not needed and is ignored if sent.
-
-```json Request body (V1)
+```json Request body
 {
   "taskType": "vt",
   "source": {
@@ -71,7 +57,6 @@ Defaults to `V1` when omitted. With `V2`, `voiceClone` is not needed and is igno
     "target": "en-US"
   },
   "options": {
-    "dubbingVersion": "V1",
     "voiceClone": {
       "mode": "role",
       "provider": "V3",
@@ -81,23 +66,8 @@ Defaults to `V1` when omitted. With `V2`, `voiceClone` is not needed and is igno
 }
 ```
 
-```json Request body (V2)
-{
-  "taskType": "vt",
-  "source": {
-    "materialId": "YOUR_REGISTERED_MATERIAL_ID"
-  },
-  "language": {
-    "source": "auto",
-    "target": "en-US"
-  },
-  "options": {
-    "dubbingVersion": "V2"
-  }
-}
-```
+`options.voiceClone.provider` selects the clone engine and is required. Use one of `V1`–`V5`; for engine characteristics and selection guidance, see [Supported clone methods](/guides/supported-clone-methods). `options.voiceClone.mode` is also required and accepts `role`, `mix`, or `sentence`.
 
-For V1, `options.voiceClone.provider` selects the clone engine and is required (`V1`–`V5`; see [Supported clone methods](/guides/supported-clone-methods)). `options.voiceClone.mode` is also required (`role`, `mix`, or `sentence`). `style` maps to Pick a Voice Style (`emotional` / `consistent`).
 ## Responses
 
 - **HTTP Response** (immediate): acceptance — `taskId`, `status`, `createdAt`, effective `taskType`

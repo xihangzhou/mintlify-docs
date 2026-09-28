@@ -1768,7 +1768,10 @@
       },
       "OpenApiMediaTranslationVoiceClone": {
         "type": "object",
-        "required": [],
+        "required": [
+          "mode",
+          "provider"
+        ],
         "description": "配音/音色克隆设置（`options` 内必填）",
         "properties": {
           "style": {
@@ -1778,7 +1781,7 @@
               "consistent"
             ],
             "default": "emotional",
-            "description": "V1 的声音风格：`emotional` | `consistent`（对应网页 Pick a Voice Style）。`dubbingVersion=V2` 时忽略。"
+            "description": "克隆风格：`emotional`（偏情绪表达）或 `consistent`（口音一致）"
           },
           "mode": {
             "type": "string",
@@ -1788,7 +1791,7 @@
               "sentence"
             ],
             "example": "role",
-            "description": "role | mix | sentence。V1 必填；V2 省略。"
+            "description": "多说话人下的音色分配方式"
           },
           "provider": {
             "type": "string",
@@ -1799,7 +1802,7 @@
               "V4",
               "V5"
             ],
-            "description": "克隆引擎 V1–V5。V1 必填；V2 省略。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+            "description": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
           }
         }
       },
@@ -1919,18 +1922,11 @@
       },
       "OpenApiMediaTranslationOptions": {
         "type": "object",
-        "required": [],
-        "description": "流水线选项：配音版本、ASR、翻译、分离、口型与字幕。`dubbingVersion=V1`（默认）时 `voiceClone` 必填；`V2` 时无需传。",
+        "required": [
+          "voiceClone"
+        ],
+        "description": "流水线选项：配音、ASR、翻译、分离、唇形同步与字幕",
         "properties": {
-          "dubbingVersion": {
-            "type": "string",
-            "enum": [
-              "V1",
-              "V2"
-            ],
-            "example": "V1",
-            "description": "配音版本（与 vmeg.ai 网页端一致）。`V2` VMEG OpenDub V2：声音更自然，情绪更丰富，控制更精细，带来更精致的配音体验。`V1` VMEG OpenDub V1：成熟可靠，音色选择灵活。可自动匹配音色，也可自行选择。"
-          },
           "voiceClone": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceClone"
           },
