@@ -29,7 +29,7 @@ Credits are deducted when a billable task is **accepted and processed** (sync `c
 
 For **media translation**, duration **under one minute is billed as one full minute**, consistent with other VMEG per-minute features.
 
-**Media translation** (`vt` / `at`) charges from the uploaded material length. Optional pipeline features (for example **lip sync**) can add credits on top of the base translation rate — for example, lip sync is commonly **+60 credits / min** in addition to translation. The exact total depends on your `options` in the create request; insufficient balance returns `402` before or at acceptance.
+**Media translation** (`vt` / `at`) charges from the uploaded material length. Optional pipeline features (for example **lip sync**) can add credits on top of the base translation rate — for example, lip sync is commonly **+90 credits / min** in addition to translation. The exact total depends on your `options` in the create request; insufficient balance returns `402` before or at acceptance.
 
 **Text translation** totals scale with character count: each billing unit is **100 characters** of source text (all segments combined), rounded **up** to the next unit. For example, 1–100 characters cost **1 credit**, 101–200 cost **2 credits**. The per-unit rate defaults to **1 credit** and may be adjusted in product configuration.
 
