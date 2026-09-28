@@ -40,13 +40,27 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 
 ## 请求概要
 
-必填字段包括 `taskType`、`source.materialId`、`language.target`、`options.voiceClone.mode` 和 `options.voiceClone.provider`。
+必填字段包括 `taskType`、`source.materialId`、`language.target`，以及：
+
+- **配音版本 V1**（默认）：`options.voiceClone.mode` 与 `options.voiceClone.provider`
+- **配音版本 V2**：`options.dubbingVersion` = `V2`（无需 `voiceClone`）
 
 `source.materialId` 必须来自 **已走完完整流程** 的 [素材上传](/zh/guides/assets/material-upload)（或上传成功后的 [素材列表](/zh/guides/assets/materials)）。不要使用仅出现在 gen-upload-url / 分片发起响应中的进行中 `materialId`。
 
 区域代码见 [支持的语言](/zh/guides/supported-languages)。完整 `options` 树见 [创建媒体翻译（异步）](/api-reference/media-translation/create-media-translation-async) 的请求体。
 
-```json 请求体
+### 配音版本（`options.dubbingVersion`）
+
+与 [vmeg.ai](https://www.vmeg.ai/home) 网页端 **配音版本（Dubbing version）** 选项一致：
+
+| 取值 | 名称 | 描述 |
+|------|------|------|
+| `V2` | VMEG OpenDub V2 | 声音更自然，情绪更丰富，控制更精细，带来更精致的配音体验。 |
+| `V1` | VMEG OpenDub V1 | 成熟可靠，音色选择灵活。可自动匹配音色，也可自行选择。 |
+
+不传时默认 `V1`。设为 `V2` 时无需 `voiceClone`，传了也会被忽略。
+
+```json 请求体（V1）
 {
   "taskType": "vt",
   "source": {
@@ -57,6 +71,7 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
     "target": "en-US"
   },
   "options": {
+    "dubbingVersion": "V1",
     "voiceClone": {
       "mode": "role",
       "provider": "V3",
@@ -66,8 +81,23 @@ import { apiKeyUrl } from "/snippets/product-urls.jsx";
 }
 ```
 
-`options.voiceClone.provider` 用于选择克隆引擎且为必填字段，取值为 `V1`–`V5`。各引擎特点与选型建议见 [支持的克隆方式](/zh/guides/supported-clone-methods)。`options.voiceClone.mode` 同样必填，可取 `role`、`mix` 或 `sentence`。
+```json 请求体（V2）
+{
+  "taskType": "vt",
+  "source": {
+    "materialId": "YOUR_REGISTERED_MATERIAL_ID"
+  },
+  "language": {
+    "source": "auto",
+    "target": "en-US"
+  },
+  "options": {
+    "dubbingVersion": "V2"
+  }
+}
+```
 
+V1 时，`options.voiceClone.provider` 用于选择克隆引擎且必填（`V1`–`V5`，见 [支持的克隆方式](/zh/guides/supported-clone-methods)）。`options.voiceClone.mode` 同样必填（`role`、`mix` 或 `sentence`）。`style` 对应网页「Pick a Voice Style」（`emotional` / `consistent`）。
 ## 响应
 
 - **HTTP Response**（立即）：受理信息 — `taskId`、`status`、`createdAt`、实际 `taskType`

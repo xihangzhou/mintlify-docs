@@ -1768,10 +1768,7 @@
       },
       "OpenApiMediaTranslationVoiceClone": {
         "type": "object",
-        "required": [
-          "mode",
-          "provider"
-        ],
+        "required": [],
         "description": "Dubbing / voice clone settings (required inside `options`)",
         "properties": {
           "style": {
@@ -1781,7 +1778,7 @@
               "consistent"
             ],
             "default": "emotional",
-            "description": "Clone style: `emotional` (expressive) or `consistent` (accent-consistent)"
+            "description": "Voice style for Dubbing version V1: `emotional` | `consistent` (Pick a Voice Style). Ignored when `dubbingVersion=V2`."
           },
           "mode": {
             "type": "string",
@@ -1791,7 +1788,7 @@
               "sentence"
             ],
             "example": "role",
-            "description": "How voices are assigned across speakers"
+            "description": "role | mix | sentence. Required for V1; omit for V2."
           },
           "provider": {
             "type": "string",
@@ -1802,7 +1799,7 @@
               "V4",
               "V5"
             ],
-            "description": "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+            "description": "Clone engine (`V1`–`V5`). Required for V1; omit for V2. See [Supported clone methods](/guides/supported-clone-methods)."
           }
         }
       },
@@ -1922,11 +1919,18 @@
       },
       "OpenApiMediaTranslationOptions": {
         "type": "object",
-        "required": [
-          "voiceClone"
-        ],
-        "description": "Pipeline options: dubbing, ASR, translation, separation, lip sync, and captions",
+        "required": [],
+        "description": "Pipeline options: dubbing version, ASR, translation, separation, lip sync, and captions. `voiceClone` is required for `dubbingVersion=V1` (default); not needed for `V2`.",
         "properties": {
+          "dubbingVersion": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2"
+            ],
+            "example": "V1",
+            "description": "Dubbing version (same as vmeg.ai). `V2` VMEG OpenDub V2: More natural voices, richer emotions, and finer control for a more polished dubbing experience. `V1` VMEG OpenDub V1: Mature and reliable, with flexible voice selection. Auto-match a voice or choose one yourself."
+          },
           "voiceClone": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceClone"
           },
