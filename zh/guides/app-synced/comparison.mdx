@@ -1,0 +1,88 @@
+---
+title: "独立版与应用同源版的区别"
+description: "两套平行的开放 API，按集成场景选择"
+icon: "code-compare"
+---
+
+import { productUrls } from "/snippets/product-urls.jsx";
+
+VMEG 提供两套**相互独立**的开放 API。它们共用鉴权、幂等和响应结构，但数据互不相通：一个任务请从头到尾使用同一套 API（上传 → 创建 → 轮询）。
+
+| | 独立版 | 应用同源版 |
+|---|---|---|
+| 路径前缀 | `/openapi/v1/...` | `/openapi/v1/app/...` |
+| 产品 | 音视频翻译、TTS、声音克隆、文本翻译 | 音视频翻译与声音克隆 |
+| 任务在哪 | 仅 API 内，网站不可见 | 你的网站账号：**我的任务**、编辑器、重新导出 |
+| 素材与克隆音色 | API 独立库 | 与网站同一份（**我的资产**、**我的音色**） |
+| 获取结果 | [Webhook](/zh/guides/webhooks) 或轮询 | 轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail) |
+| 成片存储 | 可用 `output` 写入你的存储桶 | 由 VMEG 托管，可随时在网站重新导出 |
+| 积分 | [开放 API 计价](/zh/guides/pricing) | <a href={productUrls.pricing}>网站计价</a> |
+
+## 如何选择
+
+- **独立版**：纯后端自动化流水线，需要 Webhook、TTS 或文本翻译，不打开网站。
+- **应用同源版**：用 API 提交，但仍想在 VMEG 编辑器里调整字幕、音色、时间轴，并在网站导出。
+
+## 协议差异（应用同源版）
+
+**访问**
+
+- API Key 必须属于某个 VMEG 网站账号（在网站上创建），否则返回 `401`。
+- 声音克隆需要套餐包含克隆权益，否则返回 `403`。
+
+**创建任务**
+
+- `options` 可省略，默认等同网站上自动克隆音色的任务。
+- `source` 需在 `materialId` 与 `youtubeUrl`（YouTube 链接，无需上传）中二选一。`taskType` 必须与素材一致：视频用 `vt`，音频用 `at`。
+- `title` 设置**我的任务**中显示的任务名，不传时取文件名或 YouTube 视频标题。
+- 可选的字幕文件（`source.subtitleMaterialId`、`source.targetSubtitleMaterialId`）必须是 `.srt` 素材。
+- `options.voiceClone.style` 额外支持 `auto`、`tutorial`、`drama`、`smart`。
+- 手动选音色（`voiceSpeakers.selectedVoicesList`）支持 `sv_*` 系统音色和[克隆音色列表](/zh/api-reference/app-synced/assets/voices/list-cloned-voices)中的 `cv_*` 音色；不能与 `voiceClone` 同时传，`dubbingVersion: V2` 也不能与这两者同时使用。
+- 传 `source.sourceUrl`、`output`、`extraData` 或素材列表的 `mimeType` 过滤返回 `400`。其他未知字段会被忽略。
+
+**结果**
+
+- 受理响应和任务详情包含 `editorUrl`。
+- 任务详情返回 `result.outputs`（按时间倒序），`result.outputs[0]` 是最近一次成功导出的成片。
+- `finished` 不是最终状态：在网站重新导出会把任务置回 `running`，导出失败则变为 `failed`，之前的成片仍保留在列表中。
+
+**声音克隆**
+
+- 接口是同步的，直接返回新的 `cv_*` 音色，可能需要几十秒。
+- 可用 `refAudioMaterialId`（已上传的素材）代替 `refAudio`；`voiceName` 和 `sampleText` 必填。
+
+<Warning>
+  素材 ID、克隆音色 ID（`cv_*`）和任务 ID 不能混用：独立版的 ID 在应用同源版返回 `404`，反之亦然。系统音色 ID（`sv_*`）两边通用。
+</Warning>
+
+## 流程
+
+<Steps>
+  <Step title="上传">
+    `POST /openapi/v1/app/assets/material/upload/gen-upload-url`，PUT 文件，再调 `.../upload/complete`（大文件用分片接口）。YouTube 视频可不上传，直接传 `source.youtubeUrl`。
+  </Step>
+  <Step title="选音色（可选）">
+    调 `.../assets/voice/basic/list`、`.../assets/voice/clone/list`，或用 `.../task/clone-voice/create` 克隆一个。
+  </Step>
+  <Step title="创建任务">
+    `POST /openapi/v1/app/task/media-translation/create-async`，带 `X-Idempotency-Key`。
+  </Step>
+  <Step title="轮询">
+    `GET /openapi/v1/app/tasks/detail?taskId=...`，直到 `status` 为 `finished` 或 `failed`。打开 `editorUrl` 可编辑并重新导出。状态与网站一致，请为轮询设置超时：任务长时间停留在 `running` 时，请带上 `taskId` 联系客服。
+  </Step>
+</Steps>
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-async" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -H "X-Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "taskType": "vt",
+    "source": { "materialId": "YOUR_MATERIAL_ID" },
+    "language": { "target": "en-US" },
+    "title": "产品演示（英文）"
+  }'
+```
+
+完整接口见[应用同源版 API 参考](/zh/api-reference/app-synced/media-translation/create-media-translation-async)。参考中链接的指南按独立版编写，步骤相同，路径前缀换成 `/openapi/v1/app` 即可。

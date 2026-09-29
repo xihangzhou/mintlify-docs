@@ -1,0 +1,2145 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "VMEG Open API (App-Synced)",
+    "description": "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Poll `GET /openapi/v1/app/tasks/detail` for results (no webhooks). See [Standalone vs App-Synced](/guides/app-synced/comparison).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.vmeg.ai",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Media translation",
+      "x-group": "Video & audio translate and dub",
+      "description": "Translate and dub uploaded video/audio or a YouTube link on the same pipeline as vmeg.ai. The first pass renders the dubbed file; the job also appears in **My tasks** for editing and re-export. Poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) for results."
+    },
+    {
+      "name": "Voice clone",
+      "x-group": "Voice cloning",
+      "description": "Clone a voice from a short recording. The voice is saved to **My voices** on the website and returned as `cv_*` for translate-and-dub jobs."
+    },
+    {
+      "name": "Task management",
+      "x-group": "Task status and history",
+      "description": "List, inspect, or delete the video/audio translation jobs in your VMEG account, including jobs created on the website."
+    },
+    {
+      "name": "Assets - Materials",
+      "x-group": "Upload files (materials)",
+      "description": "Upload and manage the files in your website material library (**My assets**). Finish the upload (single-file or multipart), then pass `materialId` to create-async."
+    },
+    {
+      "name": "Assets - Voices",
+      "x-group": "Voices (presets and clones)",
+      "description": "List preset system voices (`sv_*`) and manage your cloned voices (`cv_*`, same as **My voices** on the website)."
+    }
+  ],
+  "paths": {
+    "/openapi/v1/app/task/media-translation/create-async": {
+      "post": {
+        "tags": [
+          "Media translation"
+        ],
+        "summary": "Create translate and dub job",
+        "description": "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; results are polled, not delivered by webhook. Other unknown fields are ignored.",
+        "operationId": "appMediaTranslationCreateAsync",
+        "x-mint": {
+          "href": "/api-reference/app-synced/media-translation/create-media-translation-async",
+          "metadata": {
+            "sidebarTitle": "Create translate and dub job",
+            "title": "Create translate and dub job"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppMediaTranslationCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted. `editorUrl` opens the job in the website editor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppMediaTranslationAcceptedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi/v1/app/task/clone-voice/create": {
+      "post": {
+        "tags": [
+          "Voice clone"
+        ],
+        "summary": "Clone voice from sample audio (sync)",
+        "operationId": "appCloneVoiceCreateSync",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppCloneVoiceCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppCloneVoiceCreateResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Clone a voice from a reference recording. The call is synchronous and returns when cloning finishes, which can take tens of seconds, so use a generous client timeout (for example 120 s). The voice is saved to **My voices** on the website and returned as `cv_*`; use it in `voiceSpeakers.selectedVoicesList`. `sampleLanguage` defaults to `en-US`; the engine is chosen automatically when `provider` is omitted. Requires a plan with voice cloning (`403` otherwise).",
+        "x-mint": {
+          "href": "/api-reference/app-synced/voice-clone/create-clone-voice"
+        }
+      }
+    },
+    "/openapi/v1/app/tasks/list": {
+      "get": {
+        "tags": [
+          "Task management"
+        ],
+        "summary": "List jobs",
+        "operationId": "appTasksList",
+        "x-mint": {
+          "href": "/api-reference/app-synced/tasks/list-tasks",
+          "metadata": {
+            "sidebarTitle": "List API jobs",
+            "title": "List API jobs"
+          }
+        },
+        "parameters": [
+          {
+            "name": "taskType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vt",
+                "at"
+              ]
+            },
+            "description": "Filter by task type"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "running",
+                "finished",
+                "failed"
+              ]
+            },
+            "description": "Filter by task status"
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number (1-based)"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Page size"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiTaskListResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Paginated video/audio translation jobs in your VMEG account, including jobs created on the website. `status` is `running`, `finished`, or `failed`."
+      }
+    },
+    "/openapi/v1/app/tasks/detail": {
+      "get": {
+        "tags": [
+          "Task management"
+        ],
+        "summary": "Query job status and results",
+        "operationId": "appTasksDetail",
+        "x-mint": {
+          "href": "/api-reference/app-synced/tasks/get-task-detail",
+          "metadata": {
+            "sidebarTitle": "Query job status",
+            "title": "Query job status and results"
+          }
+        },
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Task ID (same as the job ID on the website)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTaskDetailResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Poll one job. When `status` is `finished`, `result.outputs[0]` is the latest rendered file.\n\n`finished` is not permanent: re-exporting in the website editor sets the job back to `running`, and a failed re-export ends in `failed`. Earlier renders stay in `result.outputs`; `result.outputs[0]` is always the latest successful one."
+      }
+    },
+    "/openapi/v1/app/tasks/delete": {
+      "post": {
+        "tags": [
+          "Task management"
+        ],
+        "summary": "Delete a job",
+        "operationId": "appTasksDelete",
+        "x-mint": {
+          "href": "/api-reference/app-synced/tasks/delete-task",
+          "metadata": {
+            "sidebarTitle": "Delete API job",
+            "title": "Delete an API job"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiTaskDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Delete a job from your VMEG account. It also disappears from **My tasks** on the website (this applies to jobs created on the website too) and cannot be undone. Requires [`X-Idempotency-Key`](/guides/idempotency)."
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/gen-upload-url": {
+      "post": {
+        "tags": [
+          "Assets - Materials"
+        ],
+        "summary": "Generate presigned upload URL",
+        "operationId": "appMaterialGenUploadUrl",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/gen-upload-url",
+          "metadata": {
+            "sidebarTitle": "Generate presigned upload URL",
+            "title": "Generate presigned upload URL"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialFileHashRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialGenUploadUrlResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Single-file upload **step 1**: get a presigned PUT URL and `materialId`. PUT the file to `uploadUrl`, then call [Complete single-file upload](/api-reference/app-synced/assets/materials/complete-upload). If `material` is returned, the same file is already in your library and no upload is needed. Required unless you create the job from `source.youtubeUrl`."
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/complete": {
+      "post": {
+        "tags": [
+          "Assets - Materials"
+        ],
+        "summary": "Complete single-file upload",
+        "operationId": "appMaterialUploadComplete",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/complete-upload",
+          "metadata": {
+            "sidebarTitle": "Complete single-file upload",
+            "title": "Complete single-file upload"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppMaterialUploadCompleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialDtoResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Single-file upload **step 3**: register the file after the PUT succeeds and get the material back. Requires [`X-Idempotency-Key`](/guides/idempotency)."
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/multipart/initiate": {
+      "post": {
+        "tags": [
+          "Assets - Materials"
+        ],
+        "summary": "Initiate multipart upload",
+        "operationId": "appMaterialMultipartInitiate",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/multipart-initiate",
+          "metadata": {
+            "sidebarTitle": "Initiate multipart upload",
+            "title": "Initiate multipart upload"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialFileHashRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialMultipartInitiateResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Multipart upload **step 1**: start an upload and get `materialId` and `uploadId`. Requires [`X-Idempotency-Key`](/guides/idempotency)."
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/multipart/presign-parts": {
+      "post": {
+        "tags": [
+          "Assets - Materials"
+        ],
+        "summary": "Presign multipart parts",
+        "operationId": "appMaterialMultipartPresign",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/multipart-presign-parts",
+          "metadata": {
+            "sidebarTitle": "Presign multipart parts",
+            "title": "Presign multipart parts"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Multipart upload **step 2**: presigned URL per part. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/app-synced/comparison)."
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/multipart/complete": {
+      "post": {
+        "tags": [
+          "Assets - Materials"
+        ],
+        "summary": "Complete multipart upload",
+        "operationId": "appMaterialMultipartComplete",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/multipart-complete",
+          "metadata": {
+            "sidebarTitle": "Complete multipart upload",
+            "title": "Complete multipart upload"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartCompleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialDtoResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Multipart upload **final step**: commit parts and register the material. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/app-synced/comparison)."
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/multipart/abort": {
+      "post": {
+        "tags": [
+          "Assets - Materials"
+        ],
+        "summary": "Abort multipart upload",
+        "operationId": "appMaterialMultipartAbort",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartAbortRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Cancel an in-progress multipart upload. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Material upload](/guides/app-synced/comparison).",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/multipart-abort"
+        }
+      }
+    },
+    "/openapi/v1/app/assets/material/list": {
+      "get": {
+        "tags": [
+          "Assets - Materials"
+        ],
+        "summary": "List materials",
+        "operationId": "appMaterialList",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/list-materials",
+          "metadata": {
+            "sidebarTitle": "List materials",
+            "title": "List materials"
+          }
+        },
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "description": "File type: `video`, `audio`, `srt`, … (case-insensitive)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "description": "Match part of the file name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "query",
+            "required": false,
+            "description": "Exact material ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number (1-based)"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Page size"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialListResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Paginated website material library (same files as **My assets**)."
+      }
+    },
+    "/openapi/v1/app/assets/material/delete": {
+      "post": {
+        "tags": [
+          "Assets - Materials"
+        ],
+        "summary": "Delete material",
+        "operationId": "appMaterialDelete",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/delete-material",
+          "metadata": {
+            "sidebarTitle": "Delete material",
+            "title": "Delete material"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Delete a material. It also disappears from **My assets** on the website. Requires [`X-Idempotency-Key`](/guides/idempotency)."
+      }
+    },
+    "/openapi/v1/app/assets/voice/basic/list": {
+      "post": {
+        "tags": [
+          "Assets - Voices"
+        ],
+        "summary": "List system voices",
+        "operationId": "appVoiceBasicList",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/voices/list-system-voices",
+          "metadata": {
+            "sidebarTitle": "List system voices",
+            "title": "List system voices"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiBasicVoiceListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiBasicVoiceListResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "List preset system voices. Use `voiceId` (`sv_*`) in `voiceSpeakers.selectedVoicesList`."
+      }
+    },
+    "/openapi/v1/app/assets/voice/clone/list": {
+      "post": {
+        "tags": [
+          "Assets - Voices"
+        ],
+        "summary": "List cloned voices",
+        "operationId": "appVoiceCloneList",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/voices/list-cloned-voices",
+          "metadata": {
+            "sidebarTitle": "List cloned voices",
+            "title": "List cloned voices"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiCloneVoiceListResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Your cloned voices on the website (**My voices**). IDs are `cv_*`."
+      }
+    },
+    "/openapi/v1/app/assets/voice/clone/update": {
+      "post": {
+        "tags": [
+          "Assets - Voices"
+        ],
+        "summary": "Rename cloned voice",
+        "operationId": "appVoiceCloneUpdate",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/voices/rename-cloned-voice",
+          "metadata": {
+            "sidebarTitle": "Rename cloned voice",
+            "title": "Rename cloned voice"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Rename a cloned voice display name. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Voices](/guides/app-synced/comparison)."
+      }
+    },
+    "/openapi/v1/app/assets/voice/clone/delete": {
+      "post": {
+        "tags": [
+          "Assets - Voices"
+        ],
+        "summary": "Delete cloned voice",
+        "operationId": "appVoiceCloneDelete",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/voices/delete-cloned-voice",
+          "metadata": {
+            "sidebarTitle": "Delete cloned voice",
+            "title": "Delete cloned voice"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Delete a cloned voice. It also disappears from **My voices** on the website. Requires [`X-Idempotency-Key`](/guides/idempotency)."
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Send your API Key in the **`Authorization`** header (`Bearer <api_key>`). See [Authentication](/guides/authentication)."
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "X-Idempotency-Key",
+        "in": "header",
+        "description": "Required on mutating `POST` requests that create tasks or change persisted data (max 64 characters). See [Idempotency](/guides/idempotency).",
+        "schema": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "IdempotencyKeyRequired": {
+        "name": "X-Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "description": "Required on mutating `POST` requests that create tasks or change persisted data (max 64 characters). See [Idempotency](/guides/idempotency).",
+        "schema": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "CallbackTimestamp": {
+        "name": "X-Timestamp",
+        "in": "header",
+        "required": true,
+        "description": "Unix timestamp in milliseconds (string)",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "CallbackSignature": {
+        "name": "X-Signature",
+        "in": "header",
+        "required": true,
+        "description": "Lowercase hex HMAC-SHA256(secret, X-Timestamp + rawBody)",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "OpenApiResponseBase": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200,
+            "description": "Business code; 200 means success"
+          },
+          "message": {
+            "type": "string",
+            "example": "",
+            "description": "Human-readable detail when `code` is not success"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "OpenApiVoidResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "nullable": true,
+                "description": "Always `null` for void responses"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMediaTranslationLanguage": {
+        "type": "object",
+        "required": [
+          "target"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "Source locale (BCP-47) or `auto` for detection. See [Supported languages](/guides/supported-languages)."
+          },
+          "target": {
+            "type": "string",
+            "example": "zh-CN",
+            "description": "Target locale (BCP-47). See [Supported languages](/guides/supported-languages)."
+          }
+        },
+        "description": "Source and target locales for localization"
+      },
+      "OpenApiMediaTranslationTranscribe": {
+        "type": "object",
+        "description": "Automatic speech recognition (ASR) settings",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "fast",
+              "normal"
+            ],
+            "default": "fast",
+            "description": "ASR speed vs accuracy trade-off"
+          },
+          "type": {
+            "type": "string",
+            "default": "default",
+            "description": "ASR profile (product default when omitted)"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranslate": {
+        "type": "object",
+        "description": "Text translation step inside the media pipeline",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "default",
+              "machine"
+            ],
+            "default": "default",
+            "description": "`default` — standard localization. `machine` — machine translation mode"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Custom prompt for the translation step"
+          }
+        }
+      },
+      "OpenApiMediaTranslationSeparation": {
+        "type": "object",
+        "description": "Source separation (vocals vs background)",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "Separation mode (e.g. `auto`)"
+          }
+        }
+      },
+      "OpenApiMediaTranslationDynamicVideoLength": {
+        "type": "object",
+        "description": "Dynamic video length adjustment (video translation)",
+        "properties": {
+          "enable": {
+            "type": "boolean",
+            "description": "Enable dynamic length matching between source and dubbed video"
+          }
+        }
+      },
+      "OpenApiMediaTranslationLipsync": {
+        "type": "object",
+        "description": "Lip sync (video translation only; may add credits). See [Pricing](/guides/pricing)",
+        "properties": {
+          "enable": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable lip sync on the output video"
+          }
+        }
+      },
+      "OpenApiMediaTranslationSelectedVoice": {
+        "type": "object",
+        "description": "A preset or cloned voice selected for dubbing",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "example": "S1",
+            "description": "Optional preset tier (`S1`, `S2`, …) when you pick a system voice. Clone voices use `V1`–`V5`. See [Voices](/guides/app-synced/comparison)."
+          },
+          "voiceId": {
+            "type": "string",
+            "description": "`sv_*` from [List system voices](/api-reference/app-synced/assets/voices/list-system-voices) or `cv_*` from [List cloned voices](/api-reference/app-synced/assets/voices/list-cloned-voices)"
+          }
+        }
+      },
+      "OpenApiMediaTranslationVoiceSpeakers": {
+        "type": "object",
+        "description": "Speaker and timbre configuration for dubbing",
+        "properties": {
+          "selectedVoicesList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationSelectedVoice"
+            },
+            "description": "Explicit voice picks per speaker slot"
+          },
+          "speakerNum": {
+            "type": "string",
+            "example": "auto",
+            "description": "Number of speakers to detect (`auto` or a numeric string)"
+          },
+          "timbreMethod": {
+            "type": "string",
+            "enum": [
+              "clone",
+              "smart"
+            ],
+            "example": "clone",
+            "description": "`clone` — clone from source audio. `smart` — smart voice matching"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAcceptedData": {
+        "type": "object",
+        "description": "Immediate response for media translation async create (no deliverables)",
+        "required": [
+          "taskId"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "Task ID (same as the job ID on the website)"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/AppTaskType"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "failed",
+              "finished"
+            ],
+            "example": "running",
+            "description": "Task status after acceptance (`running`, `failed`, or `finished`)"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Task creation time (ISO 8601)"
+          }
+        }
+      },
+      "OpenApiTaskSummary": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "Task ID (same as the job ID on the website)"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/AppTaskType"
+          },
+          "status": {
+            "type": "string",
+            "description": "`running` | `finished` | `failed`"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Task creation time (ISO 8601)"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Last update time (ISO 8601)"
+          }
+        }
+      },
+      "OpenApiTaskListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiTaskSummary"
+            },
+            "description": "Tasks on this page"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total tasks matching the query"
+          }
+        }
+      },
+      "OpenApiTaskListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiTaskListData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiTaskDeleteRequest": {
+        "type": "object",
+        "required": [
+          "taskId"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "Task ID to delete"
+          }
+        }
+      },
+      "OpenApiMaterialFileHashRequest": {
+        "type": "object",
+        "required": [
+          "fileHash",
+          "fileName"
+        ],
+        "properties": {
+          "fileHash": {
+            "type": "string",
+            "description": "File MD5 hash"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "File name including extension"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartPresignRequest": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/comparison)"
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "Multipart upload session ID from initiate"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "MD5 hash of the full file"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Original file name including extension"
+          },
+          "partNumbers": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Part numbers to presign (1–10000)"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartCompletePart": {
+        "type": "object",
+        "properties": {
+          "partNumber": {
+            "type": "integer",
+            "description": "Part index (1-based)"
+          },
+          "eTag": {
+            "type": "string",
+            "description": "`ETag` header from the part's PUT response"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartCompleteRequest": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/comparison)"
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "Multipart upload session ID"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "MD5 hash of the full file"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Original file name including extension"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMaterialMultipartCompletePart"
+            },
+            "description": "Uploaded parts with `partNumber` and `eTag` from each PUT"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartAbortRequest": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/comparison)"
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "Multipart upload session ID to abort"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "MD5 hash of the file (must match initiate)"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Original file name including extension"
+          }
+        }
+      },
+      "OpenApiMaterialDeleteRequest": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Material ID to delete. See [Materials](/guides/app-synced/comparison)"
+          }
+        }
+      },
+      "OpenApiMaterialDto": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Material ID. See [Materials](/guides/app-synced/comparison)"
+          },
+          "category": {
+            "type": "string",
+            "example": "video",
+            "description": "Material type"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display file name"
+          },
+          "addressUrl": {
+            "type": "string",
+            "description": "Main file CDN URL"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "Thumbnail CDN URL"
+          },
+          "audioUrl": {
+            "type": "string",
+            "description": "Separated audio track CDN URL"
+          },
+          "resolution": {
+            "type": "string",
+            "example": "1920x1080",
+            "description": "Video resolution when applicable (e.g. `1920x1080`)"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the main file"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "MD5 hash of the main file"
+          },
+          "filesize": {
+            "type": "integer",
+            "format": "int64",
+            "description": "File size in bytes"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Duration in milliseconds"
+          },
+          "createTime": {
+            "type": "string",
+            "description": "Registration time (ISO 8601)"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "Last update time (ISO 8601)"
+          }
+        }
+      },
+      "OpenApiMaterialGenUploadUrlData": {
+        "type": "object",
+        "properties": {
+          "uploadUrl": {
+            "type": "string",
+            "description": "Presigned PUT URL; empty when instant upload (dedup) applies"
+          },
+          "material": {
+            "$ref": "#/components/schemas/OpenApiMaterialDto",
+            "description": "Present when the file already exists (instant upload)"
+          },
+          "materialId": {
+            "type": "string",
+            "description": "Material ID for this upload. See [Materials](/guides/app-synced/comparison)"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartInitiateData": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Material ID for this multipart upload. See [Materials](/guides/app-synced/comparison)"
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "Multipart upload session ID"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Seconds until presigned URLs expire"
+          },
+          "recommendedPartSize": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Suggested part size in bytes. Every part except the last must be at least 5 MB."
+          }
+        }
+      },
+      "OpenApiMaterialMultipartPresignPartUrl": {
+        "type": "object",
+        "properties": {
+          "partNumber": {
+            "type": "integer",
+            "description": "Part index (1-based)"
+          },
+          "url": {
+            "type": "string",
+            "description": "Presigned PUT URL for this part"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartPresignData": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignPartUrl"
+            },
+            "description": "Presigned PUT URLs for requested parts"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Seconds until these URLs expire"
+          }
+        }
+      },
+      "OpenApiMaterialListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMaterialDto"
+            },
+            "description": "Materials on this page"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total materials matching the query"
+          }
+        }
+      },
+      "OpenApiMaterialGenUploadUrlResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialGenUploadUrlData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMaterialMultipartInitiateResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartInitiateData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMaterialMultipartPresignResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMaterialDtoResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialDto"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMaterialListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialListData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiBasicVoiceDto": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "System preset voice ID. See [Voices](/guides/app-synced/comparison)"
+          },
+          "localName": {
+            "type": "string",
+            "description": "Localized voice name"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Display name in the voice picker"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en-US",
+            "description": "Primary locale (BCP-47) for this preset"
+          },
+          "localeName": {
+            "type": "string",
+            "description": "Human-readable locale label"
+          },
+          "provider": {
+            "type": "string",
+            "description": "Preset tier code (`S1`–`S7`). See [Supported clone methods](/guides/supported-clone-methods)."
+          },
+          "gender": {
+            "type": "string",
+            "description": "Gender label (e.g. male, female)"
+          },
+          "style": {
+            "type": "string",
+            "description": "Speaking style tag"
+          },
+          "rolePlay": {
+            "type": "string",
+            "description": "Role-play or character tag"
+          },
+          "description": {
+            "type": "string",
+            "description": "Marketing or catalog description"
+          },
+          "personalities": {
+            "type": "string",
+            "description": "Comma-separated personality tags"
+          },
+          "personalityList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Personality tags as a list"
+          },
+          "scenarios": {
+            "type": "string",
+            "description": "Recommended use-case tags"
+          },
+          "scenarioList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Use-case tags as a list"
+          },
+          "isHd": {
+            "type": "integer",
+            "description": "`1` if this is an HD voice"
+          },
+          "isPreferred": {
+            "type": "integer",
+            "description": "`1` if marked preferred in the catalog"
+          },
+          "score": {
+            "type": "number",
+            "description": "Ranking score in list results"
+          },
+          "cover": {
+            "type": "string",
+            "description": "Cover image URL (HTTPS). Use the URL as returned."
+          },
+          "audio": {
+            "type": "string",
+            "description": "Sample preview audio URL (HTTPS). Use the URL as returned."
+          },
+          "createTime": {
+            "type": "string",
+            "description": "Record creation time"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "Record last update time"
+          }
+        }
+      },
+      "OpenApiCloneVoiceDto": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "Cloned voice ID. See [Voices](/guides/app-synced/comparison)"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the clone"
+          },
+          "provider": {
+            "type": "string",
+            "description": "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+          },
+          "exampleLanguage": {
+            "type": "string",
+            "description": "Sample language locale (BCP-47)"
+          },
+          "content": {
+            "type": "string",
+            "description": "Sample text or transcript associated with the clone"
+          },
+          "audio": {
+            "type": "string",
+            "description": "Sample or reference audio URL"
+          },
+          "createTime": {
+            "type": "string",
+            "description": "Record creation time"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "Record last update time"
+          }
+        }
+      },
+      "OpenApiBasicVoiceListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiBasicVoiceDto"
+            },
+            "description": "Voices on this page"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total voices matching filters"
+          }
+        }
+      },
+      "OpenApiCloneVoiceListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiCloneVoiceDto"
+            },
+            "description": "Cloned voices on this page"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total clones matching filters"
+          }
+        }
+      },
+      "OpenApiBasicVoiceListRequest": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "Filter by preset `voiceId`. See [Voices](/guides/app-synced/comparison)"
+          },
+          "searchName": {
+            "type": "string",
+            "description": "Search by display or local name"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en-US",
+            "description": "Filter by locale (BCP-47). See [Supported languages](/guides/supported-languages)"
+          },
+          "age": {
+            "type": "string",
+            "description": "young / adult / senior"
+          },
+          "gender": {
+            "type": "string",
+            "description": "Filter by gender"
+          },
+          "quality": {
+            "type": "string",
+            "description": "any / high"
+          },
+          "category": {
+            "type": "string",
+            "description": "Filter by voice category"
+          },
+          "emotionPrompt": {
+            "type": "string",
+            "description": "exclude / include"
+          },
+          "topIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Pin these preset `voiceId` values to the top. See [Voices](/guides/app-synced/comparison)"
+          },
+          "currentPage": {
+            "type": "integer",
+            "default": 1,
+            "description": "Page number (1-based)"
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 10,
+            "description": "Page size"
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "voiceId / score / create_time / update_time / is_preferred"
+          },
+          "order": {
+            "type": "string",
+            "default": "desc",
+            "description": "Sort direction: `asc` or `desc`"
+          }
+        }
+      },
+      "OpenApiBasicVoiceListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiBasicVoiceListData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiCloneVoiceListRequest": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "Filter by cloned `voiceId`. See [Voices](/guides/app-synced/comparison)"
+          },
+          "voiceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Filter by cloned voice IDs. See [Voices](/guides/app-synced/comparison)"
+          },
+          "searchName": {
+            "type": "string",
+            "description": "Search by clone name"
+          },
+          "currentPage": {
+            "type": "integer",
+            "default": 1,
+            "description": "Page number (1-based)"
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 10,
+            "description": "Page size"
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "voiceId / name / create_time / update_time"
+          },
+          "order": {
+            "type": "string",
+            "default": "desc",
+            "description": "Sort direction: `asc` or `desc`"
+          }
+        }
+      },
+      "OpenApiCloneVoiceListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceListData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiCloneVoiceUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "Cloned `voiceId` to rename. See [Voices](/guides/app-synced/comparison)"
+          },
+          "voiceName": {
+            "type": "string",
+            "description": "New display name"
+          }
+        }
+      },
+      "OpenApiCloneVoiceDeleteRequest": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "Cloned `voiceId` to delete. See [Voices](/guides/app-synced/comparison)"
+          }
+        }
+      },
+      "AppTaskType": {
+        "type": "string",
+        "enum": [
+          "vt",
+          "at"
+        ],
+        "description": "`vt` video translation | `at` audio translation"
+      },
+      "AppMediaTranslationSource": {
+        "type": "object",
+        "description": "Exactly one of `materialId` or `youtubeUrl`",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Material ID from [App-Synced upload](/api-reference/app-synced/assets/materials/gen-upload-url) or [List materials](/api-reference/app-synced/assets/materials/list-materials)"
+          },
+          "youtubeUrl": {
+            "type": "string",
+            "description": "YouTube video URL (use `taskType: vt`)"
+          },
+          "subtitleMaterialId": {
+            "type": "string",
+            "description": "Optional `.srt` material with the source-language subtitles. Other file types return `400`."
+          },
+          "targetSubtitleMaterialId": {
+            "type": "string",
+            "description": "Optional `.srt` material with the translated subtitles. Other file types return `400`."
+          }
+        }
+      },
+      "AppMediaTranslationVoiceClone": {
+        "type": "object",
+        "required": [],
+        "description": "Automatic dubbing settings (optional). Omit to use website defaults.",
+        "properties": {
+          "style": {
+            "type": "string",
+            "enum": [
+              "emotional",
+              "consistent",
+              "auto",
+              "tutorial",
+              "drama",
+              "smart"
+            ],
+            "default": "emotional",
+            "description": "`emotional` (default) | `consistent` clone the original voices; `auto` lets VMEG decide; `tutorial` / `drama` are content presets; `smart` matches preset voices."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "role",
+              "mix",
+              "sentence"
+            ],
+            "example": "role",
+            "description": "role | mix | sentence. Only for `emotional` / `consistent`; optional."
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
+            "description": "Clone engine (`V1`–`V5`). Only for `emotional` / `consistent`; optional. See [Supported clone methods](/guides/supported-clone-methods)."
+          }
+        }
+      },
+      "AppMediaTranslationOptions": {
+        "type": "object",
+        "required": [],
+        "description": "Pipeline options (all optional). Voice rules match the website: `voiceClone.style` picks automatic dubbing; `voiceSpeakers.selectedVoicesList` picks voices manually (`sv_*` system, `cv_*` your cloned voices) and cannot be combined with `voiceClone`. `dubbingVersion: V2` cannot be combined with either. Leave `voiceSpeakers.timbreMethod` empty when you set voices; a conflicting value returns `400`.",
+        "properties": {
+          "dubbingVersion": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2"
+            ],
+            "example": "V1",
+            "description": "Dubbing version (same as vmeg.ai). `V2` VMEG OpenDub V2: More natural voices, richer emotions, and finer control for a more polished dubbing experience. `V1` VMEG OpenDub V1: Mature and reliable, with flexible voice selection. Auto-match a voice or choose one yourself."
+          },
+          "voiceClone": {
+            "$ref": "#/components/schemas/AppMediaTranslationVoiceClone"
+          },
+          "transcribe": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranscribe"
+          },
+          "translate": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranslate"
+          },
+          "separation": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationSeparation"
+          },
+          "dynamicVideoLength": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationDynamicVideoLength"
+          },
+          "lipsync": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync"
+          },
+          "text": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Title and subtitle styling / burn-in configuration (product-specific object)"
+          },
+          "voiceSpeakers": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceSpeakers"
+          }
+        }
+      },
+      "AppMediaTranslationCreateRequest": {
+        "type": "object",
+        "required": [
+          "taskType",
+          "source",
+          "language"
+        ],
+        "properties": {
+          "taskType": {
+            "$ref": "#/components/schemas/AppTaskType",
+            "description": "`vt` video translation | `at` audio translation. Must match the material type, otherwise `400`."
+          },
+          "source": {
+            "$ref": "#/components/schemas/AppMediaTranslationSource"
+          },
+          "language": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage",
+            "description": "Source and target locales for localization"
+          },
+          "options": {
+            "$ref": "#/components/schemas/AppMediaTranslationOptions"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Job name shown in **My tasks** (max 255 characters). Defaults to the file name or the YouTube video title."
+          }
+        }
+      },
+      "AppMediaTranslationAcceptedResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiMediaTranslationAcceptedData"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "editorUrl": {
+                        "type": "string",
+                        "description": "Website editor URL for this job (sign in with the same VMEG account)"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "AppCloneVoiceCreateRequest": {
+        "type": "object",
+        "properties": {
+          "voiceName": {
+            "type": "string",
+            "description": "Display name for the cloned voice in your asset library"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
+            "example": "V1",
+            "description": "Clone engine (`V1`–`V5`). See [Supported clone methods](/guides/supported-clone-methods)."
+          },
+          "refAudio": {
+            "type": "string",
+            "description": "HTTPS reference audio URL (use `refAudioMaterialId` for uploaded files). Provide exactly one of the two."
+          },
+          "sampleLanguage": {
+            "type": "string",
+            "example": "zh-CN",
+            "description": "Sample language locale (BCP-47). See [Supported languages](/guides/supported-languages)."
+          },
+          "sampleText": {
+            "type": "string",
+            "description": "Transcript of the reference audio (required)"
+          },
+          "refAudioMaterialId": {
+            "type": "string",
+            "description": "Material ID of an uploaded audio/video file"
+          }
+        },
+        "required": [
+          "voiceName",
+          "sampleText"
+        ]
+      },
+      "AppCloneVoiceCreateResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceDto"
+              }
+            }
+          }
+        ]
+      },
+      "AppTaskOutput": {
+        "type": "object",
+        "properties": {
+          "videoUrl": {
+            "type": "string",
+            "description": "Dubbed video URL (empty for audio translation)"
+          },
+          "audioUrl": {
+            "type": "string",
+            "description": "Dubbed audio URL"
+          },
+          "lipsyncVideoUrl": {
+            "type": "string",
+            "description": "Lip-sync video URL when lip sync is enabled"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "Thumbnail URL"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Export time"
+          }
+        }
+      },
+      "AppTaskDetailData": {
+        "type": "object",
+        "description": "App-Synced job detail",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "Task ID (same as the job ID on the website)"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/AppTaskType"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
+          },
+          "editorUrl": {
+            "type": "string",
+            "description": "Website editor URL for this job (sign in with the same VMEG account)"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Job name shown in **My tasks**"
+              },
+              "userMessage": {
+                "type": "string",
+                "description": "Failure reason when `status` is `failed` (same text as the website)"
+              },
+              "outputs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AppTaskOutput"
+                },
+                "description": "Rendered outputs, newest first"
+              }
+            }
+          }
+        }
+      },
+      "AppTaskDetailResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/AppTaskDetailData"
+              }
+            }
+          }
+        ]
+      },
+      "AppMaterialUploadCompleteRequest": {
+        "type": "object",
+        "required": [
+          "fileName",
+          "materialId",
+          "fileHash"
+        ],
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "description": "Original file name including extension"
+          },
+          "materialId": {
+            "type": "string",
+            "description": "Material ID from presigned upload. See [Materials](/guides/app-synced/comparison)"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "MD5 hash of the uploaded file (must match upload request)"
+          }
+        }
+      }
+    }
+  }
+}

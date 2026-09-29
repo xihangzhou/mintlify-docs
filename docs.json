@@ -109,7 +109,7 @@
             ]
           },
           {
-            "tab": "API reference",
+            "tab": "Standalone API",
             "groups": [
               {
                 "group": "Overview",
@@ -118,6 +118,19 @@
               {
                 "group": "Endpoints",
                 "openapi": "api-reference/openapi.json"
+              }
+            ]
+          },
+          {
+            "tab": "App-Synced API",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": ["guides/app-synced/comparison"]
+              },
+              {
+                "group": "Endpoints",
+                "openapi": "api-reference/app-synced.json"
               }
             ]
           }
@@ -207,7 +220,7 @@
             ]
           },
           {
-            "tab": "API 参考",
+            "tab": "独立版 API",
             "groups": [
               {
                 "group": "概览",
@@ -216,6 +229,19 @@
               {
                 "group": "接口",
                 "openapi": "zh/api-reference/openapi.json"
+              }
+            ]
+          },
+          {
+            "tab": "应用同源版 API",
+            "groups": [
+              {
+                "group": "概览",
+                "pages": ["zh/guides/app-synced/comparison"]
+              },
+              {
+                "group": "接口",
+                "openapi": "zh/api-reference/app-synced.json"
               }
             ]
           }

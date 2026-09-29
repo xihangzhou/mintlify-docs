@@ -32,6 +32,7 @@ fs.writeFileSync(p, JSON.stringify(spec, null, 2) + '\n');
 " "${OUT}"
 
 node "${ROOT}/scripts/build-openapi-i18n.mjs" zh
+node "${ROOT}/scripts/build-app-synced-openapi.mjs"
 node "${ROOT}/scripts/openapi-diff.mjs" > "${DIFF_MD}" 2>&1 || true
 
 echo ""

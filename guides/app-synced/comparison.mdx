@@ -1,0 +1,88 @@
+---
+title: "Standalone vs App-Synced"
+description: "Two parallel APIs — pick the one that fits your integration"
+icon: "code-compare"
+---
+
+import { productUrls } from "/snippets/product-urls.jsx";
+
+VMEG offers two **independent** Open APIs. They share authentication, idempotency, and the response envelope, but their data is separate: use one API end to end for a job (upload → create → poll).
+
+| | Standalone API | App-Synced API |
+|---|---|---|
+| Base path | `/openapi/v1/...` | `/openapi/v1/app/...` |
+| Products | Media translation, TTS, voice clone, text translation | Media translation (video / audio) and voice clone |
+| Where jobs live | API only — not visible on the website | Your website account: **My tasks**, editor, re-export |
+| Materials and cloned voices | API-only library | Same library as the website (**My assets**, **My voices**) |
+| Results | [Webhook](/guides/webhooks) or polling | Poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) |
+| Output storage | Optional `output` to your own bucket | Hosted by VMEG; re-export anytime on the website |
+| Credits | [Open API pricing](/guides/pricing) | <a href={productUrls.pricing}>Website pricing</a> |
+
+## When to use which
+
+- **Standalone** — fully automated back-end pipelines that need webhooks, TTS, or text translation, and never open the website.
+- **App-Synced** — you want API submission but still edit subtitles, voices, or timing in the VMEG editor and export from the website.
+
+## Protocol differences (App-Synced)
+
+**Access**
+
+- The API key must belong to a VMEG website account (create it on the website); other keys get `401`.
+- Voice cloning requires a plan with voice cloning; otherwise `403`.
+
+**Creating a job**
+
+- `options` is optional; defaults match a website job with automatic voice cloning.
+- `source` accepts exactly one of `materialId` or `youtubeUrl` (a YouTube link, no upload needed). `taskType` must match the material: `vt` for video, `at` for audio.
+- `title` sets the job name in **My tasks**; it defaults to the file name or YouTube video title.
+- Optional subtitle files (`source.subtitleMaterialId`, `source.targetSubtitleMaterialId`) must be `.srt` materials.
+- `options.voiceClone.style` also accepts `auto`, `tutorial`, `drama`, and `smart`.
+- Manual voice picking (`voiceSpeakers.selectedVoicesList`) accepts `sv_*` system voices and `cv_*` voices from [List cloned voices](/api-reference/app-synced/assets/voices/list-cloned-voices). It cannot be combined with `voiceClone`, and `dubbingVersion: V2` cannot be combined with either.
+- `source.sourceUrl`, `output`, `extraData`, and the material `mimeType` filter return `400`. Other unknown fields are ignored.
+
+**Results**
+
+- The acceptance response and job detail include `editorUrl`.
+- Job detail returns `result.outputs`, newest first; `result.outputs[0]` is the latest successful render.
+- `finished` is not permanent: re-exporting on the website sets the job back to `running`, and a failed re-export ends in `failed` while earlier outputs stay in the list.
+
+**Voice cloning**
+
+- The call is synchronous and returns the new `cv_*` voice; it can take tens of seconds.
+- Accepts `refAudioMaterialId` (an uploaded material) as an alternative to `refAudio`; `voiceName` and `sampleText` are required.
+
+<Warning>
+  Material IDs, cloned voice IDs (`cv_*`), and task IDs are not interchangeable: an ID from the Standalone API returns `404` on App-Synced, and vice versa. System voice IDs (`sv_*`) work on both.
+</Warning>
+
+## Workflow
+
+<Steps>
+  <Step title="Upload">
+    `POST /openapi/v1/app/assets/material/upload/gen-upload-url`, PUT the file, then `.../upload/complete` (or the multipart endpoints for large files). For YouTube videos, skip upload and pass `source.youtubeUrl`.
+  </Step>
+  <Step title="Pick voices (optional)">
+    List `.../assets/voice/basic/list` and `.../assets/voice/clone/list`, or clone one with `.../task/clone-voice/create`.
+  </Step>
+  <Step title="Create the job">
+    `POST /openapi/v1/app/task/media-translation/create-async` with `X-Idempotency-Key`.
+  </Step>
+  <Step title="Poll">
+    `GET /openapi/v1/app/tasks/detail?taskId=...` until `status` is `finished` or `failed`. Open `editorUrl` to edit and re-export. The status matches the website, so set a polling timeout: if a job stays `running` far longer than usual, contact support with the `taskId`.
+  </Step>
+</Steps>
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-async" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -H "X-Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "taskType": "vt",
+    "source": { "materialId": "YOUR_MATERIAL_ID" },
+    "language": { "target": "en-US" },
+    "title": "Product demo (English)"
+  }'
+```
+
+See the full [App-Synced API reference](/api-reference/app-synced/media-translation/create-media-translation-async). Guides linked from the reference are written for the Standalone API; the steps are the same with the `/openapi/v1/app` prefix.

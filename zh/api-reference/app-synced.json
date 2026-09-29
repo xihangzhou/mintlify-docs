@@ -1,0 +1,2145 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "VMEG 开放 API（应用同源版）",
+    "description": "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过轮询 `GET /openapi/v1/app/tasks/detail` 获取（无 Webhook）。见[独立版与应用同源版的区别](/zh/guides/app-synced/comparison)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.vmeg.ai",
+      "description": "生产环境"
+    }
+  ],
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "媒体翻译",
+      "x-group": "视频与音频翻译配音",
+      "description": "在与 vmeg.ai 相同的链路上翻译配音已上传的视频/音频或 YouTube 链接。首轮即产出配音成片，任务同时出现在**我的任务**，可继续编辑并重新导出。结果请轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)。"
+    },
+    {
+      "name": "声音克隆",
+      "x-group": "声音克隆",
+      "description": "用一段短录音克隆音色。音色保存到网站**我的音色**，返回 `cv_*`，可用于翻译配音任务。"
+    },
+    {
+      "name": "任务管理",
+      "x-group": "任务状态与历史",
+      "description": "列出、查看或删除你 VMEG 账号下的视频/音频翻译任务，包括在网站创建的任务。"
+    },
+    {
+      "name": "资产 - 素材",
+      "x-group": "上传文件（素材）",
+      "description": "上传并管理网站素材库（**我的资产**）里的文件。完成上传（单文件或分片）后，把 `materialId` 传给 create-async。"
+    },
+    {
+      "name": "资产 - 音色",
+      "x-group": "音色（预设与克隆）",
+      "description": "列出系统预设音色（`sv_*`），管理你的克隆音色（`cv_*`，与网站**我的音色**相同）。"
+    }
+  ],
+  "paths": {
+    "/openapi/v1/app/task/media-translation/create-async": {
+      "post": {
+        "tags": [
+          "媒体翻译"
+        ],
+        "summary": "创建翻译配音任务",
+        "description": "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；结果需轮询获取，不走 Webhook。其他未知字段会被忽略。",
+        "operationId": "appMediaTranslationCreateAsync",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/media-translation/create-media-translation-async",
+          "metadata": {
+            "sidebarTitle": "创建翻译配音任务",
+            "title": "创建翻译配音任务"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppMediaTranslationCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "任务已受理。`editorUrl` 为该任务的网站编辑器地址。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppMediaTranslationAcceptedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi/v1/app/task/clone-voice/create": {
+      "post": {
+        "tags": [
+          "声音克隆"
+        ],
+        "summary": "从样本音频克隆音色（同步）",
+        "operationId": "appCloneVoiceCreateSync",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppCloneVoiceCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppCloneVoiceCreateResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "用参考录音克隆音色。接口是同步的，克隆完成才返回，可能需要几十秒，请把客户端超时设得宽松些（例如 120 秒）。音色保存到网站**我的音色**，返回 `cv_*`，可用于 `voiceSpeakers.selectedVoicesList`。`sampleLanguage` 默认 `en-US`；不传 `provider` 时自动选择克隆引擎。需要套餐包含声音克隆权益（否则返回 `403`）。",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/voice-clone/create-clone-voice"
+        }
+      }
+    },
+    "/openapi/v1/app/tasks/list": {
+      "get": {
+        "tags": [
+          "任务管理"
+        ],
+        "summary": "任务列表",
+        "operationId": "appTasksList",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/tasks/list-tasks",
+          "metadata": {
+            "sidebarTitle": "API 任务列表",
+            "title": "API 任务列表"
+          }
+        },
+        "parameters": [
+          {
+            "name": "taskType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vt",
+                "at"
+              ]
+            },
+            "description": "按任务类型筛选"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "running",
+                "finished",
+                "failed"
+              ]
+            },
+            "description": "按任务状态筛选"
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "页码（从 1 开始）"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "每页条数"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiTaskListResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "分页列出你 VMEG 账号下的视频/音频翻译任务，包括在网站创建的任务。`status` 为 `running`、`finished` 或 `failed`。"
+      }
+    },
+    "/openapi/v1/app/tasks/detail": {
+      "get": {
+        "tags": [
+          "任务管理"
+        ],
+        "summary": "查询任务状态与结果",
+        "operationId": "appTasksDetail",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/tasks/get-task-detail",
+          "metadata": {
+            "sidebarTitle": "查询任务状态",
+            "title": "查询任务状态与结果"
+          }
+        },
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "任务 ID（与网站任务 ID 相同）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTaskDetailResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "轮询单个任务。`status` 为 `finished` 时，`result.outputs[0]` 是最新的成片。\n\n`finished` 不是最终状态：在网站编辑器重新导出会把任务置回 `running`，导出失败则变为 `failed`。之前的成片仍保留在 `result.outputs` 中，`result.outputs[0]` 始终是最近一次成功导出的成片。"
+      }
+    },
+    "/openapi/v1/app/tasks/delete": {
+      "post": {
+        "tags": [
+          "任务管理"
+        ],
+        "summary": "删除任务",
+        "operationId": "appTasksDelete",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/tasks/delete-task",
+          "metadata": {
+            "sidebarTitle": "删除 API 任务",
+            "title": "删除 API 任务"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiTaskDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "从你的 VMEG 账号删除任务，网站**我的任务**中也会消失（在网站创建的任务同样适用），删除后无法恢复。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。"
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/gen-upload-url": {
+      "post": {
+        "tags": [
+          "资产 - 素材"
+        ],
+        "summary": "生成预签名上传 URL",
+        "operationId": "appMaterialGenUploadUrl",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/gen-upload-url",
+          "metadata": {
+            "sidebarTitle": "生成预签名上传 URL",
+            "title": "生成预签名上传 URL"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialFileHashRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialGenUploadUrlResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "单文件上传**第 1 步**：获取预签名 PUT URL 与 `materialId`。把文件 PUT 到 `uploadUrl`，再调用[完成单文件上传](/zh/api-reference/app-synced/assets/materials/complete-upload)。如果返回了 `material`，说明素材库里已有同一文件，无需上传。除非用 `source.youtubeUrl` 创建任务，否则必须先上传。"
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/complete": {
+      "post": {
+        "tags": [
+          "资产 - 素材"
+        ],
+        "summary": "完成单文件上传",
+        "operationId": "appMaterialUploadComplete",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/complete-upload",
+          "metadata": {
+            "sidebarTitle": "完成单文件上传",
+            "title": "完成单文件上传"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppMaterialUploadCompleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialDtoResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "单文件上传**第 3 步**：PUT 成功后登记文件，返回素材信息。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。"
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/multipart/initiate": {
+      "post": {
+        "tags": [
+          "资产 - 素材"
+        ],
+        "summary": "初始化分片上传",
+        "operationId": "appMaterialMultipartInitiate",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/multipart-initiate",
+          "metadata": {
+            "sidebarTitle": "初始化分片上传",
+            "title": "初始化分片上传"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialFileHashRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialMultipartInitiateResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "分片上传**第 1 步**：发起上传，获取 `materialId` 与 `uploadId`。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。"
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/multipart/presign-parts": {
+      "post": {
+        "tags": [
+          "资产 - 素材"
+        ],
+        "summary": "为分片生成预签名 URL",
+        "operationId": "appMaterialMultipartPresign",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/multipart-presign-parts",
+          "metadata": {
+            "sidebarTitle": "为分片生成预签名 URL",
+            "title": "为分片生成预签名 URL"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "分片上传 **第 2 步**：为每个分片获取预签名 URL。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/comparison)。"
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/multipart/complete": {
+      "post": {
+        "tags": [
+          "资产 - 素材"
+        ],
+        "summary": "完成分片上传",
+        "operationId": "appMaterialMultipartComplete",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/multipart-complete",
+          "metadata": {
+            "sidebarTitle": "完成分片上传",
+            "title": "完成分片上传"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartCompleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialDtoResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "分片上传 **最后一步**：提交分片并登记素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/comparison)。"
+      }
+    },
+    "/openapi/v1/app/assets/material/upload/multipart/abort": {
+      "post": {
+        "tags": [
+          "资产 - 素材"
+        ],
+        "summary": "中止分片上传",
+        "operationId": "appMaterialMultipartAbort",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartAbortRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "取消进行中的分片上传。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/comparison)。",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/multipart-abort"
+        }
+      }
+    },
+    "/openapi/v1/app/assets/material/list": {
+      "get": {
+        "tags": [
+          "资产 - 素材"
+        ],
+        "summary": "素材列表",
+        "operationId": "appMaterialList",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/list-materials",
+          "metadata": {
+            "sidebarTitle": "素材列表",
+            "title": "素材列表"
+          }
+        },
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "description": "文件类型：`video`、`audio`、`srt` 等（不区分大小写）",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "description": "按文件名模糊匹配",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "query",
+            "required": false,
+            "description": "精确匹配素材 ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currentPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "页码（从 1 开始）"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "每页条数"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiMaterialListResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "分页查询网站素材库（与**我的资产**同一份数据）。"
+      }
+    },
+    "/openapi/v1/app/assets/material/delete": {
+      "post": {
+        "tags": [
+          "资产 - 素材"
+        ],
+        "summary": "删除素材",
+        "operationId": "appMaterialDelete",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/delete-material",
+          "metadata": {
+            "sidebarTitle": "删除素材",
+            "title": "删除素材"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiMaterialDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "删除素材，网站**我的资产**中也会消失。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。"
+      }
+    },
+    "/openapi/v1/app/assets/voice/basic/list": {
+      "post": {
+        "tags": [
+          "资产 - 音色"
+        ],
+        "summary": "系统音色列表",
+        "operationId": "appVoiceBasicList",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/voices/list-system-voices",
+          "metadata": {
+            "sidebarTitle": "系统音色列表",
+            "title": "系统音色列表"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiBasicVoiceListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiBasicVoiceListResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "列出系统预设音色。把 `voiceId`（`sv_*`）用于 `voiceSpeakers.selectedVoicesList`。"
+      }
+    },
+    "/openapi/v1/app/assets/voice/clone/list": {
+      "post": {
+        "tags": [
+          "资产 - 音色"
+        ],
+        "summary": "克隆音色列表",
+        "operationId": "appVoiceCloneList",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/voices/list-cloned-voices",
+          "metadata": {
+            "sidebarTitle": "克隆音色列表",
+            "title": "克隆音色列表"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceListRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiCloneVoiceListResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "你在网站的克隆音色（**我的音色**），ID 为 `cv_*`。"
+      }
+    },
+    "/openapi/v1/app/assets/voice/clone/update": {
+      "post": {
+        "tags": [
+          "资产 - 音色"
+        ],
+        "summary": "重命名克隆音色",
+        "operationId": "appVoiceCloneUpdate",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/voices/rename-cloned-voice",
+          "metadata": {
+            "sidebarTitle": "重命名克隆音色",
+            "title": "重命名克隆音色"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "重命名克隆音色展示名。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [音色](/zh/guides/app-synced/comparison)。"
+      }
+    },
+    "/openapi/v1/app/assets/voice/clone/delete": {
+      "post": {
+        "tags": [
+          "资产 - 音色"
+        ],
+        "summary": "删除克隆音色",
+        "operationId": "appVoiceCloneDelete",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/voices/delete-cloned-voice",
+          "metadata": {
+            "sidebarTitle": "删除克隆音色",
+            "title": "删除克隆音色"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenApiVoidResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "删除克隆音色，网站**我的音色**中也会消失。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "在 **`Authorization`** 请求头中传入 API Key（`Bearer <api_key>`）。见 [鉴权](/zh/guides/authentication)。"
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "X-Idempotency-Key",
+        "in": "header",
+        "description": "创建任务或修改持久化数据的 `POST` 必填（最长 64 字符）。见 [幂等](/zh/guides/idempotency)。",
+        "schema": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "IdempotencyKeyRequired": {
+        "name": "X-Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "description": "创建任务或修改持久化数据的 `POST` 必填（最长 64 字符）。见 [幂等](/zh/guides/idempotency)。",
+        "schema": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "CallbackTimestamp": {
+        "name": "X-Timestamp",
+        "in": "header",
+        "required": true,
+        "description": "Unix 时间戳（毫秒，字符串）",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "CallbackSignature": {
+        "name": "X-Signature",
+        "in": "header",
+        "required": true,
+        "description": "小写十六进制 HMAC-SHA256(secret, X-Timestamp + 原始请求体)",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "OpenApiResponseBase": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200,
+            "description": "业务码；200 表示成功"
+          },
+          "message": {
+            "type": "string",
+            "example": "",
+            "description": "当 `code` 非成功时的说明信息"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "OpenApiVoidResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "nullable": true,
+                "description": "无业务数据时恒为 `null`"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMediaTranslationLanguage": {
+        "type": "object",
+        "required": [
+          "target"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "源语言（BCP-47）或 `auto` 自动检测。见 [支持的语言](/zh/guides/supported-languages)。"
+          },
+          "target": {
+            "type": "string",
+            "example": "zh-CN",
+            "description": "目标语言 locale（BCP-47）。见 [支持的语言](/zh/guides/supported-languages)。"
+          }
+        },
+        "description": "本地化源语言与目标语言"
+      },
+      "OpenApiMediaTranslationTranscribe": {
+        "type": "object",
+        "description": "自动语音识别（ASR）设置",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "fast",
+              "normal"
+            ],
+            "default": "fast",
+            "description": "ASR 速度与时效的权衡"
+          },
+          "type": {
+            "type": "string",
+            "default": "default",
+            "description": "ASR 配置档（省略时使用产品默认）"
+          }
+        }
+      },
+      "OpenApiMediaTranslationTranslate": {
+        "type": "object",
+        "description": "媒体流水线中的文本翻译步骤",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "default",
+              "machine"
+            ],
+            "default": "default",
+            "description": "`default` — 标准本地化。`machine` — 机器翻译模式"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "翻译步骤的自定义 prompt"
+          }
+        }
+      },
+      "OpenApiMediaTranslationSeparation": {
+        "type": "object",
+        "description": "声源分离（人声与背景）",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "分离模式（如 `auto`）"
+          }
+        }
+      },
+      "OpenApiMediaTranslationDynamicVideoLength": {
+        "type": "object",
+        "description": "动态视频时长（视频翻译）",
+        "properties": {
+          "enable": {
+            "type": "boolean",
+            "description": "启用源片与配音成片的时长动态对齐"
+          }
+        }
+      },
+      "OpenApiMediaTranslationLipsync": {
+        "type": "object",
+        "description": "唇形同步（仅视频翻译；可能额外扣积分）。见 [计费](/zh/guides/pricing)",
+        "properties": {
+          "enable": {
+            "type": "boolean",
+            "default": false,
+            "description": "对输出视频启用唇形同步"
+          }
+        }
+      },
+      "OpenApiMediaTranslationSelectedVoice": {
+        "type": "object",
+        "description": "为配音选定的系统或克隆音色",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "example": "S1",
+            "description": "选用系统预设音色时可附带档位代号（`S1`、`S2`、…）。克隆音色为 `V1`–`V5`。见 [音色](/zh/guides/app-synced/comparison)。"
+          },
+          "voiceId": {
+            "type": "string",
+            "description": "`sv_*` 来自[系统音色列表](/zh/api-reference/app-synced/assets/voices/list-system-voices)，`cv_*` 来自[克隆音色列表](/zh/api-reference/app-synced/assets/voices/list-cloned-voices)"
+          }
+        }
+      },
+      "OpenApiMediaTranslationVoiceSpeakers": {
+        "type": "object",
+        "description": "配音说话人与音色配置",
+        "properties": {
+          "selectedVoicesList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMediaTranslationSelectedVoice"
+            },
+            "description": "为各说话人槽位显式指定音色"
+          },
+          "speakerNum": {
+            "type": "string",
+            "example": "auto",
+            "description": "检测的说话人数量（`auto` 或数字字符串）"
+          },
+          "timbreMethod": {
+            "type": "string",
+            "enum": [
+              "clone",
+              "smart"
+            ],
+            "example": "clone",
+            "description": "`clone` — 从源音频克隆。`smart` — 智能匹配音色"
+          }
+        }
+      },
+      "OpenApiMediaTranslationAcceptedData": {
+        "type": "object",
+        "description": "音视频翻译异步创建的立即响应（不含交付物）",
+        "required": [
+          "taskId"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "任务 ID（与网站任务 ID 相同）"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/AppTaskType"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "failed",
+              "finished"
+            ],
+            "example": "running",
+            "description": "受理后的任务状态（`running`、`failed` 或 `finished`）"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "任务创建时间（ISO 8601）"
+          }
+        }
+      },
+      "OpenApiTaskSummary": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "任务 ID（与网站任务 ID 相同）"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/AppTaskType"
+          },
+          "status": {
+            "type": "string",
+            "description": "`running` | `finished` | `failed`"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "任务创建时间（ISO 8601）"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "最近更新时间（ISO 8601）"
+          }
+        }
+      },
+      "OpenApiTaskListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiTaskSummary"
+            },
+            "description": "本页任务列表"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "符合筛选条件的任务总数"
+          }
+        }
+      },
+      "OpenApiTaskListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiTaskListData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiTaskDeleteRequest": {
+        "type": "object",
+        "required": [
+          "taskId"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "要删除的任务 ID"
+          }
+        }
+      },
+      "OpenApiMaterialFileHashRequest": {
+        "type": "object",
+        "required": [
+          "fileHash",
+          "fileName"
+        ],
+        "properties": {
+          "fileHash": {
+            "type": "string",
+            "description": "文件 MD5"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "文件名（含扩展名）"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartPresignRequest": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "分片初始化返回的上传会话 ID"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "完整文件的 MD5"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "原始文件名（含扩展名）"
+          },
+          "partNumbers": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "待预签名的分片序号（1–10000）"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartCompletePart": {
+        "type": "object",
+        "properties": {
+          "partNumber": {
+            "type": "integer",
+            "description": "分片序号（从 1 开始）"
+          },
+          "eTag": {
+            "type": "string",
+            "description": "该分片 PUT 响应中的 `ETag` 头"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartCompleteRequest": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "分片上传会话 ID"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "完整文件的 MD5"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "原始文件名（含扩展名）"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMaterialMultipartCompletePart"
+            },
+            "description": "已上传分片列表，含每片的 `partNumber` 与 PUT 返回的 `eTag`"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartAbortRequest": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "要中止的分片上传会话 ID"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "文件 MD5（须与初始化请求一致）"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "原始文件名（含扩展名）"
+          }
+        }
+      },
+      "OpenApiMaterialDeleteRequest": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "要删除的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+          }
+        }
+      },
+      "OpenApiMaterialDto": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+          },
+          "category": {
+            "type": "string",
+            "example": "video",
+            "description": "素材类型"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display file name"
+          },
+          "addressUrl": {
+            "type": "string",
+            "description": "主文件 CDN URL"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "缩略图 CDN URL"
+          },
+          "audioUrl": {
+            "type": "string",
+            "description": "分离音轨 CDN URL"
+          },
+          "resolution": {
+            "type": "string",
+            "example": "1920x1080",
+            "description": "视频分辨率（如适用，例如 `1920x1080`）"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "主文件的 MIME 类型"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "主文件 MD5"
+          },
+          "filesize": {
+            "type": "integer",
+            "format": "int64",
+            "description": "文件大小（字节）"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时长（毫秒）"
+          },
+          "createTime": {
+            "type": "string",
+            "description": "注册时间（ISO 8601）"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "最近更新时间（ISO 8601）"
+          }
+        }
+      },
+      "OpenApiMaterialGenUploadUrlData": {
+        "type": "object",
+        "properties": {
+          "uploadUrl": {
+            "type": "string",
+            "description": "预签名 PUT URL；秒传时为空"
+          },
+          "material": {
+            "$ref": "#/components/schemas/OpenApiMaterialDto",
+            "description": "文件已存在（秒传）时返回"
+          },
+          "materialId": {
+            "type": "string",
+            "description": "本次上传的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartInitiateData": {
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "本次分片上传的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+          },
+          "uploadId": {
+            "type": "string",
+            "description": "分片上传会话 ID"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int64",
+            "description": "预签名 URL 有效秒数"
+          },
+          "recommendedPartSize": {
+            "type": "integer",
+            "format": "int64",
+            "description": "建议的分片大小（字节）。除最后一片外，每片至少 5 MB。"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartPresignPartUrl": {
+        "type": "object",
+        "properties": {
+          "partNumber": {
+            "type": "integer",
+            "description": "分片序号（从 1 开始）"
+          },
+          "url": {
+            "type": "string",
+            "description": "该分片的预签名 PUT URL"
+          }
+        }
+      },
+      "OpenApiMaterialMultipartPresignData": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignPartUrl"
+            },
+            "description": "所请求分片的预签名 PUT URL 列表"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int64",
+            "description": "上述 URL 有效秒数"
+          }
+        }
+      },
+      "OpenApiMaterialListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiMaterialDto"
+            },
+            "description": "本页素材列表"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "符合筛选条件的素材总数"
+          }
+        }
+      },
+      "OpenApiMaterialGenUploadUrlResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialGenUploadUrlData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMaterialMultipartInitiateResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartInitiateData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMaterialMultipartPresignResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialMultipartPresignData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMaterialDtoResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialDto"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiMaterialListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiMaterialListData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiBasicVoiceDto": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "系统预设音色 ID。见 [音色](/zh/guides/app-synced/comparison)"
+          },
+          "localName": {
+            "type": "string",
+            "description": "本地化名称"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "音色选择器中的展示名"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en-US",
+            "description": "该预设的主 locale（BCP-47）"
+          },
+          "localeName": {
+            "type": "string",
+            "description": "locale 的可读名称"
+          },
+          "provider": {
+            "type": "string",
+            "description": "预设档位代号（`S1`–`S7`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+          },
+          "gender": {
+            "type": "string",
+            "description": "性别标签（如 male、female）"
+          },
+          "style": {
+            "type": "string",
+            "description": "说话风格标签"
+          },
+          "rolePlay": {
+            "type": "string",
+            "description": "角色扮演/人设标签"
+          },
+          "description": {
+            "type": "string",
+            "description": "Marketing or catalog description"
+          },
+          "personalities": {
+            "type": "string",
+            "description": "人格标签（逗号分隔）"
+          },
+          "personalityList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "人格标签列表"
+          },
+          "scenarios": {
+            "type": "string",
+            "description": "推荐使用场景标签"
+          },
+          "scenarioList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "场景标签列表"
+          },
+          "isHd": {
+            "type": "integer",
+            "description": "高清音色时为 `1`"
+          },
+          "isPreferred": {
+            "type": "integer",
+            "description": "目录中标记为优选时为 `1`"
+          },
+          "score": {
+            "type": "number",
+            "description": "列表排序得分"
+          },
+          "cover": {
+            "type": "string",
+            "description": "封面图 URL（HTTPS）。请原样使用 API 返回的地址。"
+          },
+          "audio": {
+            "type": "string",
+            "description": "试听音频 URL（HTTPS）。请原样使用 API 返回的地址。"
+          },
+          "createTime": {
+            "type": "string",
+            "description": "记录创建时间"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "记录最近更新时间"
+          }
+        }
+      },
+      "OpenApiCloneVoiceDto": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "克隆音色 ID。见 [音色](/zh/guides/app-synced/comparison)"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the clone"
+          },
+          "provider": {
+            "type": "string",
+            "description": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+          },
+          "exampleLanguage": {
+            "type": "string",
+            "description": "样本语言 locale（BCP-47）"
+          },
+          "content": {
+            "type": "string",
+            "description": "与克隆关联的样本文本或转写"
+          },
+          "audio": {
+            "type": "string",
+            "description": "样本或参考音频 URL"
+          },
+          "createTime": {
+            "type": "string",
+            "description": "记录创建时间"
+          },
+          "updateTime": {
+            "type": "string",
+            "description": "记录最近更新时间"
+          }
+        }
+      },
+      "OpenApiBasicVoiceListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiBasicVoiceDto"
+            },
+            "description": "本页音色列表"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "符合筛选条件的音色总数"
+          }
+        }
+      },
+      "OpenApiCloneVoiceListData": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpenApiCloneVoiceDto"
+            },
+            "description": "本页克隆音色列表"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "符合筛选条件的克隆音色总数"
+          }
+        }
+      },
+      "OpenApiBasicVoiceListRequest": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "按系统预设 `voiceId` 筛选。见 [音色](/zh/guides/app-synced/comparison)"
+          },
+          "searchName": {
+            "type": "string",
+            "description": "按展示名或本地化名称搜索"
+          },
+          "locale": {
+            "type": "string",
+            "example": "en-US",
+            "description": "按 locale（BCP-47）筛选。见 [支持的语言](/zh/guides/supported-languages)"
+          },
+          "age": {
+            "type": "string",
+            "description": "young / adult / senior"
+          },
+          "gender": {
+            "type": "string",
+            "description": "按性别筛选"
+          },
+          "quality": {
+            "type": "string",
+            "description": "any / high"
+          },
+          "category": {
+            "type": "string",
+            "description": "按音色分类筛选"
+          },
+          "emotionPrompt": {
+            "type": "string",
+            "description": "exclude / include"
+          },
+          "topIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "将这些系统预设 `voiceId` 置顶。见 [音色](/zh/guides/app-synced/comparison)"
+          },
+          "currentPage": {
+            "type": "integer",
+            "default": 1,
+            "description": "页码（从 1 开始）"
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 10,
+            "description": "每页条数"
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "voiceId / score / create_time / update_time / is_preferred"
+          },
+          "order": {
+            "type": "string",
+            "default": "desc",
+            "description": "排序方向：`asc` 或 `desc`"
+          }
+        }
+      },
+      "OpenApiBasicVoiceListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiBasicVoiceListData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiCloneVoiceListRequest": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "按克隆 `voiceId` 筛选。见 [音色](/zh/guides/app-synced/comparison)"
+          },
+          "voiceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "按克隆 `voiceId` 列表筛选。见 [音色](/zh/guides/app-synced/comparison)"
+          },
+          "searchName": {
+            "type": "string",
+            "description": "按克隆音色名称搜索"
+          },
+          "currentPage": {
+            "type": "integer",
+            "default": 1,
+            "description": "页码（从 1 开始）"
+          },
+          "pageSize": {
+            "type": "integer",
+            "default": 10,
+            "description": "每页条数"
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "voiceId / name / create_time / update_time"
+          },
+          "order": {
+            "type": "string",
+            "default": "desc",
+            "description": "排序方向：`asc` 或 `desc`"
+          }
+        }
+      },
+      "OpenApiCloneVoiceListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceListData"
+              }
+            }
+          }
+        ]
+      },
+      "OpenApiCloneVoiceUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "要重命名的克隆 `voiceId`。见 [音色](/zh/guides/app-synced/comparison)"
+          },
+          "voiceName": {
+            "type": "string",
+            "description": "新的展示名称"
+          }
+        }
+      },
+      "OpenApiCloneVoiceDeleteRequest": {
+        "type": "object",
+        "properties": {
+          "voiceId": {
+            "type": "string",
+            "description": "要删除的克隆 `voiceId`。见 [音色](/zh/guides/app-synced/comparison)"
+          }
+        }
+      },
+      "AppTaskType": {
+        "type": "string",
+        "enum": [
+          "vt",
+          "at"
+        ],
+        "description": "`vt` 视频翻译 | `at` 音频翻译"
+      },
+      "AppMediaTranslationSource": {
+        "type": "object",
+        "description": "`materialId` 与 `youtubeUrl` 二选一",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "素材 ID，来自[应用同源版上传](/zh/api-reference/app-synced/assets/materials/gen-upload-url)或[素材列表](/zh/api-reference/app-synced/assets/materials/list-materials)"
+          },
+          "youtubeUrl": {
+            "type": "string",
+            "description": "YouTube 视频链接（配合 `taskType: vt`）"
+          },
+          "subtitleMaterialId": {
+            "type": "string",
+            "description": "可选，源语言字幕的 `.srt` 素材。其他文件类型返回 `400`。"
+          },
+          "targetSubtitleMaterialId": {
+            "type": "string",
+            "description": "可选，译文字幕的 `.srt` 素材。其他文件类型返回 `400`。"
+          }
+        }
+      },
+      "AppMediaTranslationVoiceClone": {
+        "type": "object",
+        "required": [],
+        "description": "自动配音设置（可省略），省略时使用网站默认值。",
+        "properties": {
+          "style": {
+            "type": "string",
+            "enum": [
+              "emotional",
+              "consistent",
+              "auto",
+              "tutorial",
+              "drama",
+              "smart"
+            ],
+            "default": "emotional",
+            "description": "`emotional`（默认）| `consistent` 克隆原声；`auto` 由 VMEG 自动选择；`tutorial` / `drama` 为内容类型预设；`smart` 匹配预置音色。"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "role",
+              "mix",
+              "sentence"
+            ],
+            "example": "role",
+            "description": "role | mix | sentence。仅 `emotional` / `consistent` 可用，可省略。"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
+            "description": "克隆引擎（`V1`–`V5`）。仅 `emotional` / `consistent` 可用，可省略。见[支持的克隆方式](/zh/guides/supported-clone-methods)。"
+          }
+        }
+      },
+      "AppMediaTranslationOptions": {
+        "type": "object",
+        "required": [],
+        "description": "处理选项（均可省略）。音色规则与网站一致：`voiceClone.style` 选择自动配音方式；`voiceSpeakers.selectedVoicesList` 手动指定音色（`sv_*` 系统音色、`cv_*` 你的克隆音色），不能与 `voiceClone` 同时传。`dubbingVersion: V2` 不能与这两者同时使用。指定音色时请不要传 `voiceSpeakers.timbreMethod`，传了且与音色设置冲突返回 `400`。",
+        "properties": {
+          "dubbingVersion": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2"
+            ],
+            "example": "V1",
+            "description": "配音版本（与 vmeg.ai 网页端一致）。`V2` VMEG OpenDub V2：声音更自然，情绪更丰富，控制更精细，带来更精致的配音体验。`V1` VMEG OpenDub V1：成熟可靠，音色选择灵活。可自动匹配音色，也可自行选择。"
+          },
+          "voiceClone": {
+            "$ref": "#/components/schemas/AppMediaTranslationVoiceClone"
+          },
+          "transcribe": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranscribe"
+          },
+          "translate": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationTranslate"
+          },
+          "separation": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationSeparation"
+          },
+          "dynamicVideoLength": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationDynamicVideoLength"
+          },
+          "lipsync": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync"
+          },
+          "text": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "标题与字幕样式/烧录配置（产品结构，键值因产品而异）"
+          },
+          "voiceSpeakers": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceSpeakers"
+          }
+        }
+      },
+      "AppMediaTranslationCreateRequest": {
+        "type": "object",
+        "required": [
+          "taskType",
+          "source",
+          "language"
+        ],
+        "properties": {
+          "taskType": {
+            "$ref": "#/components/schemas/AppTaskType",
+            "description": "`vt` 视频翻译 | `at` 音频翻译。必须与素材类型一致，否则返回 `400`。"
+          },
+          "source": {
+            "$ref": "#/components/schemas/AppMediaTranslationSource"
+          },
+          "language": {
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage",
+            "description": "本地化源语言与目标语言"
+          },
+          "options": {
+            "$ref": "#/components/schemas/AppMediaTranslationOptions"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "**我的任务**中显示的任务名（最多 255 个字符）。不传时取文件名或 YouTube 视频标题。"
+          }
+        }
+      },
+      "AppMediaTranslationAcceptedResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/OpenApiMediaTranslationAcceptedData"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "editorUrl": {
+                        "type": "string",
+                        "description": "该任务的网站编辑器地址（登录同一 VMEG 账号）"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "AppCloneVoiceCreateRequest": {
+        "type": "object",
+        "properties": {
+          "voiceName": {
+            "type": "string",
+            "description": "克隆音色在资产库中的展示名称"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "V1",
+              "V2",
+              "V3",
+              "V4",
+              "V5"
+            ],
+            "example": "V1",
+            "description": "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。"
+          },
+          "refAudio": {
+            "type": "string",
+            "description": "HTTPS 参考音频地址（已上传的文件请用 `refAudioMaterialId`），两者二选一。"
+          },
+          "sampleLanguage": {
+            "type": "string",
+            "example": "zh-CN",
+            "description": "样本语言 locale（BCP-47）。见 [支持的语言](/zh/guides/supported-languages)。"
+          },
+          "sampleText": {
+            "type": "string",
+            "description": "参考音频对应的文本（必填）"
+          },
+          "refAudioMaterialId": {
+            "type": "string",
+            "description": "已上传音频/视频的素材 ID"
+          }
+        },
+        "required": [
+          "voiceName",
+          "sampleText"
+        ]
+      },
+      "AppCloneVoiceCreateResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/OpenApiCloneVoiceDto"
+              }
+            }
+          }
+        ]
+      },
+      "AppTaskOutput": {
+        "type": "object",
+        "properties": {
+          "videoUrl": {
+            "type": "string",
+            "description": "成片视频 URL（音频翻译为空）"
+          },
+          "audioUrl": {
+            "type": "string",
+            "description": "成片音频 URL"
+          },
+          "lipsyncVideoUrl": {
+            "type": "string",
+            "description": "开启口型同步时的口型视频 URL"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "缩略图 URL"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "导出时间"
+          }
+        }
+      },
+      "AppTaskDetailData": {
+        "type": "object",
+        "description": "应用同源版任务详情",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "任务 ID（与网站任务 ID 相同）"
+          },
+          "taskType": {
+            "$ref": "#/components/schemas/AppTaskType"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
+          },
+          "editorUrl": {
+            "type": "string",
+            "description": "该任务的网站编辑器地址（登录同一 VMEG 账号）"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "**我的任务**中显示的任务名"
+              },
+              "userMessage": {
+                "type": "string",
+                "description": "`status` 为 `failed` 时的失败原因（与网站展示一致）"
+              },
+              "outputs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AppTaskOutput"
+                },
+                "description": "成片列表，按时间倒序"
+              }
+            }
+          }
+        }
+      },
+      "AppTaskDetailResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/AppTaskDetailData"
+              }
+            }
+          }
+        ]
+      },
+      "AppMaterialUploadCompleteRequest": {
+        "type": "object",
+        "required": [
+          "fileName",
+          "materialId",
+          "fileHash"
+        ],
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "description": "原始文件名（含扩展名）"
+          },
+          "materialId": {
+            "type": "string",
+            "description": "预签名上传返回的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+          },
+          "fileHash": {
+            "type": "string",
+            "description": "上传文件的 MD5（须与上传请求一致）"
+          }
+        }
+      }
+    }
+  }
+}
