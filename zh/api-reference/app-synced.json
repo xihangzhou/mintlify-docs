@@ -1888,8 +1888,8 @@
               "V1",
               "V2"
             ],
-            "example": "V1",
-            "description": "配音版本（与 vmeg.ai 网页端一致）。`V2` VMEG OpenDub V2：声音更自然，情绪更丰富，控制更精细，带来更精致的配音体验。`V1` VMEG OpenDub V1：成熟可靠，音色选择灵活。可自动匹配音色，也可自行选择。"
+            "default": "V1",
+            "description": "配音版本，与网站一致。`V1`（默认）：成熟稳定，可自动匹配或手动选择音色。`V2`：声音更自然、情感更丰富，音色自动选择，不能与 `voiceClone`、`voiceSpeakers.selectedVoicesList` 同时传。"
           },
           "voiceClone": {
             "$ref": "#/components/schemas/AppMediaTranslationVoiceClone"

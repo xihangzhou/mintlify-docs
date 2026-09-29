@@ -54,6 +54,7 @@ const T = {
     },
     createDesc: "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; results are polled, not delivered by webhook. Other unknown fields are ignored.",
     createResp: "Task accepted. `editorUrl` opens the job in the website editor.",
+    dubbing: "Dubbing version, same as the website. `V1` (default): mature and reliable, auto-match a voice or choose one yourself. `V2`: more natural voices and richer emotions; it picks voices automatically, so it cannot be combined with `voiceClone` or `voiceSpeakers.selectedVoicesList`.",
     options: "Pipeline options (all optional). Voice rules match the website: `voiceClone.style` picks automatic dubbing; `voiceSpeakers.selectedVoicesList` picks voices manually (`sv_*` system, `cv_*` your cloned voices) and cannot be combined with `voiceClone`. `dubbingVersion: V2` cannot be combined with either. Leave `voiceSpeakers.timbreMethod` empty when you set voices; a conflicting value returns `400`.",
     style: "`emotional` (default) | `consistent` clone the original voices; `auto` lets VMEG decide; `tutorial` / `drama` are content presets; `smart` matches preset voices.",
     title_: "Job name shown in **My tasks** (max 255 characters). Defaults to the file name or the YouTube video title.",
@@ -111,6 +112,7 @@ const T = {
     },
     createDesc: "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；结果需轮询获取，不走 Webhook。其他未知字段会被忽略。",
     createResp: "任务已受理。`editorUrl` 为该任务的网站编辑器地址。",
+    dubbing: "配音版本，与网站一致。`V1`（默认）：成熟稳定，可自动匹配或手动选择音色。`V2`：声音更自然、情感更丰富，音色自动选择，不能与 `voiceClone`、`voiceSpeakers.selectedVoicesList` 同时传。",
     options: "处理选项（均可省略）。音色规则与网站一致：`voiceClone.style` 选择自动配音方式；`voiceSpeakers.selectedVoicesList` 手动指定音色（`sv_*` 系统音色、`cv_*` 你的克隆音色），不能与 `voiceClone` 同时传。`dubbingVersion: V2` 不能与这两者同时使用。指定音色时请不要传 `voiceSpeakers.timbreMethod`，传了且与音色设置冲突返回 `400`。",
     style: "`emotional`（默认）| `consistent` 克隆原声；`auto` 由 VMEG 自动选择；`tutorial` / `drama` 为内容类型预设；`smart` 匹配预置音色。",
     title_: "**我的任务**中显示的任务名（最多 255 个字符）。不传时取文件名或 YouTube 视频标题。",
@@ -205,6 +207,11 @@ function build(locale) {
   s.AppMediaTranslationOptions = structuredClone(s.OpenApiMediaTranslationOptions);
   s.AppMediaTranslationOptions.description = t.options;
   s.AppMediaTranslationOptions.properties.voiceClone = ref("AppMediaTranslationVoiceClone");
+  s.AppMediaTranslationOptions.required = [];
+  s.AppMediaTranslationOptions.properties = {
+    dubbingVersion: { type: "string", enum: ["V1", "V2"], default: "V1", description: t.dubbing },
+    ...s.AppMediaTranslationOptions.properties,
+  };
   s.OpenApiMediaTranslationSelectedVoice.properties.voiceId.description = t.voiceId;
 
   const req = structuredClone(s.OpenApiMediaTranslationCreateRequest);

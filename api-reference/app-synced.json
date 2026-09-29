@@ -1888,8 +1888,8 @@
               "V1",
               "V2"
             ],
-            "example": "V1",
-            "description": "Dubbing version (same as vmeg.ai). `V2` VMEG OpenDub V2: More natural voices, richer emotions, and finer control for a more polished dubbing experience. `V1` VMEG OpenDub V1: Mature and reliable, with flexible voice selection. Auto-match a voice or choose one yourself."
+            "default": "V1",
+            "description": "Dubbing version, same as the website. `V1` (default): mature and reliable, auto-match a voice or choose one yourself. `V2`: more natural voices and richer emotions; it picks voices automatically, so it cannot be combined with `voiceClone` or `voiceSpeakers.selectedVoicesList`."
           },
           "voiceClone": {
             "$ref": "#/components/schemas/AppMediaTranslationVoiceClone"
