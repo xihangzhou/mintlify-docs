@@ -360,18 +360,26 @@ function build(locale) {
   s.AppSubtitleTemplate = {
     type: "object",
     properties: {
-      templateId: { type: "string", description: t.tplId },
-      name: { type: "string", description: t.tplName },
-      thumbnail: { type: "string", description: t.tplThumb },
+      templateId: { type: "string", description: t.tplId, example: "10047" },
+      name: { type: "string", description: t.tplName, example: "B_False_W_66C4FF_S_0062D2_DS_FFFFFF" },
+      thumbnail: { type: "string", description: t.tplThumb, example: "https://d24i1cah63ad4k.cloudfront.net/materials/model/11.png" },
     },
   };
+  const tplExample = [
+    { templateId: "10062", name: "Inter-Bold-white-outline-shadow", thumbnail: "" },
+    { templateId: "10047", name: "B_False_W_66C4FF_S_0062D2_DS_FFFFFF", thumbnail: "https://d24i1cah63ad4k.cloudfront.net/materials/model/11.png" },
+    { templateId: "10031", name: "B_000000_W_FFFFFF_S_False_DS_False", thumbnail: "https://d24i1cah63ad4k.cloudfront.net/materials/model/1.png" },
+  ];
   s.AppSubtitleTemplateListResponse = {
     allOf: [ref("OpenApiResponseBase"), {
       type: "object",
       properties: {
         data: {
           type: "object",
-          properties: { records: { type: "array", items: ref("AppSubtitleTemplate") }, total: { type: "integer", format: "int64" } },
+          properties: {
+            records: { type: "array", items: ref("AppSubtitleTemplate"), example: tplExample },
+            total: { type: "integer", format: "int64", example: 12 },
+          },
         },
       },
     }],
