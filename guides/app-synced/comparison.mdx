@@ -39,9 +39,9 @@ VMEG offers two **independent** Open APIs. They share authentication, idempotenc
 - `options.voiceClone.style` also accepts `auto`, `tutorial`, `drama`, and `smart`.
 - Manual voice picking (`voiceSpeakers.selectedVoicesList`) accepts `sv_*` system voices and `cv_*` voices from [List cloned voices](/api-reference/app-synced/assets/voices/list-cloned-voices). It cannot be combined with `voiceClone`, and `dubbingVersion: V2` cannot be combined with either.
 - Burned-in subtitles use `options.subtitle` (`type` plus an optional `templateId` from [List subtitle templates](/api-reference/app-synced/media-translation/list-subtitle-templates)) instead of `options.text`. They are off by default, as on the website; with `type` but no `templateId`, the website's default style is used.
-- `options.lipsync` requires a video of at least 360 × 360 px, as on the website; lower resolutions return `400`.
+- `options.lipsync` requires a video of at least 360 × 360 px, as on the website; lower resolutions return `400`. YouTube sources are not pre-checked.
 - `source.sourceUrl`, `options.text`, `output`, `extraData`, and the material `mimeType` filter return `400`. Other unknown fields are ignored.
-- Uploads are de-duplicated by `fileHash`: a file already in your website library returns the existing material, and deleting it also removes it from **My assets**.
+- Single-file uploads are de-duplicated by `fileHash`: a file already in your website library returns the existing material, and deleting it also removes it from **My assets**.
 
 **Results**
 

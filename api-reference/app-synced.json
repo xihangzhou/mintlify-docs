@@ -1940,7 +1940,7 @@
           },
           "lipsync": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync",
-            "description": "Lip sync on the dubbed video. Requires width and height of at least 360 px, same as the website; lower-resolution materials return `400`."
+            "description": "Lip sync on the dubbed video. Requires width and height of at least 360 px, same as the website; lower-resolution materials return `400`. YouTube sources are not pre-checked; make sure the video is at least 360p."
           },
           "voiceSpeakers": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceSpeakers"

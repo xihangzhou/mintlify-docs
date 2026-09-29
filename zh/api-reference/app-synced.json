@@ -50,7 +50,7 @@
           "媒体翻译"
         ],
         "summary": "创建翻译配音任务",
-        "description": "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；结果需轮询获取，不走 Webhook。其他未知字段会被忽略。",
+        "description": "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；烧录字幕用 `options.subtitle`（替代 `text`）；结果需轮询获取，不走 Webhook。其他未知字段会被忽略。",
         "operationId": "appMediaTranslationCreateAsync",
         "x-mint": {
           "href": "/zh/api-reference/app-synced/media-translation/create-media-translation-async",
@@ -1940,7 +1940,7 @@
           },
           "lipsync": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync",
-            "description": "对成片做口型同步。与网站一致，要求视频宽、高均不低于 360 像素，否则返回 `400`。"
+            "description": "对成片做口型同步。与网站一致，要求视频宽、高均不低于 360 像素，否则返回 `400`。YouTube 来源不做预校验，请自行确保视频不低于 360p。"
           },
           "voiceSpeakers": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceSpeakers"
