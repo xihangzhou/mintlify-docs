@@ -38,7 +38,10 @@ VMEG 提供两套**相互独立**的开放 API。它们共用鉴权、幂等和�
 - 可选的字幕文件（`source.subtitleMaterialId`、`source.targetSubtitleMaterialId`）必须是 `.srt` 素材。
 - `options.voiceClone.style` 额外支持 `auto`、`tutorial`、`drama`、`smart`。
 - 手动选音色（`voiceSpeakers.selectedVoicesList`）支持 `sv_*` 系统音色和[克隆音色列表](/zh/api-reference/app-synced/assets/voices/list-cloned-voices)中的 `cv_*` 音色；不能与 `voiceClone` 同时传，`dubbingVersion: V2` 也不能与这两者同时使用。
-- 传 `source.sourceUrl`、`output`、`extraData` 或素材列表的 `mimeType` 过滤返回 `400`。其他未知字段会被忽略。
+- 烧录字幕用 `options.subtitle`（`type` 加可选的 `templateId`，模板来自[字幕模板列表](/zh/api-reference/app-synced/media-translation/list-subtitle-templates)），替代 `options.text`。与网站一致默认不烧录；只传 `type` 不传 `templateId` 时使用网站默认样式。
+- `options.lipsync` 与网站一致，要求视频宽、高均不低于 360 像素，否则返回 `400`。
+- 传 `source.sourceUrl`、`options.text`、`output`、`extraData` 或素材列表的 `mimeType` 过滤返回 `400`。其他未知字段会被忽略。
+- 上传按 `fileHash` 去重：网站素材库里已有的同一文件会直接返回已有素材，删除它时网站**我的资产**中也会一起消失。
 
 **结果**
 

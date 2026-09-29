@@ -327,7 +327,7 @@
             }
           }
         },
-        "description": "单文件上传**第 1 步**：获取预签名 PUT URL 与 `materialId`。把文件 PUT 到 `uploadUrl`，再调用[完成单文件上传](/zh/api-reference/app-synced/assets/materials/complete-upload)。如果返回了 `material`，说明素材库里已有同一文件，无需上传。除非用 `source.youtubeUrl` 创建任务，否则必须先上传。"
+        "description": "单文件上传**第 1 步**：获取预签名 PUT URL 与 `materialId`。把文件 PUT 到 `uploadUrl`，再调用[完成单文件上传](/zh/api-reference/app-synced/assets/materials/complete-upload)。如果返回了 `material`，说明素材库里已有同一文件，无需上传。除非用 `source.youtubeUrl` 创建任务，否则必须先上传。\n\n上传按 `fileHash` 去重：上传网站素材库里已有的同一文件会直接返回已有素材，删除该素材时网站**我的资产**中也会一起消失。"
       }
     },
     "/openapi/v1/app/assets/material/upload/complete": {
@@ -828,6 +828,35 @@
           }
         },
         "description": "删除克隆音色，网站**我的音色**中也会消失。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。"
+      }
+    },
+    "/openapi/v1/app/assets/subtitle-template/list": {
+      "get": {
+        "tags": [
+          "媒体翻译"
+        ],
+        "summary": "字幕模板列表",
+        "description": "网站翻译表单提供的字幕样式。把 `templateId` 传给 `options.subtitle.templateId`；列表第一个是网站默认样式。",
+        "operationId": "appSubtitleTemplateList",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/media-translation/list-subtitle-templates",
+          "metadata": {
+            "sidebarTitle": "字幕模板列表",
+            "title": "字幕模板列表"
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSubtitleTemplateListResponse"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -1891,6 +1920,9 @@
             "default": "V1",
             "description": "配音版本，与网站一致。`V1`（默认）：成熟稳定，可自动匹配或手动选择音色。`V2`：声音更自然、情感更丰富，音色自动选择，不能与 `voiceClone`、`voiceSpeakers.selectedVoicesList` 同时传。"
           },
+          "subtitle": {
+            "$ref": "#/components/schemas/AppMediaTranslationSubtitle"
+          },
           "voiceClone": {
             "$ref": "#/components/schemas/AppMediaTranslationVoiceClone"
           },
@@ -1907,15 +1939,31 @@
             "$ref": "#/components/schemas/OpenApiMediaTranslationDynamicVideoLength"
           },
           "lipsync": {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync"
-          },
-          "text": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "标题与字幕样式/烧录配置（产品结构，键值因产品而异）"
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync",
+            "description": "对成片做口型同步。与网站一致，要求视频宽、高均不低于 360 像素，否则返回 `400`。"
           },
           "voiceSpeakers": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceSpeakers"
+          }
+        }
+      },
+      "AppMediaTranslationSubtitle": {
+        "type": "object",
+        "description": "烧录字幕（仅视频翻译）。省略时不烧录，与网站默认一致。替代独立版的 `text` 字段，传 `text` 返回 `400`。",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "none",
+              "target",
+              "origin",
+              "multi"
+            ],
+            "description": "`none` 不烧录 | `target` 译文 | `origin` 原文 | `multi` 双语。不传时：有 `templateId` 为 `target`，否则为 `none`。音频翻译只接受 `none`。"
+          },
+          "templateId": {
+            "type": "string",
+            "description": "字幕样式，来自[字幕模板列表](/zh/api-reference/app-synced/media-translation/list-subtitle-templates)。不传时使用网站默认样式（列表第一个）。"
           }
         }
       },
@@ -2139,6 +2187,50 @@
             "description": "上传文件的 MD5（须与上传请求一致）"
           }
         }
+      },
+      "AppSubtitleTemplate": {
+        "type": "object",
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "description": "字幕模板 ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "模板名称"
+          },
+          "thumbnail": {
+            "type": "string",
+            "description": "预览图 URL（可能为空）"
+          }
+        }
+      },
+      "AppSubtitleTemplateListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "records": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AppSubtitleTemplate"
+                    }
+                  },
+                  "total": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     }
   }

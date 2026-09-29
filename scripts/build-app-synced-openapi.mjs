@@ -52,7 +52,7 @@ const T = {
       "Assets - Materials": "Upload and manage the files in your website material library (**My assets**). Finish the upload (single-file or multipart), then pass `materialId` to create-async.",
       "Assets - Voices": "List preset system voices (`sv_*`) and manage your cloned voices (`cv_*`, same as **My voices** on the website).",
     },
-    createDesc: "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; results are polled, not delivered by webhook. Other unknown fields are ignored.",
+    createDesc: "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; burned-in subtitles use `options.subtitle` instead of `text`; results are polled, not delivered by webhook. Other unknown fields are ignored.",
     createResp: "Task accepted. `editorUrl` opens the job in the website editor.",
     dubbing: "Dubbing version, same as the website. `V1` (default): mature and reliable, auto-match a voice or choose one yourself. `V2`: more natural voices and richer emotions; it picks voices automatically, so it cannot be combined with `voiceClone` or `voiceSpeakers.selectedVoicesList`.",
     options: "Pipeline options (all optional). Voice rules match the website: `voiceClone.style` picks automatic dubbing; `voiceSpeakers.selectedVoicesList` picks voices manually (`sv_*` system, `cv_*` your cloned voices) and cannot be combined with `voiceClone`. `dubbingVersion: V2` cannot be combined with either. Leave `voiceSpeakers.timbreMethod` empty when you set voices; a conflicting value returns `400`.",
@@ -99,6 +99,16 @@ const T = {
     cloneDeleteDesc: "Delete a cloned voice. It also disappears from **My voices** on the website. Requires [`X-Idempotency-Key`](/guides/idempotency).",
     voiceId: "`sv_*` from [List system voices](/api-reference/app-synced/assets/voices/list-system-voices) or `cv_*` from [List cloned voices](/api-reference/app-synced/assets/voices/list-cloned-voices)",
     out: ["Dubbed video URL (empty for audio translation)", "Dubbed audio URL", "Lip-sync video URL when lip sync is enabled", "Thumbnail URL", "Export time"],
+    subtitleOpt: "Burned-in subtitles (video translation only). Omit to render without subtitles, same as the website default. Replaces the Standalone `text` field; sending `text` returns `400`.",
+    subType: "`none` no subtitles | `target` translated | `origin` original | `multi` both. When omitted: `target` if `templateId` is set, otherwise `none`. Audio translation accepts only `none`.",
+    subTemplateId: "Style from [List subtitle templates](/api-reference/app-synced/media-translation/list-subtitle-templates). When omitted, the website's default style (the first template in the list) is used.",
+    lipsync: "Lip sync on the dubbed video. Requires width and height of at least 360 px, same as the website; lower-resolution materials return `400`.",
+    tplSummary: "List subtitle templates",
+    tplDesc: "Subtitle styles offered by the website translation form. Pass `templateId` as `options.subtitle.templateId`; the first template is the website default.",
+    tplId: "Subtitle template ID",
+    tplName: "Template name",
+    tplThumb: "Preview image URL (may be empty)",
+    dedupe: "\n\nUploads are de-duplicated by `fileHash`: uploading a file that is already in your website library returns the existing material, and deleting that material also removes it from **My assets**.",
   },
   zh: {
     title: "VMEG 开放 API（应用同源版）",
@@ -110,7 +120,7 @@ const T = {
       "资产 - 素材": "上传并管理网站素材库（**我的资产**）里的文件。完成上传（单文件或分片）后，把 `materialId` 传给 create-async。",
       "资产 - 音色": "列出系统预设音色（`sv_*`），管理你的克隆音色（`cv_*`，与网站**我的音色**相同）。",
     },
-    createDesc: "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；结果需轮询获取，不走 Webhook。其他未知字段会被忽略。",
+    createDesc: "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；烧录字幕用 `options.subtitle`（替代 `text`）；结果需轮询获取，不走 Webhook。其他未知字段会被忽略。",
     createResp: "任务已受理。`editorUrl` 为该任务的网站编辑器地址。",
     dubbing: "配音版本，与网站一致。`V1`（默认）：成熟稳定，可自动匹配或手动选择音色。`V2`：声音更自然、情感更丰富，音色自动选择，不能与 `voiceClone`、`voiceSpeakers.selectedVoicesList` 同时传。",
     options: "处理选项（均可省略）。音色规则与网站一致：`voiceClone.style` 选择自动配音方式；`voiceSpeakers.selectedVoicesList` 手动指定音色（`sv_*` 系统音色、`cv_*` 你的克隆音色），不能与 `voiceClone` 同时传。`dubbingVersion: V2` 不能与这两者同时使用。指定音色时请不要传 `voiceSpeakers.timbreMethod`，传了且与音色设置冲突返回 `400`。",
@@ -157,6 +167,16 @@ const T = {
     cloneDeleteDesc: "删除克隆音色，网站**我的音色**中也会消失。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。",
     voiceId: "`sv_*` 来自[系统音色列表](/zh/api-reference/app-synced/assets/voices/list-system-voices)，`cv_*` 来自[克隆音色列表](/zh/api-reference/app-synced/assets/voices/list-cloned-voices)",
     out: ["成片视频 URL（音频翻译为空）", "成片音频 URL", "开启口型同步时的口型视频 URL", "缩略图 URL", "导出时间"],
+    subtitleOpt: "烧录字幕（仅视频翻译）。省略时不烧录，与网站默认一致。替代独立版的 `text` 字段，传 `text` 返回 `400`。",
+    subType: "`none` 不烧录 | `target` 译文 | `origin` 原文 | `multi` 双语。不传时：有 `templateId` 为 `target`，否则为 `none`。音频翻译只接受 `none`。",
+    subTemplateId: "字幕样式，来自[字幕模板列表](/zh/api-reference/app-synced/media-translation/list-subtitle-templates)。不传时使用网站默认样式（列表第一个）。",
+    lipsync: "对成片做口型同步。与网站一致，要求视频宽、高均不低于 360 像素，否则返回 `400`。",
+    tplSummary: "字幕模板列表",
+    tplDesc: "网站翻译表单提供的字幕样式。把 `templateId` 传给 `options.subtitle.templateId`；列表第一个是网站默认样式。",
+    tplId: "字幕模板 ID",
+    tplName: "模板名称",
+    tplThumb: "预览图 URL（可能为空）",
+    dedupe: "\n\n上传按 `fileHash` 去重：上传网站素材库里已有的同一文件会直接返回已有素材，删除该素材时网站**我的资产**中也会一起消失。",
   },
 };
 
@@ -208,9 +228,20 @@ function build(locale) {
   s.AppMediaTranslationOptions.description = t.options;
   s.AppMediaTranslationOptions.properties.voiceClone = ref("AppMediaTranslationVoiceClone");
   s.AppMediaTranslationOptions.required = [];
+  delete s.AppMediaTranslationOptions.properties.text;
+  s.AppMediaTranslationOptions.properties.lipsync = { ...ref("OpenApiMediaTranslationLipsync"), description: t.lipsync };
   s.AppMediaTranslationOptions.properties = {
     dubbingVersion: { type: "string", enum: ["V1", "V2"], default: "V1", description: t.dubbing },
+    subtitle: ref("AppMediaTranslationSubtitle"),
     ...s.AppMediaTranslationOptions.properties,
+  };
+  s.AppMediaTranslationSubtitle = {
+    type: "object",
+    description: t.subtitleOpt,
+    properties: {
+      type: { type: "string", enum: ["none", "target", "origin", "multi"], description: t.subType },
+      templateId: { type: "string", description: t.subTemplateId },
+    },
   };
   s.OpenApiMediaTranslationSelectedVoice.properties.voiceId.description = t.voiceId;
 
@@ -323,7 +354,43 @@ function build(locale) {
   del.summary = t.deleteSummary;
   del.description = t.deleteDesc;
 
-  at("/assets/material/upload/gen-upload-url").description = t.genUrlDesc;
+  at("/assets/material/upload/gen-upload-url").description = t.genUrlDesc + t.dedupe;
+
+  // App-Synced only: no Standalone counterpart to copy from.
+  s.AppSubtitleTemplate = {
+    type: "object",
+    properties: {
+      templateId: { type: "string", description: t.tplId },
+      name: { type: "string", description: t.tplName },
+      thumbnail: { type: "string", description: t.tplThumb },
+    },
+  };
+  s.AppSubtitleTemplateListResponse = {
+    allOf: [ref("OpenApiResponseBase"), {
+      type: "object",
+      properties: {
+        data: {
+          type: "object",
+          properties: { records: { type: "array", items: ref("AppSubtitleTemplate") }, total: { type: "integer", format: "int64" } },
+        },
+      },
+    }],
+  };
+  spec.paths[APP + "/assets/subtitle-template/list"] = {
+    get: {
+      tags: create.tags,
+      summary: t.tplSummary,
+      description: t.tplDesc,
+      operationId: "appSubtitleTemplateList",
+      "x-mint": {
+        href: `${hrefPrefix}app-synced/media-translation/list-subtitle-templates`,
+        metadata: { sidebarTitle: t.tplSummary, title: t.tplSummary },
+      },
+      responses: {
+        200: { description: "Success", content: { "application/json": { schema: ref("AppSubtitleTemplateListResponse") } } },
+      },
+    },
+  };
   const complete = at("/assets/material/upload/complete");
   complete.description = t.completeDesc;
   body(complete, "AppMaterialUploadCompleteRequest");

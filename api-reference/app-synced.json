@@ -50,7 +50,7 @@
           "Media translation"
         ],
         "summary": "Create translate and dub job",
-        "description": "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; results are polled, not delivered by webhook. Other unknown fields are ignored.",
+        "description": "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; burned-in subtitles use `options.subtitle` instead of `text`; results are polled, not delivered by webhook. Other unknown fields are ignored.",
         "operationId": "appMediaTranslationCreateAsync",
         "x-mint": {
           "href": "/api-reference/app-synced/media-translation/create-media-translation-async",
@@ -327,7 +327,7 @@
             }
           }
         },
-        "description": "Single-file upload **step 1**: get a presigned PUT URL and `materialId`. PUT the file to `uploadUrl`, then call [Complete single-file upload](/api-reference/app-synced/assets/materials/complete-upload). If `material` is returned, the same file is already in your library and no upload is needed. Required unless you create the job from `source.youtubeUrl`."
+        "description": "Single-file upload **step 1**: get a presigned PUT URL and `materialId`. PUT the file to `uploadUrl`, then call [Complete single-file upload](/api-reference/app-synced/assets/materials/complete-upload). If `material` is returned, the same file is already in your library and no upload is needed. Required unless you create the job from `source.youtubeUrl`.\n\nUploads are de-duplicated by `fileHash`: uploading a file that is already in your website library returns the existing material, and deleting that material also removes it from **My assets**."
       }
     },
     "/openapi/v1/app/assets/material/upload/complete": {
@@ -828,6 +828,35 @@
           }
         },
         "description": "Delete a cloned voice. It also disappears from **My voices** on the website. Requires [`X-Idempotency-Key`](/guides/idempotency)."
+      }
+    },
+    "/openapi/v1/app/assets/subtitle-template/list": {
+      "get": {
+        "tags": [
+          "Media translation"
+        ],
+        "summary": "List subtitle templates",
+        "description": "Subtitle styles offered by the website translation form. Pass `templateId` as `options.subtitle.templateId`; the first template is the website default.",
+        "operationId": "appSubtitleTemplateList",
+        "x-mint": {
+          "href": "/api-reference/app-synced/media-translation/list-subtitle-templates",
+          "metadata": {
+            "sidebarTitle": "List subtitle templates",
+            "title": "List subtitle templates"
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSubtitleTemplateListResponse"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -1891,6 +1920,9 @@
             "default": "V1",
             "description": "Dubbing version, same as the website. `V1` (default): mature and reliable, auto-match a voice or choose one yourself. `V2`: more natural voices and richer emotions; it picks voices automatically, so it cannot be combined with `voiceClone` or `voiceSpeakers.selectedVoicesList`."
           },
+          "subtitle": {
+            "$ref": "#/components/schemas/AppMediaTranslationSubtitle"
+          },
           "voiceClone": {
             "$ref": "#/components/schemas/AppMediaTranslationVoiceClone"
           },
@@ -1907,15 +1939,31 @@
             "$ref": "#/components/schemas/OpenApiMediaTranslationDynamicVideoLength"
           },
           "lipsync": {
-            "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync"
-          },
-          "text": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Title and subtitle styling / burn-in configuration (product-specific object)"
+            "$ref": "#/components/schemas/OpenApiMediaTranslationLipsync",
+            "description": "Lip sync on the dubbed video. Requires width and height of at least 360 px, same as the website; lower-resolution materials return `400`."
           },
           "voiceSpeakers": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationVoiceSpeakers"
+          }
+        }
+      },
+      "AppMediaTranslationSubtitle": {
+        "type": "object",
+        "description": "Burned-in subtitles (video translation only). Omit to render without subtitles, same as the website default. Replaces the Standalone `text` field; sending `text` returns `400`.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "none",
+              "target",
+              "origin",
+              "multi"
+            ],
+            "description": "`none` no subtitles | `target` translated | `origin` original | `multi` both. When omitted: `target` if `templateId` is set, otherwise `none`. Audio translation accepts only `none`."
+          },
+          "templateId": {
+            "type": "string",
+            "description": "Style from [List subtitle templates](/api-reference/app-synced/media-translation/list-subtitle-templates). When omitted, the website's default style (the first template in the list) is used."
           }
         }
       },
@@ -2139,6 +2187,50 @@
             "description": "MD5 hash of the uploaded file (must match upload request)"
           }
         }
+      },
+      "AppSubtitleTemplate": {
+        "type": "object",
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "description": "Subtitle template ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Template name"
+          },
+          "thumbnail": {
+            "type": "string",
+            "description": "Preview image URL (may be empty)"
+          }
+        }
+      },
+      "AppSubtitleTemplateListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "records": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AppSubtitleTemplate"
+                    }
+                  },
+                  "total": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     }
   }
