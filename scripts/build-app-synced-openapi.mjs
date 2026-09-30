@@ -44,7 +44,7 @@ const HREFS = {
 const T = {
   en: {
     title: "VMEG Open API (App-Synced)",
-    info: "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Poll `GET /openapi/v1/app/tasks/detail` for results (no webhooks). See [Standalone vs App-Synced](/guides/app-synced/comparison).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
+    info: "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Poll `GET /openapi/v1/app/tasks/detail` for results (no webhooks). See [Standalone vs App-Synced](/guides/choose-api).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
     tags: {
       "Media translation": "Translate and dub uploaded video/audio or a YouTube link on the same pipeline as vmeg.ai. The first pass renders the dubbed file; the job also appears in **My tasks** for editing and re-export. Poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) for results.",
       "Voice clone": "Clone a voice from a short recording. The voice is saved to **My voices** on the website and returned as `cv_*` for translate-and-dub jobs.",
@@ -112,7 +112,7 @@ const T = {
   },
   zh: {
     title: "VMEG 开放 API（应用同源版）",
-    info: "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过轮询 `GET /openapi/v1/app/tasks/detail` 获取（无 Webhook）。见[独立版与应用同源版的区别](/zh/guides/app-synced/comparison)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
+    info: "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过轮询 `GET /openapi/v1/app/tasks/detail` 获取（无 Webhook）。见[独立版与应用同源版](/zh/guides/choose-api)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
     tags: {
       "媒体翻译": "在与 vmeg.ai 相同的链路上翻译配音已上传的视频/音频或 YouTube 链接。首轮即产出配音成片，任务同时出现在**我的任务**，可继续编辑并重新导出。结果请轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)。",
       "声音克隆": "用一段短录音克隆音色。音色保存到网站**我的音色**，返回 `cv_*`，可用于翻译配音任务。",
@@ -436,7 +436,7 @@ function build(locale) {
   // Standalone asset guides show s3Uri and /openapi/v1 IDs; send readers to the comparison page instead.
   const guides = locale === "zh" ? "/zh/guides/" : "/guides/";
   const assetGuide = new RegExp(`\\]\\(${guides}assets/(material-upload|materials|voices)\\)`, "g");
-  const patched = JSON.parse(JSON.stringify({ paths: spec.paths, schemas: s }).replace(assetGuide, `](${guides}app-synced/comparison)`));
+  const patched = JSON.parse(JSON.stringify({ paths: spec.paths, schemas: s }).replace(assetGuide, `](${guides}app-synced/overview)`));
   spec.paths = patched.paths;
   spec.components.schemas = patched.schemas;
 

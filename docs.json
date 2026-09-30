@@ -15,6 +15,14 @@
   },
   "redirects": [
     {
+      "source": "/guides/app-synced/comparison",
+      "destination": "/guides/choose-api"
+    },
+    {
+      "source": "/zh/guides/app-synced/comparison",
+      "destination": "/zh/guides/choose-api"
+    },
+    {
       "source": "/",
       "destination": "/guides/introduction"
     },
@@ -35,6 +43,7 @@
                 "group": "Get started",
                 "pages": [
                   "guides/introduction",
+                  "guides/choose-api",
                   "guides/quickstart",
                   "guides/pricing",
                   "guides/supported-languages",
@@ -126,7 +135,7 @@
             "groups": [
               {
                 "group": "Overview",
-                "pages": ["guides/app-synced/comparison"]
+                "pages": ["guides/app-synced/overview"]
               },
               {
                 "group": "Endpoints",
@@ -146,6 +155,7 @@
                 "group": "快速开始",
                 "pages": [
                   "zh/guides/introduction",
+                  "zh/guides/choose-api",
                   "zh/guides/quickstart",
                   "zh/guides/pricing",
                   "zh/guides/supported-languages",
@@ -237,7 +247,7 @@
             "groups": [
               {
                 "group": "概览",
-                "pages": ["zh/guides/app-synced/comparison"]
+                "pages": ["zh/guides/app-synced/overview"]
               },
               {
                 "group": "接口",

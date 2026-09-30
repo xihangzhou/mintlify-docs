@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG Open API (App-Synced)",
-    "description": "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Poll `GET /openapi/v1/app/tasks/detail` for results (no webhooks). See [Standalone vs App-Synced](/guides/app-synced/comparison).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
+    "description": "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Poll `GET /openapi/v1/app/tasks/detail` for results (no webhooks). See [Standalone vs App-Synced](/guides/choose-api).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
     "version": "1.0.0"
   },
   "servers": [
@@ -459,7 +459,7 @@
             }
           }
         },
-        "description": "Multipart upload **step 2**: presigned URL per part. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/app-synced/comparison)."
+        "description": "Multipart upload **step 2**: presigned URL per part. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/app-synced/overview)."
       }
     },
     "/openapi/v1/app/assets/material/upload/multipart/complete": {
@@ -503,7 +503,7 @@
             }
           }
         },
-        "description": "Multipart upload **final step**: commit parts and register the material. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/app-synced/comparison)."
+        "description": "Multipart upload **final step**: commit parts and register the material. Requires [`X-Idempotency-Key`](/guides/idempotency). Flow: [Material upload](/guides/app-synced/overview)."
       }
     },
     "/openapi/v1/app/assets/material/upload/multipart/abort": {
@@ -540,7 +540,7 @@
             }
           }
         },
-        "description": "Cancel an in-progress multipart upload. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Material upload](/guides/app-synced/comparison).",
+        "description": "Cancel an in-progress multipart upload. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Material upload](/guides/app-synced/overview).",
         "x-mint": {
           "href": "/api-reference/app-synced/assets/materials/multipart-abort"
         }
@@ -783,7 +783,7 @@
             }
           }
         },
-        "description": "Rename a cloned voice display name. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Voices](/guides/app-synced/comparison)."
+        "description": "Rename a cloned voice display name. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Voices](/guides/app-synced/overview)."
       }
     },
     "/openapi/v1/app/assets/voice/clone/delete": {
@@ -1041,7 +1041,7 @@
           "provider": {
             "type": "string",
             "example": "S1",
-            "description": "Optional preset tier (`S1`, `S2`, …) when you pick a system voice. Clone voices use `V1`–`V5`. See [Voices](/guides/app-synced/comparison)."
+            "description": "Optional preset tier (`S1`, `S2`, …) when you pick a system voice. Clone voices use `V1`–`V5`. See [Voices](/guides/app-synced/overview)."
           },
           "voiceId": {
             "type": "string",
@@ -1196,7 +1196,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/comparison)"
+            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/overview)"
           },
           "uploadId": {
             "type": "string",
@@ -1237,7 +1237,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/comparison)"
+            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/overview)"
           },
           "uploadId": {
             "type": "string",
@@ -1265,7 +1265,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/comparison)"
+            "description": "Material ID from multipart initiate. See [Materials](/guides/app-synced/overview)"
           },
           "uploadId": {
             "type": "string",
@@ -1286,7 +1286,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "Material ID to delete. See [Materials](/guides/app-synced/comparison)"
+            "description": "Material ID to delete. See [Materials](/guides/app-synced/overview)"
           }
         }
       },
@@ -1295,7 +1295,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "Material ID. See [Materials](/guides/app-synced/comparison)"
+            "description": "Material ID. See [Materials](/guides/app-synced/overview)"
           },
           "category": {
             "type": "string",
@@ -1364,7 +1364,7 @@
           },
           "materialId": {
             "type": "string",
-            "description": "Material ID for this upload. See [Materials](/guides/app-synced/comparison)"
+            "description": "Material ID for this upload. See [Materials](/guides/app-synced/overview)"
           }
         }
       },
@@ -1373,7 +1373,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "Material ID for this multipart upload. See [Materials](/guides/app-synced/comparison)"
+            "description": "Material ID for this multipart upload. See [Materials](/guides/app-synced/overview)"
           },
           "uploadId": {
             "type": "string",
@@ -1518,7 +1518,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "System preset voice ID. See [Voices](/guides/app-synced/comparison)"
+            "description": "System preset voice ID. See [Voices](/guides/app-synced/overview)"
           },
           "localName": {
             "type": "string",
@@ -1614,7 +1614,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "Cloned voice ID. See [Voices](/guides/app-synced/comparison)"
+            "description": "Cloned voice ID. See [Voices](/guides/app-synced/overview)"
           },
           "name": {
             "type": "string",
@@ -1685,7 +1685,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "Filter by preset `voiceId`. See [Voices](/guides/app-synced/comparison)"
+            "description": "Filter by preset `voiceId`. See [Voices](/guides/app-synced/overview)"
           },
           "searchName": {
             "type": "string",
@@ -1721,7 +1721,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Pin these preset `voiceId` values to the top. See [Voices](/guides/app-synced/comparison)"
+            "description": "Pin these preset `voiceId` values to the top. See [Voices](/guides/app-synced/overview)"
           },
           "currentPage": {
             "type": "integer",
@@ -1764,14 +1764,14 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "Filter by cloned `voiceId`. See [Voices](/guides/app-synced/comparison)"
+            "description": "Filter by cloned `voiceId`. See [Voices](/guides/app-synced/overview)"
           },
           "voiceIds": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Filter by cloned voice IDs. See [Voices](/guides/app-synced/comparison)"
+            "description": "Filter by cloned voice IDs. See [Voices](/guides/app-synced/overview)"
           },
           "searchName": {
             "type": "string",
@@ -1818,7 +1818,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "Cloned `voiceId` to rename. See [Voices](/guides/app-synced/comparison)"
+            "description": "Cloned `voiceId` to rename. See [Voices](/guides/app-synced/overview)"
           },
           "voiceName": {
             "type": "string",
@@ -1831,7 +1831,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "Cloned `voiceId` to delete. See [Voices](/guides/app-synced/comparison)"
+            "description": "Cloned `voiceId` to delete. See [Voices](/guides/app-synced/overview)"
           }
         }
       },
@@ -2180,7 +2180,7 @@
           },
           "materialId": {
             "type": "string",
-            "description": "Material ID from presigned upload. See [Materials](/guides/app-synced/comparison)"
+            "description": "Material ID from presigned upload. See [Materials](/guides/app-synced/overview)"
           },
           "fileHash": {
             "type": "string",

@@ -1,0 +1,34 @@
+---
+title: "Standalone vs App-Synced"
+description: "How the two Open APIs differ and which one to use"
+icon: "code-compare"
+---
+
+import { productUrls } from "/snippets/product-urls.jsx";
+
+VMEG offers two **independent** Open APIs. They share authentication, idempotency, and the response envelope; they differ in where jobs and data live.
+
+| | Standalone API | App-Synced API |
+|---|---|---|
+| Base path | `/openapi/v1/...` | `/openapi/v1/app/...` |
+| Products | Media translation, TTS, voice clone, text translation | Media translation (video / audio) and voice clone |
+| Where jobs live | API only — not visible on the website | Your website account: **My tasks**, editor, re-export |
+| Materials and cloned voices | API-only library | Same library as the website (**My assets**, **My voices**) |
+| Results | [Webhook](/guides/webhooks) or polling | Polling |
+| Output storage | Optional delivery to your own bucket | Hosted by VMEG; re-export anytime on the website |
+| Credits | [Open API pricing](/guides/pricing) | <a href={productUrls.pricing}>Website pricing</a> |
+
+## Which one to use
+
+<CardGroup cols={2}>
+  <Card title="Standalone" icon="terminal" href="/api-reference/introduction">
+    Fully automated back-end pipelines that need webhooks, TTS, or text translation and never open the website.
+  </Card>
+  <Card title="App-Synced" icon="window" href="/guides/app-synced/overview">
+    Submit through the API, then fine-tune subtitles, voices, or timing in the VMEG editor and export from the website.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Data is not shared between the two APIs: use one API end to end for a job (upload → create → poll). Material IDs, cloned voice IDs (`cv_*`), and task IDs from one API return `404` on the other; system voice IDs (`sv_*`) work on both.
+</Warning>

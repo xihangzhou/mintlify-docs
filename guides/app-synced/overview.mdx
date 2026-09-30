@@ -1,0 +1,79 @@
+---
+title: "App-Synced overview"
+description: "Submit translation jobs through the API, then edit and export them on the VMEG website"
+icon: "window"
+---
+
+Jobs, materials, and cloned voices created through the App-Synced API live in your VMEG website account: jobs show up in **My tasks**, and you can keep editing and re-export them in the editor. Not sure which API to use? See [Standalone vs App-Synced](/guides/choose-api).
+
+## Workflow
+
+<Steps>
+  <Step title="Upload">
+    `POST /openapi/v1/app/assets/material/upload/gen-upload-url`, PUT the file, then `.../upload/complete` (or the multipart endpoints for large files). For YouTube videos, skip upload and pass `source.youtubeUrl`.
+  </Step>
+  <Step title="Pick voices (optional)">
+    List `.../assets/voice/basic/list` and `.../assets/voice/clone/list`, or clone one with `.../task/clone-voice/create`. Without a choice, the original voices are cloned automatically, as on the website.
+  </Step>
+  <Step title="Create the job">
+    `POST /openapi/v1/app/task/media-translation/create-async` with `X-Idempotency-Key`.
+  </Step>
+  <Step title="Get the result">
+    Poll `GET /openapi/v1/app/tasks/detail?taskId=...` until `status` is `finished` or `failed`. The latest output is `result.outputs[0]`; open `editorUrl` to keep editing and re-export.
+  </Step>
+</Steps>
+
+```bash
+curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-async" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -H "X-Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "taskType": "vt",
+    "source": { "materialId": "YOUR_MATERIAL_ID" },
+    "language": { "target": "en-US" },
+    "title": "Product demo (English)"
+  }'
+```
+
+## Key differences from the Standalone API
+
+- **Website account key** — only API keys created on the VMEG website work, and jobs use website credits.
+- **No webhooks** — poll for results. Job status matches the website, so set a polling timeout; if a job stays `running` far longer than usual, contact support with the `taskId`.
+- **Results can change** — re-exporting on the website sets the job back to `running` and puts the new output at `result.outputs[0]`; earlier outputs stay in the list.
+- **Options match the website form** — burned-in subtitles use subtitle templates and are off by default; lip sync needs at least 360p video. Subtitle removal and on-screen text translation are not supported yet.
+- **Materials are shared with the website** — the same file reuses the existing website material, and deleting a material through the API also removes it from **My assets**.
+
+See the full [API reference](/api-reference/app-synced/media-translation/create-media-translation-async) for every field. Guides linked from the reference are written for the Standalone API; the steps are the same with the `/openapi/v1/app` prefix.
+
+## Field details
+
+<AccordionGroup>
+  <Accordion title="Access">
+    - The API key must belong to a VMEG website account; other keys get `401`.
+    - Voice cloning requires a plan with voice cloning; otherwise `403`.
+  </Accordion>
+  <Accordion title="Creating a job">
+    - `options` is optional; defaults match a website job with automatic voice cloning.
+    - `source` accepts exactly one of `materialId` or `youtubeUrl`. `taskType` must match the material: `vt` for video, `at` for audio.
+    - `title` sets the job name in **My tasks**; it defaults to the file name or YouTube video title.
+    - Optional subtitle files (`source.subtitleMaterialId`, `source.targetSubtitleMaterialId`) must be `.srt` materials.
+    - `options.voiceClone.style` also accepts `auto`, `tutorial`, `drama`, and `smart`.
+    - Manual voice picking (`voiceSpeakers.selectedVoicesList`) accepts `sv_*` system voices and `cv_*` voices from [List cloned voices](/api-reference/app-synced/assets/voices/list-cloned-voices). It cannot be combined with `voiceClone`, and `dubbingVersion: V2` cannot be combined with either.
+    - Burned-in subtitles use `options.subtitle` (`type` plus an optional `templateId` from [List subtitle templates](/api-reference/app-synced/media-translation/list-subtitle-templates)) instead of `options.text`. With `type` but no `templateId`, the website's default style is used.
+    - `options.lipsync` requires a video of at least 360 × 360 px; lower resolutions return `400`. YouTube sources are not pre-checked.
+    - `source.sourceUrl`, `options.text`, `output`, `extraData`, and the material `mimeType` filter return `400`. Other unknown fields are ignored.
+  </Accordion>
+  <Accordion title="Uploading materials">
+    - Single-file uploads are de-duplicated by `fileHash`: a file already in your website library returns the existing material. Multipart uploads are not de-duplicated.
+  </Accordion>
+  <Accordion title="Results">
+    - The acceptance response and job detail include `editorUrl`.
+    - `result.outputs` is newest first; `result.outputs[0]` is the latest successful render.
+    - `finished` is not permanent: re-exporting sets the job back to `running`, and a failed re-export ends in `failed` while earlier outputs stay in the list.
+  </Accordion>
+  <Accordion title="Voice cloning">
+    - The call is synchronous and returns the new `cv_*` voice; it can take tens of seconds.
+    - Accepts `refAudioMaterialId` (an uploaded material) as an alternative to `refAudio`; `voiceName` and `sampleText` are required.
+  </Accordion>
+</AccordionGroup>

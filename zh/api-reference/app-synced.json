@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG 开放 API（应用同源版）",
-    "description": "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过轮询 `GET /openapi/v1/app/tasks/detail` 获取（无 Webhook）。见[独立版与应用同源版的区别](/zh/guides/app-synced/comparison)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
+    "description": "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过轮询 `GET /openapi/v1/app/tasks/detail` 获取（无 Webhook）。见[独立版与应用同源版](/zh/guides/choose-api)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
     "version": "1.0.0"
   },
   "servers": [
@@ -459,7 +459,7 @@
             }
           }
         },
-        "description": "分片上传 **第 2 步**：为每个分片获取预签名 URL。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/comparison)。"
+        "description": "分片上传 **第 2 步**：为每个分片获取预签名 URL。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/overview)。"
       }
     },
     "/openapi/v1/app/assets/material/upload/multipart/complete": {
@@ -503,7 +503,7 @@
             }
           }
         },
-        "description": "分片上传 **最后一步**：提交分片并登记素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/comparison)。"
+        "description": "分片上传 **最后一步**：提交分片并登记素材。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/overview)。"
       }
     },
     "/openapi/v1/app/assets/material/upload/multipart/abort": {
@@ -540,7 +540,7 @@
             }
           }
         },
-        "description": "取消进行中的分片上传。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/comparison)。",
+        "description": "取消进行中的分片上传。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/overview)。",
         "x-mint": {
           "href": "/zh/api-reference/app-synced/assets/materials/multipart-abort"
         }
@@ -783,7 +783,7 @@
             }
           }
         },
-        "description": "重命名克隆音色展示名。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [音色](/zh/guides/app-synced/comparison)。"
+        "description": "重命名克隆音色展示名。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [音色](/zh/guides/app-synced/overview)。"
       }
     },
     "/openapi/v1/app/assets/voice/clone/delete": {
@@ -1041,7 +1041,7 @@
           "provider": {
             "type": "string",
             "example": "S1",
-            "description": "选用系统预设音色时可附带档位代号（`S1`、`S2`、…）。克隆音色为 `V1`–`V5`。见 [音色](/zh/guides/app-synced/comparison)。"
+            "description": "选用系统预设音色时可附带档位代号（`S1`、`S2`、…）。克隆音色为 `V1`–`V5`。见 [音色](/zh/guides/app-synced/overview)。"
           },
           "voiceId": {
             "type": "string",
@@ -1196,7 +1196,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/overview)"
           },
           "uploadId": {
             "type": "string",
@@ -1237,7 +1237,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/overview)"
           },
           "uploadId": {
             "type": "string",
@@ -1265,7 +1265,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+            "description": "分片初始化返回的素材 ID。见 [素材](/zh/guides/app-synced/overview)"
           },
           "uploadId": {
             "type": "string",
@@ -1286,7 +1286,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "要删除的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+            "description": "要删除的素材 ID。见 [素材](/zh/guides/app-synced/overview)"
           }
         }
       },
@@ -1295,7 +1295,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+            "description": "素材 ID。见 [素材](/zh/guides/app-synced/overview)"
           },
           "category": {
             "type": "string",
@@ -1364,7 +1364,7 @@
           },
           "materialId": {
             "type": "string",
-            "description": "本次上传的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+            "description": "本次上传的素材 ID。见 [素材](/zh/guides/app-synced/overview)"
           }
         }
       },
@@ -1373,7 +1373,7 @@
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "本次分片上传的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+            "description": "本次分片上传的素材 ID。见 [素材](/zh/guides/app-synced/overview)"
           },
           "uploadId": {
             "type": "string",
@@ -1518,7 +1518,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "系统预设音色 ID。见 [音色](/zh/guides/app-synced/comparison)"
+            "description": "系统预设音色 ID。见 [音色](/zh/guides/app-synced/overview)"
           },
           "localName": {
             "type": "string",
@@ -1614,7 +1614,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "克隆音色 ID。见 [音色](/zh/guides/app-synced/comparison)"
+            "description": "克隆音色 ID。见 [音色](/zh/guides/app-synced/overview)"
           },
           "name": {
             "type": "string",
@@ -1685,7 +1685,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "按系统预设 `voiceId` 筛选。见 [音色](/zh/guides/app-synced/comparison)"
+            "description": "按系统预设 `voiceId` 筛选。见 [音色](/zh/guides/app-synced/overview)"
           },
           "searchName": {
             "type": "string",
@@ -1721,7 +1721,7 @@
             "items": {
               "type": "string"
             },
-            "description": "将这些系统预设 `voiceId` 置顶。见 [音色](/zh/guides/app-synced/comparison)"
+            "description": "将这些系统预设 `voiceId` 置顶。见 [音色](/zh/guides/app-synced/overview)"
           },
           "currentPage": {
             "type": "integer",
@@ -1764,14 +1764,14 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "按克隆 `voiceId` 筛选。见 [音色](/zh/guides/app-synced/comparison)"
+            "description": "按克隆 `voiceId` 筛选。见 [音色](/zh/guides/app-synced/overview)"
           },
           "voiceIds": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "按克隆 `voiceId` 列表筛选。见 [音色](/zh/guides/app-synced/comparison)"
+            "description": "按克隆 `voiceId` 列表筛选。见 [音色](/zh/guides/app-synced/overview)"
           },
           "searchName": {
             "type": "string",
@@ -1818,7 +1818,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "要重命名的克隆 `voiceId`。见 [音色](/zh/guides/app-synced/comparison)"
+            "description": "要重命名的克隆 `voiceId`。见 [音色](/zh/guides/app-synced/overview)"
           },
           "voiceName": {
             "type": "string",
@@ -1831,7 +1831,7 @@
         "properties": {
           "voiceId": {
             "type": "string",
-            "description": "要删除的克隆 `voiceId`。见 [音色](/zh/guides/app-synced/comparison)"
+            "description": "要删除的克隆 `voiceId`。见 [音色](/zh/guides/app-synced/overview)"
           }
         }
       },
@@ -2180,7 +2180,7 @@
           },
           "materialId": {
             "type": "string",
-            "description": "预签名上传返回的素材 ID。见 [素材](/zh/guides/app-synced/comparison)"
+            "description": "预签名上传返回的素材 ID。见 [素材](/zh/guides/app-synced/overview)"
           },
           "fileHash": {
             "type": "string",
