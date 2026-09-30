@@ -568,7 +568,7 @@
             }
           }
         },
-        "description": "轮询单个 `taskId` 的状态与 `result` — 适用于任意 `create-async` 之后，或 Webhook 不可用时。翻译配音任务完成后，`result` 含配音媒体 CDN 地址。范围限定于当前 **API Key**。"
+        "description": "轮询单个 `taskId` 的状态与 `result` — 适用于任意 `create-async` 之后，或 Webhook 不可用时。`status` 为 `finished` 时，`result` 与完成回调的产物一致，结构取决于 `taskType`（见下方 `result` 字段）。音视频翻译的最终视频 / 音频 CDN 地址为 `result.build.video.url` / `result.build.audio.url`。范围限定于当前 **API Key**。"
       }
     },
     "/openapi/v1/tasks/delete": {
@@ -2560,9 +2560,31 @@
             "description": "当前任务状态"
           },
           "result": {
-            "type": "object",
-            "description": "任务相关结果（结构因 taskType 而异）",
-            "additionalProperties": true
+            "description": "任务产物，仅当 `status` 为 `finished` 时返回（否则为 `null`）。结构取决于 `taskType`，与 Webhook 回调一致：`vt` / `at` → 同 Webhook `data.result` 对象；`tts` → 数组，同 Webhook `data.results`；`textTranslation` → 数组，同 Webhook `data.items`；`cloneVoice` → 同 Webhook `data` 对象（含 `voiceId` 等）。",
+            "oneOf": [
+              {
+                "title": "vt / at",
+                "$ref": "#/components/schemas/OpenApiMediaTranslationCustomerResult"
+              },
+              {
+                "title": "tts",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenApiTtsResultItem"
+                }
+              },
+              {
+                "title": "textTranslation",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenApiTranslateResultItem"
+                }
+              },
+              {
+                "title": "cloneVoice",
+                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+              }
+            ]
           }
         }
       },

@@ -568,7 +568,7 @@
             }
           }
         },
-        "description": "Poll status and `result` for one `taskId` — use after any `create-async`, or when webhooks are unavailable. For translate-and-dub jobs, `result` includes dubbed media CDN URLs when `status` is complete. Scoped to your **API Key**."
+        "description": "Poll status and `result` for one `taskId` — use after any `create-async`, or when webhooks are unavailable. When `status` is `finished`, `result` holds the same deliverables as the completion webhook; its shape depends on `taskType` (see the `result` field below). For media translation, the final video / audio CDN URLs are `result.build.video.url` / `result.build.audio.url`. Scoped to your **API Key**."
       }
     },
     "/openapi/v1/tasks/delete": {
@@ -2560,9 +2560,31 @@
             "description": "Current task status"
           },
           "result": {
-            "type": "object",
-            "description": "Task-specific result; structure varies by taskType",
-            "additionalProperties": true
+            "description": "Deliverables, present only when `status` is `finished` (otherwise `null`). Shape depends on `taskType` and matches the webhook payload: `vt` / `at` → same object as webhook `data.result`; `tts` → array, same as webhook `data.results`; `textTranslation` → array, same as webhook `data.items`; `cloneVoice` → same object as webhook `data` (`voiceId`, …).",
+            "oneOf": [
+              {
+                "title": "vt / at",
+                "$ref": "#/components/schemas/OpenApiMediaTranslationCustomerResult"
+              },
+              {
+                "title": "tts",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenApiTtsResultItem"
+                }
+              },
+              {
+                "title": "textTranslation",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpenApiTranslateResultItem"
+                }
+              },
+              {
+                "title": "cloneVoice",
+                "$ref": "#/components/schemas/OpenApiCloneVoiceCreateData"
+              }
+            ]
           }
         }
       },
