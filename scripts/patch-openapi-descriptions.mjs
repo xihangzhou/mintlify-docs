@@ -17,8 +17,8 @@ const CLONE_PROVIDER = {
   zh: "克隆引擎（`V1`–`V5`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
 };
 const SYSTEM_PROVIDER = {
-  en: "Preset tier code (`S1`, `S2`, …). See [Supported clone methods](/guides/supported-clone-methods).",
-  zh: "预设档位代号（`S1`、`S2`、…）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
+  en: "Preset tier code (`S1`–`S7`). See [Supported clone methods](/guides/supported-clone-methods).",
+  zh: "预设档位代号（`S1`–`S7`）。见 [支持的克隆方式](/zh/guides/supported-clone-methods)。",
 };
 const VOICE_LINE_PROVIDER = {
   en: "Voice tier on this line — preset `S1`, `S2`, … or clone `V1`–`V5`. Keep with `voiceId` when you edit or resubmit lines. See [Voices](/guides/assets/voices).",
@@ -806,6 +806,38 @@ const selectedVoiceProvider =
   spec.components.schemas.OpenApiMediaTranslationSelectedVoice?.properties?.provider;
 if (selectedVoiceProvider) {
   selectedVoiceProvider.example = "S1";
+}
+
+// SpringDoc emits `result` as a free-form object; backend returns the same customer
+// shapes as webhooks (OpenApiTaskDetailResultPresenter), selected by taskType.
+const detailData = spec.components.schemas.OpenApiTaskDetailData;
+if (detailData?.properties) {
+  const ref = (name) => ({ $ref: `#/components/schemas/${name}` });
+  const RESULT_DESC = {
+    en: "Deliverables, present only when `status` is `finished` (otherwise `null`). Shape depends on `taskType` and matches the webhook payload: `vt` / `at` → same object as webhook `data.result`; `tts` → array, same as webhook `data.results`; `textTranslation` → array, same as webhook `data.items`; `cloneVoice` → same object as webhook `data` (`voiceId`, …).",
+    zh: "任务产物，仅当 `status` 为 `finished` 时返回（否则为 `null`）。结构取决于 `taskType`，与 Webhook 回调一致：`vt` / `at` → 同 Webhook `data.result` 对象；`tts` → 数组，同 Webhook `data.results`；`textTranslation` → 数组，同 Webhook `data.items`；`cloneVoice` → 同 Webhook `data` 对象（含 `voiceId` 等）。",
+  };
+  // Titles are taskType codes: build-openapi-i18n does not translate `title`.
+  detailData.properties.result = {
+    description: RESULT_DESC.en,
+    oneOf: [
+      { title: "vt / at", ...ref("OpenApiMediaTranslationCustomerResult") },
+      { title: "tts", type: "array", items: ref("OpenApiTtsResultItem") },
+      { title: "textTranslation", type: "array", items: ref("OpenApiTranslateResultItem") },
+      { title: "cloneVoice", ...ref("OpenApiCloneVoiceCreateData") },
+    ],
+  };
+  zh[RESULT_DESC.en] = RESULT_DESC.zh;
+}
+
+const detailOp = spec.paths?.["/openapi/v1/tasks/detail"]?.get;
+if (detailOp) {
+  const DETAIL_DESC = {
+    en: "Poll status and `result` for one `taskId` — use after any `create-async`, or when webhooks are unavailable. When `status` is `finished`, `result` holds the same deliverables as the completion webhook; its shape depends on `taskType` (see the `result` field below). For media translation, the final video / audio CDN URLs are `result.build.video.url` / `result.build.audio.url`. Scoped to your **API Key**.",
+    zh: "轮询单个 `taskId` 的状态与 `result` — 适用于任意 `create-async` 之后，或 Webhook 不可用时。`status` 为 `finished` 时，`result` 与完成回调的产物一致，结构取决于 `taskType`（见下方 `result` 字段）。音视频翻译的最终视频 / 音频 CDN 地址为 `result.build.video.url` / `result.build.audio.url`。范围限定于当前 **API Key**。",
+  };
+  detailOp.description = DETAIL_DESC.en;
+  zh[DETAIL_DESC.en] = DETAIL_DESC.zh;
 }
 
 fs.writeFileSync(openapiPath, JSON.stringify(spec, null, 2) + "\n");
