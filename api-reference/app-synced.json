@@ -2086,7 +2086,7 @@
         "properties": {
           "videoUrl": {
             "type": "string",
-            "description": "Dubbed video URL (empty for audio translation)"
+            "description": "Dubbed video URL (empty for audio translation). With lip sync enabled, this is the lip-synced video"
           },
           "audioUrl": {
             "type": "string",
@@ -2094,7 +2094,7 @@
           },
           "lipsyncVideoUrl": {
             "type": "string",
-            "description": "Lip-sync video URL when lip sync is enabled"
+            "description": "Lip-sync preview generated in the website editor; usually empty. Use `videoUrl` for the lip-synced video"
           },
           "thumbnailUrl": {
             "type": "string",

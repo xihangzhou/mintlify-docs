@@ -2086,7 +2086,7 @@
         "properties": {
           "videoUrl": {
             "type": "string",
-            "description": "成片视频 URL（音频翻译为空）"
+            "description": "成片视频 URL（音频翻译为空）；开启口型同步时即为口型同步后的成片"
           },
           "audioUrl": {
             "type": "string",
@@ -2094,7 +2094,7 @@
           },
           "lipsyncVideoUrl": {
             "type": "string",
-            "description": "开启口型同步时的口型视频 URL"
+            "description": "网站编辑器中生成的口型预览，通常为空；口型同步成片请取 `videoUrl`"
           },
           "thumbnailUrl": {
             "type": "string",
