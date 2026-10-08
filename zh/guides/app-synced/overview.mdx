@@ -19,7 +19,7 @@ icon: "window"
     `POST /openapi/v1/app/task/media-translation/create-async`，带 `X-Idempotency-Key`。
   </Step>
   <Step title="查询结果">
-    轮询 `GET /openapi/v1/app/tasks/detail?taskId=...`，直到 `status` 为 `finished` 或 `failed`。最新成片在 `result.outputs[0]`；打开 `editorUrl` 可继续编辑并重新导出。
+    配置了 [Webhook](/zh/guides/webhooks) 时，VMEG 会把首次结果 POST 到你的地址；否则轮询 `GET /openapi/v1/app/tasks/detail?taskId=...`，直到 `status` 为 `finished` 或 `failed`。最新成片在 `result.outputs[0]`；打开 `editorUrl` 可继续编辑并重新导出。
   </Step>
 </Steps>
 
@@ -39,7 +39,7 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-a
 ## 和独立版的主要不同
 
 - **需要网站账号的 API Key**：在 VMEG 网站创建的 Key 才能调用，任务按网站积分计费。
-- **没有 Webhook**：结果靠轮询获取。任务状态与网站一致，请为轮询设置超时；长时间停在 `running` 时，带上 `taskId` 联系客服。
+- **Webhook 只推首次结果**：任务第一次进入 `finished` 或 `failed` 时，向与独立版相同的 Webhook 地址推送一次；之后在网站重新导出不再推送，需要时请轮询。不配置 Webhook 时靠轮询获取结果，请设置超时；长时间停在 `running` 时，带上 `taskId` 联系客服。
 - **结果会更新**：在网站重新导出后，任务会回到 `running`，新成片排在 `result.outputs[0]`，旧成片仍保留。
 - **选项与网站翻译表单一致**：烧录字幕用字幕模板，默认不烧录；唇形同步要求视频不低于 360p。暂不支持字幕擦除和画面翻译。
 - **素材与网站共享**：同一文件会复用网站上已有的素材，在 API 里删除素材，网站**我的资产**里也会消失。
@@ -71,6 +71,14 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-a
     - 受理响应和任务详情包含 `editorUrl`。
     - `result.outputs` 按时间倒序，`result.outputs[0]` 是最近一次成功导出的成片。
     - `finished` 不是最终状态：重新导出会把任务置回 `running`，导出失败则变为 `failed`，之前的成片仍保留在列表中。
+  </Accordion>
+  <Accordion title="Webhook">
+    - 使用网站 **API 配置**页里的 Webhook 地址和密钥，与独立版共用。验签方式见 [Webhook 签名校验](/zh/guides/webhook-verification)。
+    - `event` 为 `openapi-app-media-translation`；`pipelineKey` 为 `openapi-app-{taskId}`。
+    - `data` 字段与[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)一致（`taskId`、`taskType`、`status`、`editorUrl`、`result`）。
+    - 任务完成时 `code` 为 `200`，失败时为 `500`，失败原因在 `message` 中。
+    - 每个任务只推一次，对应它第一次进入 `finished` 或 `failed`。投递失败会在约 40 分钟内重试几次，之后请改为轮询。请按 `pipelineKey` 去重。
+    - 不支持 `extraData`，该字段始终为空。
   </Accordion>
   <Accordion title="声音克隆">
     - 接口是同步的，直接返回新的 `cv_*` 音色，可能需要几十秒。

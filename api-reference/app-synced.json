@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG Open API (App-Synced)",
-    "description": "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Poll `GET /openapi/v1/app/tasks/detail` for results (no webhooks). See [Standalone vs App-Synced](/guides/choose-api).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
+    "description": "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Get results from your webhook (first result only, event `openapi-app-media-translation`) or by polling `GET /openapi/v1/app/tasks/detail`. See [Standalone vs App-Synced](/guides/choose-api).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
     "version": "1.0.0"
   },
   "servers": [
@@ -20,7 +20,7 @@
     {
       "name": "Media translation",
       "x-group": "Video & audio translate and dub",
-      "description": "Translate and dub uploaded video/audio or a YouTube link on the same pipeline as vmeg.ai. The first pass renders the dubbed file; the job also appears in **My tasks** for editing and re-export. Poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) for results."
+      "description": "Translate and dub uploaded video/audio or a YouTube link on the same pipeline as vmeg.ai. The first pass renders the dubbed file; the job also appears in **My tasks** for editing and re-export. Get results from your webhook (first result only) or poll [Query job status](/api-reference/app-synced/tasks/get-task-detail)."
     },
     {
       "name": "Voice clone",
@@ -50,7 +50,7 @@
           "Media translation"
         ],
         "summary": "Create translate and dub job",
-        "description": "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; burned-in subtitles use `options.subtitle` instead of `text`; results are polled, not delivered by webhook. Other unknown fields are ignored.",
+        "description": "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: your webhook receives the first result (event `openapi-app-media-translation`), or poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; burned-in subtitles use `options.subtitle` instead of `text`; the webhook is sent only for the first result, not for re-exports on the website. Other unknown fields are ignored.",
         "operationId": "appMediaTranslationCreateAsync",
         "x-mint": {
           "href": "/api-reference/app-synced/media-translation/create-media-translation-async",

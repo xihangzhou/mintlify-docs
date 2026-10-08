@@ -65,8 +65,9 @@ VMEG 为每次**已受理**的异步任务分配一个 **`pipelineKey`**，并�
 | [文本翻译](/zh/guides/products/text-translation) | `openapi-translate` | [创建文本翻译（异步）](/zh/api-reference/text-translation/create-text-translation-async) | `items`（译文列表）、`taskId` |
 | [声音克隆](/zh/guides/products/voice-clone) | `openapi-clone-voice` | [创建声音克隆（异步）](/zh/api-reference/clone-voice/create-voice-clone-async) | 成功时的 `voiceId` 等克隆字段 |
 | [音视频翻译](/zh/guides/products/media-translation) | `openapi-media-translation` | [创建媒体翻译（异步）](/zh/api-reference/media-translation/create-media-translation-async) | 交付物 CDN URL 等，见 `result` |
+| [应用同源版音视频翻译](/zh/guides/app-synced/overview) | `openapi-app-media-translation` | [创建媒体翻译（应用同源版）](/zh/api-reference/app-synced/media-translation/create-media-translation-async) | 与[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)一致；只推首次结果 |
 
-当前异步任务完成回调 **仅使用** 以上四种 `event`。若后续新增回调类型，会同步更新本文与各接口 **Callbacks** 说明。
+当前异步任务完成回调 **仅使用** 以上五种 `event`。若后续新增回调类型，会同步更新本文与各接口 **Callbacks** 说明。
 
 ### 处理示例
 
@@ -80,6 +81,7 @@ POST /your-webhook
        openapi-translate           → 解析翻译 data
        openapi-clone-voice         → 解析克隆 data
        openapi-media-translation   → 解析媒体翻译 data
+       openapi-app-media-translation → 解析同源版任务详情
   → 记录 pipelineKey → 返回 200
 ```
 

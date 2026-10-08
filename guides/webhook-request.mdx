@@ -65,8 +65,9 @@ VMEG assigns one **`pipelineKey` per accepted async run**. It appears in every w
 | [Text translation](/guides/products/text-translation) | `openapi-translate` | [Create text translation (async)](/api-reference/text-translation/create-text-translation-async) | `items` (translated segments), `taskId` |
 | [Voice clone](/guides/products/voice-clone) | `openapi-clone-voice` | [Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async) | `voiceId` and related clone fields when successful |
 | [Media translation](/guides/products/media-translation) | `openapi-media-translation` | [Create media translation (async)](/api-reference/media-translation/create-media-translation-async) | `result` with CDN URLs for deliverables |
+| [App-Synced media translation](/guides/app-synced/overview) | `openapi-app-media-translation` | [Create media translation (App-Synced)](/api-reference/app-synced/media-translation/create-media-translation-async) | Same as [Query job status](/api-reference/app-synced/tasks/get-task-detail); sent once for the first result |
 
-Today, async task completion uses **only** these four `event` values. If we add more callback types later, they will be documented here and in the matching **Callbacks** schema.
+Today, async task completion uses **only** these five `event` values. If we add more callback types later, they will be documented here and in the matching **Callbacks** schema.
 
 ### Example handler routing
 
@@ -80,6 +81,7 @@ POST /your-webhook
        openapi-translate        → parse translation data
        openapi-clone-voice      → parse clone data
        openapi-media-translation → parse media result
+       openapi-app-media-translation → parse App-Synced job detail
   → store pipelineKey → return 200
 ```
 

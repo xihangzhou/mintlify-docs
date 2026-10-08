@@ -14,7 +14,7 @@ VMEG offers two **independent** Open APIs. They share authentication, idempotenc
 | Products | Media translation, TTS, voice clone, text translation | Media translation (video / audio) and voice clone |
 | Where jobs live | API only — not visible on the website | Your website account: **My tasks**, editor, re-export |
 | Materials and cloned voices | API-only library | Same library as the website (**My assets**, **My voices**) |
-| Results | [Webhook](/guides/webhooks) or polling | Polling |
+| Results | [Webhook](/guides/webhooks) or polling | Webhook (first result only) or polling |
 | Output storage | Optional delivery to your own bucket | Hosted by VMEG; re-export anytime on the website |
 | Credits | [Open API pricing](/guides/pricing) | <a href={productUrls.pricing}>Website pricing</a> |
 
@@ -22,7 +22,7 @@ VMEG offers two **independent** Open APIs. They share authentication, idempotenc
 
 <CardGroup cols={2}>
   <Card title="Standalone" icon="terminal" href="/api-reference/introduction">
-    Fully automated back-end pipelines that need webhooks, TTS, or text translation and never open the website.
+    Fully automated back-end pipelines that need TTS, text translation, or output in your own bucket and never open the website.
   </Card>
   <Card title="App-Synced" icon="window" href="/guides/app-synced/overview">
     Submit through the API, then fine-tune subtitles, voices, or timing in the VMEG editor and export from the website.

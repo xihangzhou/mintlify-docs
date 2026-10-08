@@ -14,7 +14,7 @@ VMEG 提供两套**相互独立**的开放 API。它们共用鉴权、幂等和�
 | 产品 | 音视频翻译、TTS、声音克隆、文本翻译 | 音视频翻译与声音克隆 |
 | 任务在哪 | 仅 API 内，网站不可见 | 你的网站账号：**我的任务**、编辑器、重新导出 |
 | 素材与克隆音色 | API 独立库 | 与网站同一份（**我的资产**、**我的音色**） |
-| 获取结果 | [Webhook](/zh/guides/webhooks) 或轮询 | 轮询 |
+| 获取结果 | [Webhook](/zh/guides/webhooks) 或轮询 | Webhook（仅首次结果）或轮询 |
 | 成片存储 | 可写入你的存储桶 | 由 VMEG 托管，可随时在网站重新导出 |
 | 积分 | [开放 API 计价](/zh/guides/pricing) | <a href={productUrls.pricing}>网站计价</a> |
 
@@ -22,7 +22,7 @@ VMEG 提供两套**相互独立**的开放 API。它们共用鉴权、幂等和�
 
 <CardGroup cols={2}>
   <Card title="独立版" icon="terminal" href="/zh/api-reference/introduction">
-    纯后端自动化：需要 Webhook、TTS 或文本翻译，不需要打开网站。
+    纯后端自动化：需要 TTS、文本翻译或把成品写到自己的存储桶，不需要打开网站。
   </Card>
   <Card title="应用同源版" icon="window" href="/zh/guides/app-synced/overview">
     用 API 批量提交，但还想在 VMEG 编辑器里调整字幕、音色、时间轴，并在网站导出。

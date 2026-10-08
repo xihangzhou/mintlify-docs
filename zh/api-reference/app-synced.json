@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG 开放 API（应用同源版）",
-    "description": "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过轮询 `GET /openapi/v1/app/tasks/detail` 获取（无 Webhook）。见[独立版与应用同源版](/zh/guides/choose-api)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
+    "description": "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过 Webhook（只推首次结果，event 为 `openapi-app-media-translation`）或轮询 `GET /openapi/v1/app/tasks/detail` 获取。见[独立版与应用同源版](/zh/guides/choose-api)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
     "version": "1.0.0"
   },
   "servers": [
@@ -20,7 +20,7 @@
     {
       "name": "媒体翻译",
       "x-group": "视频与音频翻译配音",
-      "description": "在与 vmeg.ai 相同的链路上翻译配音已上传的视频/音频或 YouTube 链接。首轮即产出配音成片，任务同时出现在**我的任务**，可继续编辑并重新导出。结果请轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)。"
+      "description": "在与 vmeg.ai 相同的链路上翻译配音已上传的视频/音频或 YouTube 链接。首轮即产出配音成片，任务同时出现在**我的任务**，可继续编辑并重新导出。结果通过 Webhook（只推首次结果）或轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)获取。"
     },
     {
       "name": "声音克隆",
@@ -50,7 +50,7 @@
           "媒体翻译"
         ],
         "summary": "创建翻译配音任务",
-        "description": "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；烧录字幕用 `options.subtitle`（替代 `text`）；结果需轮询获取，不走 Webhook。其他未知字段会被忽略。",
+        "description": "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：Webhook 会收到首次结果（event 为 `openapi-app-media-translation`），也可以轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；烧录字幕用 `options.subtitle`（替代 `text`）；Webhook 只推首次结果，网站重新导出不推送。其他未知字段会被忽略。",
         "operationId": "appMediaTranslationCreateAsync",
         "x-mint": {
           "href": "/zh/api-reference/app-synced/media-translation/create-media-translation-async",
