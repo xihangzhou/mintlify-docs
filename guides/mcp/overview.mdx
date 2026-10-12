@@ -69,7 +69,7 @@ See the full [MCP tools reference](/guides/mcp/tools) for every tool name and de
   </Step>
 </Steps>
 
-Tasks are **asynchronous**. Creating a job returns a `taskId` and `editorUrl`; poll until the task finishes.
+Tasks are **asynchronous**. Creating a job returns a `taskId` and `editorUrl`; poll until the task finishes. Once finished, the poll result includes `videoUrl` when a rendered video is available.
 
 ## Remote MCP vs Open API
 

@@ -69,7 +69,7 @@ Authorization: Bearer YOUR_API_KEY
   </Step>
 </Steps>
 
-任务为**异步**。创建成功返回 `taskId` 与 `editorUrl`，需轮询直至完成。
+任务为**异步**。创建成功返回 `taskId` 与 `editorUrl`，需轮询直至完成；完成后若已有成片，轮询结果会带 `videoUrl`。
 
 ## Remote MCP 与 Open API
 

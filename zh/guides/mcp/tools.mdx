@@ -34,7 +34,7 @@ VMEG 在 Remote MCP 服务上注册**同步工具**，名称稳定（`vmeg_*`）
 | --- | --- |
 | `vmeg_create_video_translation_task` | 创建**视频或音频翻译**任务。必填 `targetLanguage` 与一种媒体来源：`materialId`、`sourceUrl`（HTTPS 直链，如 ChatGPT 附件）或 `youtubeUrl`（仅视频）。按素材分类自动区分产品类型。需询问用户 `voiceGenerationMode`（`clone`、`clone-accent` 默认、`smart`、`manual`）。返回 `taskId`、`status`、`product`、`editorUrl`。 |
 | `vmeg_create_subtitle_translation_task` | 创建**字幕翻译**任务。支持预览（媒体 + `targetLanguage`）、合并（`subtitleType`）、渲染导出（`taskId` + `translatedScripts`）。YouTube 导入可能异步下载，先返回 `pending`。 |
-| `vmeg_list_tasks` | 列出或轮询任务（轻量模式，不含完整 config JSON）。 |
+| `vmeg_list_tasks` | 列出或轮询任务（轻量模式，不含完整 config JSON）。已完成且有成片的任务额外返回 `videoUrl`（最新成片视频的 CDN 地址）。 |
 | `vmeg_delete_task` | 按 `taskId` 删除任务。**调用前须用户明确确认。** |
 
 ## 任务 — 编辑器查询

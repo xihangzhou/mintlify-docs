@@ -34,7 +34,7 @@ VMEG registers **sync MCP tools** on the Remote MCP server. Tool names are stabl
 | --- | --- |
 | `vmeg_create_video_translation_task` | Create a **video or audio translation** task. Requires `targetLanguage` and one media source: `materialId`, `sourceUrl` (HTTPS direct link, e.g. ChatGPT attachment), or `youtubeUrl` (video only). Product is auto-detected from material category. Ask the user for `voiceGenerationMode` (`clone`, `clone-accent` default, `smart`, `manual`). Returns `taskId`, `status`, `product`, `editorUrl`. |
 | `vmeg_create_subtitle_translation_task` | Create a **subtitle translation** task. Modes: preview with media + `targetLanguage`; merge with `subtitleType`; render/export with `taskId` + `translatedScripts`. YouTube imports may return `pending` while download runs asynchronously. |
-| `vmeg_list_tasks` | List or poll tasks (lite mode, no heavy config JSON). |
+| `vmeg_list_tasks` | List or poll tasks (lite mode, no heavy config JSON). Finished tasks with a rendered video also return `videoUrl` (CDN link to the latest result video). |
 | `vmeg_delete_task` | Delete a task by `taskId`. **Requires explicit user confirmation** before calling. |
 
 ## Tasks — editor queries
