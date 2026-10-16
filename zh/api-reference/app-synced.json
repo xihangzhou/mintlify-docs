@@ -50,7 +50,7 @@
           "媒体翻译"
         ],
         "summary": "创建翻译配音任务",
-        "description": "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：Webhook 会收到首次结果（event 为 `openapi-app-media-translation`），也可以轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId` 或 `youtubeUrl`（不支持 `sourceUrl`）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；烧录字幕用 `options.subtitle`（替代 `text`）；Webhook 只推首次结果，网站重新导出不推送。其他未知字段会被忽略。",
+        "description": "在**与 vmeg.ai 相同的链路**上创建视频/音频翻译配音任务。首轮即产出配音成片：Webhook 会收到首次结果（event 为 `openapi-app-media-translation`），也可以轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再读取 `result.outputs[0]`。任务会出现在网站**我的任务**中，打开 `editorUrl` 可继续编辑并重新导出。积分按网站规则扣除。\n\n与独立版的差异：`options` 可省略；`source` 接受 `materialId`、`youtubeUrl`、公开 HTTPS `sourceUrl` 三选一（CDN 或公开 S3，受理后后台下载）；`taskType` 必须与素材一致（`vt` 视频、`at` 音频）；`title` 设置网站上显示的任务名；传 `output`、`extraData` 返回 `400`；烧录字幕用 `options.subtitle`（替代 `text`）；Webhook 只推首次结果，网站重新导出不推送。其他未知字段会被忽略。",
         "operationId": "appMediaTranslationCreateAsync",
         "x-mint": {
           "href": "/zh/api-reference/app-synced/media-translation/create-media-translation-async",
@@ -1845,7 +1845,7 @@
       },
       "AppMediaTranslationSource": {
         "type": "object",
-        "description": "`materialId` 与 `youtubeUrl` 二选一",
+        "description": "`materialId`、`youtubeUrl`、`sourceUrl` 三选一",
         "properties": {
           "materialId": {
             "type": "string",
@@ -1854,6 +1854,12 @@
           "youtubeUrl": {
             "type": "string",
             "description": "YouTube 视频链接（配合 `taskType: vt`）"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "可公开访问的 HTTPS 直链（CDN 或公开 S3），与 `materialId`、`youtubeUrl` 三选一。接口立即返回任务，文件在后台下载。账号不够 1 分钟时直接返回 `402`；探测出时长后仍不够，任务变为 `failed`，Webhook 的 `code` 为 `402`，`message` 为 `insufficient quota`。",
+            "example": "https://cdn.example.com/video.mp4"
           },
           "subtitleMaterialId": {
             "type": "string",

@@ -395,7 +395,7 @@
           "媒体翻译"
         ],
         "summary": "创建翻译配音任务",
-        "description": "为已上传的视频或音频启动异步 **翻译配音** 流水线：识别语音 → 翻译文稿 → 生成 AI 配音（克隆或预设音色）→ 渲染输出。可通过 `options` 配置字幕与口型同步。HTTP 仅返回受理信息（`taskId`）。配音后视频/音频 URL 通过 [Webhook](/zh/guides/webhooks) 回调投递（`event`: `openapi-media-translation`）。\n\n若请求音频翻译（`taskType`: `at`）但素材为视频，服务端可能按视频翻译（`vt`）执行 — 请以受理响应中的 `taskType` 为准。",
+        "description": "为视频或音频启动异步 **翻译配音** 流水线：识别语音 → 翻译文稿 → 生成 AI 配音（克隆或预设音色）→ 渲染输出。`source.materialId` 与 `source.sourceUrl` 二选一。`sourceUrl` 为可公开访问的 HTTPS 直链（CDN 或公开 S3），接口立即返回任务并在后台下载入库。不够 1 分钟积分直接返回 `402`；探测后仍不够则任务失败，Webhook 的 `code` 为 `402`，`message` 为 `insufficient quota`。可通过 `options` 配置字幕与口型同步。HTTP 仅返回受理信息（`taskId`）。配音后视频/音频 URL 通过 [Webhook](/zh/guides/webhooks) 回调投递（`event`: `openapi-media-translation`）。\n\n若请求音频翻译（`taskType`: `at`）但素材为视频，服务端可能按视频翻译（`vt`）执行 — 请以受理响应中的 `taskType` 为准。",
         "operationId": "mediaTranslationCreateAsync",
         "x-mint": {
           "href": "/zh/api-reference/media-translation/create-media-translation-async",
@@ -1735,16 +1735,19 @@
       },
       "OpenApiMediaTranslationSource": {
         "type": "object",
-        "required": [
-          "materialId"
-        ],
+        "description": "本任务的输入。`materialId` 与 `sourceUrl` 必须且只能传一个。",
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "已走完完整 [素材上传](/zh/guides/assets/material-upload) 流程后得到的已注册素材 ID（也可来自 [素材列表](/zh/guides/assets/materials)）。不要使用 gen-upload-url / 分片发起返回的进行中 ID。"
+            "description": "已走完完整 [素材上传](/zh/guides/assets/material-upload) 流程后得到的已注册素材 ID（也可来自 [素材列表](/zh/guides/assets/materials)）。不要使用 gen-upload-url / 分片发起返回的进行中 ID。与 `sourceUrl` 互斥。"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://cdn.example.com/video.mp4",
+            "description": "可匿名下载的 HTTPS 音视频直链（CDN 或公开 S3）。接口立即返回任务，后台下载入库后再提交翻译。不够 1 分钟积分直接返回 `402`；探测后仍不够则任务失败并推送 Webhook。与 `materialId` 互斥。不支持 HTTP 和内网地址。"
           }
-        },
-        "description": "本任务的输入素材"
+        }
       },
       "OpenApiMediaTranslationLanguage": {
         "type": "object",
@@ -1974,7 +1977,7 @@
           },
           "source": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationSource",
-            "description": "本任务的输入素材"
+            "description": "已注册的 materialId，或可公开访问的 HTTPS sourceUrl。二者只能传一个。"
           },
           "language": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage",

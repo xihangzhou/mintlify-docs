@@ -395,7 +395,7 @@
           "Media translation"
         ],
         "summary": "Create translate and dub job",
-        "description": "Start an async **translate and dub** pipeline for uploaded video or audio: transcribe speech → translate script → generate AI dubbing (voice clone or presets) → render dubbed output. Optional subtitles and lip sync via `options`. The HTTP response only confirms acceptance (`taskId`). Dubbed video/audio URLs arrive in your [Webhook](/guides/webhooks) callback (`event`: `openapi-media-translation`).\n\nIf you request audio translation (`taskType`: `at`) but the material is video, the server may run video translation (`vt`) instead — check `taskType` in the acceptance response.",
+        "description": "Start an async **translate and dub** pipeline for video or audio: transcribe speech → translate script → generate AI dubbing (voice clone or presets) → render dubbed output. Pass either a registered `source.materialId` or a public HTTPS `source.sourceUrl` (CDN or public S3). A `sourceUrl` is accepted immediately and downloaded in the background. If the account cannot cover one minute, the request returns `402`. If the probed duration costs more than the remaining credits, the task becomes `failed` and the webhook uses `402` with message `insufficient quota`. Optional subtitles and lip sync via `options`. The HTTP response only confirms acceptance (`taskId`). Dubbed video/audio URLs arrive in your [Webhook](/guides/webhooks) callback (`event`: `openapi-media-translation`).\n\nIf you request audio translation (`taskType`: `at`) but the material is video, the server may run video translation (`vt`) instead — check `taskType` in the acceptance response.",
         "operationId": "mediaTranslationCreateAsync",
         "x-mint": {
           "href": "/api-reference/media-translation/create-media-translation-async",
@@ -1735,16 +1735,19 @@
       },
       "OpenApiMediaTranslationSource": {
         "type": "object",
-        "required": [
-          "materialId"
-        ],
+        "description": "Input for this translation job. Provide exactly one of `materialId` or `sourceUrl`.",
         "properties": {
           "materialId": {
             "type": "string",
-            "description": "Registered material ID from a **fully completed** [Material upload](/guides/assets/material-upload) (or from [List materials](/guides/assets/materials)). Do not use a mid-upload ID from gen-upload-url / multipart initiate."
+            "description": "Registered material ID from a **fully completed** [Material upload](/guides/assets/material-upload) (or from [List materials](/guides/assets/materials)). Do not use a mid-upload ID from gen-upload-url / multipart initiate. Mutually exclusive with `sourceUrl`."
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://cdn.example.com/video.mp4",
+            "description": "Public HTTPS URL of a video or audio file (CDN or public S3). The file must be anonymously downloadable. The server accepts the task immediately, downloads the file in the background, then submits the job. If one minute of credits is missing, the request returns `402`. If the probed duration still exceeds the remaining credits, the task fails and the webhook code is `402`. Mutually exclusive with `materialId`. Private networks and non-HTTPS URLs are rejected."
           }
-        },
-        "description": "Input material for this translation job"
+        }
       },
       "OpenApiMediaTranslationLanguage": {
         "type": "object",
@@ -1974,7 +1977,7 @@
           },
           "source": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationSource",
-            "description": "Input material for this translation job"
+            "description": "Registered materialId or a public HTTPS sourceUrl. Exactly one is required."
           },
           "language": {
             "$ref": "#/components/schemas/OpenApiMediaTranslationLanguage",

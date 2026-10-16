@@ -50,7 +50,7 @@
           "Media translation"
         ],
         "summary": "Create translate and dub job",
-        "description": "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: your webhook receives the first result (event `openapi-app-media-translation`), or poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes `materialId` or `youtubeUrl` (no `sourceUrl`); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; burned-in subtitles use `options.subtitle` instead of `text`; the webhook is sent only for the first result, not for re-exports on the website. Other unknown fields are ignored.",
+        "description": "Create a translate-and-dub job on the **same pipeline as vmeg.ai**. The first pass renders the dubbed output: your webhook receives the first result (event `openapi-app-media-translation`), or poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then read `result.outputs[0]`. The job appears in **My tasks** on the website; open `editorUrl` to edit and re-export. Credits follow website pricing.\n\nDifferences from Standalone: `options` is optional; `source` takes exactly one of `materialId`, `youtubeUrl`, or public HTTPS `sourceUrl` (CDN or public S3; download runs after the task is accepted); `taskType` must match the material (`vt` video, `at` audio); `title` sets the job name on the website; `output` and `extraData` are rejected with `400`; burned-in subtitles use `options.subtitle` instead of `text`; the webhook is sent only for the first result, not for re-exports on the website. Other unknown fields are ignored.",
         "operationId": "appMediaTranslationCreateAsync",
         "x-mint": {
           "href": "/api-reference/app-synced/media-translation/create-media-translation-async",
@@ -1845,7 +1845,7 @@
       },
       "AppMediaTranslationSource": {
         "type": "object",
-        "description": "Exactly one of `materialId` or `youtubeUrl`",
+        "description": "Exactly one of `materialId`, `youtubeUrl`, or `sourceUrl`",
         "properties": {
           "materialId": {
             "type": "string",
@@ -1854,6 +1854,12 @@
           "youtubeUrl": {
             "type": "string",
             "description": "YouTube video URL (use `taskType: vt`)"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTPS file URL (CDN or public S3). Mutually exclusive with `materialId` and `youtubeUrl`. The job is accepted immediately and the file is downloaded in the background. If the account cannot cover one minute, the request returns `402`. If the probed duration costs more than the remaining credits, the job becomes `failed` and the webhook uses `402` with message `insufficient quota`.",
+            "example": "https://cdn.example.com/video.mp4"
           },
           "subtitleMaterialId": {
             "type": "string",

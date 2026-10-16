@@ -55,14 +55,14 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-a
   </Accordion>
   <Accordion title="创建任务">
     - `options` 可省略，默认等同网站上自动克隆音色的任务。
-    - `source` 需在 `materialId` 与 `youtubeUrl` 中二选一。`taskType` 必须与素材一致：视频用 `vt`，音频用 `at`。
+    - `source` 需在 `materialId`、`youtubeUrl`、`sourceUrl` 中三选一。`sourceUrl` 是可公开访问的 HTTPS 直链（CDN 或公开 S3），接口立即返回任务并在后台下载。账号不够 1 分钟时直接返回 `402`；探测出时长后仍不够，任务变为 `failed`，Webhook 的 `code` 为 `402`，`message` 为 `insufficient quota`。`taskType` 必须与素材一致：视频用 `vt`，音频用 `at`。
     - `title` 设置**我的任务**中显示的任务名，不传时取文件名或 YouTube 视频标题。
     - 可选的字幕文件（`source.subtitleMaterialId`、`source.targetSubtitleMaterialId`）必须是 `.srt` 素材。
     - `options.voiceClone.style` 额外支持 `auto`、`tutorial`、`drama`、`smart`。
     - 手动选音色（`voiceSpeakers.selectedVoicesList`）支持 `sv_*` 系统音色和[克隆音色列表](/zh/api-reference/app-synced/assets/voices/list-cloned-voices)中的 `cv_*` 音色；不能与 `voiceClone` 同时传，`dubbingVersion: V2` 也不能与这两者同时使用。
     - 烧录字幕用 `options.subtitle`（`type` 加可选的 `templateId`，模板来自[字幕模板列表](/zh/api-reference/app-synced/media-translation/list-subtitle-templates)），替代 `options.text`。只传 `type` 不传 `templateId` 时使用网站默认样式。
     - `options.lipsync` 要求视频宽、高均不低于 360 像素，否则返回 `400`。YouTube 来源不做预校验。
-    - 传 `source.sourceUrl`、`options.text`、`output`、`extraData` 或素材列表的 `mimeType` 过滤返回 `400`。其他未知字段会被忽略。
+    - 传 `options.text`、`output`、`extraData` 或素材列表的 `mimeType` 过滤返回 `400`。其他未知字段会被忽略。
   </Accordion>
   <Accordion title="素材上传">
     - 单文件上传按 `fileHash` 去重：网站素材库里已有的同一文件会直接返回已有素材。分片上传不去重。
