@@ -1,6 +1,6 @@
 ---
 title: "价格"
-description: "积分、付费开通与 API 计费"
+description: "积分与 API 计费"
 icon: "coins"
 ---
 
@@ -9,7 +9,7 @@ import { credits } from "/snippets/credits.jsx";
 
 ## 谁可以使用 API
 
-Open API 面向 **付费用户**。免费账户访问 <a href={productUrls.apiConfiguration}>API 配置</a> 时会提示升级。
+免费与付费账户均可创建 API Key 并使用 Open API，包括打开 <a href={productUrls.apiConfiguration}>API 配置</a>。任务会消耗积分；余额不足时返回 `402`。
 
 <Info>
   **套餐价格与积分包** — 多少钱能买多少积分、订阅档位、充值方式，请到产品 <a href={productUrls.pricing}>价格页（Pricing）</a> 查看。本文只说明 **Open API 各产品如何消耗积分**。
