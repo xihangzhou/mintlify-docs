@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG Open API (App-Synced)",
-    "description": "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Get results from your webhook (first result only, event `openapi-app-media-translation`) or by polling `GET /openapi/v1/app/tasks/detail`. See [Standalone vs App-Synced](/guides/choose-api).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
+    "description": "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Supports media translation, transcription, and voice clone. Get results from your webhook (first result only, event `openapi-app-media-translation`) or by polling `GET /openapi/v1/app/tasks/detail`. See [Standalone vs App-Synced](/guides/choose-api).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
     "version": "1.0.0"
   },
   "servers": [
@@ -23,6 +23,10 @@
       "description": "Translate and dub uploaded video/audio or a YouTube link on the same pipeline as vmeg.ai. The first pass renders the dubbed file; the job also appears in **My tasks** for editing and re-export. Get results from your webhook (first result only) or poll [Query job status](/api-reference/app-synced/tasks/get-task-detail)."
     },
     {
+      "name": "Transcription",
+      "description": "Transcribe uploaded video/audio or a YouTube link on the same pipeline as vmeg.ai. The job appears in **My tasks** and opens in the transcription editor. When it finishes, download the latest transcript (including your edits on the website) as SRT or JSON."
+    },
+    {
       "name": "Voice clone",
       "x-group": "Voice cloning",
       "description": "Clone a voice from a short recording. The voice is saved to **My voices** on the website and returned as `cv_*` for translate-and-dub jobs."
@@ -30,7 +34,7 @@
     {
       "name": "Task management",
       "x-group": "Task status and history",
-      "description": "List, inspect, or delete the video/audio translation jobs in your VMEG account, including jobs created on the website."
+      "description": "List, inspect, or delete the video/audio translation and transcription jobs in your VMEG account, including jobs created on the website."
     },
     {
       "name": "Assets - Materials",
@@ -150,7 +154,8 @@
               "type": "string",
               "enum": [
                 "vt",
-                "at"
+                "at",
+                "transcription"
               ]
             },
             "description": "Filter by task type"
@@ -199,7 +204,7 @@
             }
           }
         },
-        "description": "Paginated video/audio translation jobs in your VMEG account, including jobs created on the website. `status` is `running`, `finished`, or `failed`."
+        "description": "Paginated video/audio translation and transcription jobs in your VMEG account, including jobs created on the website. Filter with `taskType` (`vt`, `at`, or `transcription`). `status` is `running`, `finished`, or `failed`."
       }
     },
     "/openapi/v1/app/tasks/detail": {
@@ -239,7 +244,7 @@
             }
           }
         },
-        "description": "Poll one job. When `status` is `finished`, `result.outputs[0]` is the latest rendered file.\n\n`finished` is not permanent: re-exporting in the website editor sets the job back to `running`, and a failed re-export ends in `failed`. Earlier renders stay in `result.outputs`; `result.outputs[0]` is always the latest successful one."
+        "description": "Poll one job. When `status` is `finished`, `result.outputs[0]` is the latest rendered file.\n\n`finished` is not permanent: re-exporting in the website editor sets the job back to `running`, and a failed re-export ends in `failed`. Earlier renders stay in `result.outputs`; `result.outputs[0]` is always the latest successful one.\n\nFor transcription jobs (`taskType` is `transcription`), `result.outputs` is empty; once `status` is `finished`, download the transcript from `result.srtEndpoint`."
       }
     },
     "/openapi/v1/app/tasks/delete": {
@@ -858,6 +863,120 @@
           }
         }
       }
+    },
+    "/openapi/v1/app/task/transcription/create-async": {
+      "post": {
+        "tags": [
+          "Transcription"
+        ],
+        "summary": "Create transcription job",
+        "description": "Create a transcription job on the **same pipeline as vmeg.ai**. The job appears in **My tasks** on the website; open `editorUrl` to review and edit the transcript. Your webhook receives the first result (event `openapi-app-media-translation`, `data.taskType` is `transcription`), or poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then download the transcript from `result.srtEndpoint`. Credits follow website pricing.\n\n`source` takes exactly one of `materialId` (an audio or video material) or `youtubeUrl`; `sourceUrl`, `output`, and `extraData` return `400`. Other unknown fields are ignored.",
+        "operationId": "appTranscriptionCreateAsync",
+        "x-mint": {
+          "href": "/api-reference/app-synced/transcription/create-transcription-async",
+          "metadata": {
+            "sidebarTitle": "Create transcription job",
+            "title": "Create transcription job"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppTranscriptionCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted. `editorUrl` opens the job in the website transcription editor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTranscriptionAcceptedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi/v1/app/tasks/transcription/srt": {
+      "get": {
+        "tags": [
+          "Transcription"
+        ],
+        "summary": "Download transcript",
+        "description": "Download the transcript of a finished transcription job as SRT (default) or JSON. The content is the latest version in the website editor, including your edits; it is the same transcript the website exports as original-language subtitles.\n\nThe SRT is returned as a plain-text body (`Content-Type: application/x-subrip; charset=UTF-8`), not wrapped in the JSON envelope. With `format=json`, the usual envelope is returned and `data.segments` holds the same entries as the SRT, with times in integer milliseconds. Errors always use the JSON envelope with HTTP 200 and `code` in the body: `400` invalid parameters; `404` the `taskId` is not a transcription job in your account (translation job IDs also return `404`); `409` the job has not finished or its transcript is not ready yet (retry after `status` is `finished`).\n\nOmit the `Accept` header or send `Accept: */*`. If `Accept` lists only non-JSON types (for example only `application/x-subrip`), error responses may not be returned correctly.",
+        "operationId": "appTranscriptionSrt",
+        "x-mint": {
+          "href": "/api-reference/app-synced/transcription/get-transcription-srt",
+          "metadata": {
+            "sidebarTitle": "Download transcript",
+            "title": "Download transcript"
+          }
+        },
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "query",
+            "required": true,
+            "description": "Transcription task ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "`srt` (default) plain-text SRT | `json` JSON segments. Case-insensitive; other values return `400`.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "srt",
+                "json"
+              ],
+              "default": "srt"
+            }
+          },
+          {
+            "name": "speakers",
+            "in": "query",
+            "required": false,
+            "description": "`true` prefixes each SRT line with `[Speaker N] ` when speaker information is available. Default `false`; values other than `true`/`false` return `400`. JSON always includes `speaker`.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SRT text by default; JSON envelope with `format=json`.",
+            "content": {
+              "application/x-subrip": {
+                "schema": {
+                  "type": "string",
+                  "example": "1\n00:00:00,000 --> 00:00:05,960\nWelcome to VMEG.\n\n2\n00:00:06,120 --> 00:00:09,480\nLet's get started.\n"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTranscriptResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1114,7 +1233,7 @@
             "description": "Task ID (same as the job ID on the website)"
           },
           "taskType": {
-            "$ref": "#/components/schemas/AppTaskType"
+            "$ref": "#/components/schemas/AppTaskKind"
           },
           "status": {
             "type": "string",
@@ -2087,6 +2206,15 @@
           }
         ]
       },
+      "AppTaskKind": {
+        "type": "string",
+        "enum": [
+          "vt",
+          "at",
+          "transcription"
+        ],
+        "description": "`vt` video translation | `at` audio translation | `transcription` transcription"
+      },
       "AppTaskOutput": {
         "type": "object",
         "properties": {
@@ -2121,7 +2249,7 @@
             "description": "Task ID (same as the job ID on the website)"
           },
           "taskType": {
-            "$ref": "#/components/schemas/AppTaskType"
+            "$ref": "#/components/schemas/AppTaskKind"
           },
           "status": {
             "type": "string",
@@ -2151,7 +2279,12 @@
                 "items": {
                   "$ref": "#/components/schemas/AppTaskOutput"
                 },
-                "description": "Rendered outputs, newest first"
+                "description": "Rendered outputs, newest first. Empty for transcription jobs; use `srtEndpoint` instead."
+              },
+              "srtEndpoint": {
+                "type": "string",
+                "description": "Transcription jobs only, present once `status` is `finished`: relative path of [Download transcript](/api-reference/app-synced/transcription/get-transcription-srt) for this job. Call it on `https://api.vmeg.ai` with the same API key.",
+                "example": "/openapi/v1/app/tasks/transcription/srt?taskId=2047316590123456789"
               }
             }
           }
@@ -2252,6 +2385,202 @@
                     "type": "integer",
                     "format": "int64",
                     "example": 12
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AppTranscriptionSource": {
+        "type": "object",
+        "description": "Exactly one of `materialId` or `youtubeUrl`. `sourceUrl` is not supported for transcription and returns `400`.",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "Audio or video material ID from [App-Synced upload](/api-reference/app-synced/assets/materials/gen-upload-url) or [List materials](/api-reference/app-synced/assets/materials/list-materials). Other file types return `400`; an unknown ID returns `404`."
+          },
+          "youtubeUrl": {
+            "type": "string",
+            "description": "Public YouTube video URL. A link that cannot be loaded returns `400`."
+          }
+        }
+      },
+      "AppTranscriptionOptions": {
+        "type": "object",
+        "description": "Transcription options (all optional)",
+        "properties": {
+          "asr": {
+            "type": "object",
+            "description": "Speech recognition settings",
+            "properties": {
+              "quality": {
+                "type": "string",
+                "enum": [
+                  "quick",
+                  "standard"
+                ],
+                "default": "standard",
+                "description": "`standard` (default): higher accuracy. `quick`: faster turnaround. Same choices as the website. Other values return `400`."
+              }
+            }
+          },
+          "speakers": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "Number of speakers: `auto` (default) detects automatically, or a positive integer such as `\"2\"`. Other values return `400`."
+          }
+        }
+      },
+      "AppTranscriptionCreateRequest": {
+        "type": "object",
+        "required": [
+          "source",
+          "language"
+        ],
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/AppTranscriptionSource"
+          },
+          "language": {
+            "type": "object",
+            "description": "Language settings",
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "example": "en-US",
+                "description": "Spoken language of the media (required), same codes as the website. See [Supported languages](/guides/supported-languages)."
+              }
+            }
+          },
+          "options": {
+            "$ref": "#/components/schemas/AppTranscriptionOptions"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Job name shown in **My tasks** (max 255 characters). Defaults to the file name or the YouTube video title."
+          }
+        },
+        "example": {
+          "source": {
+            "materialId": "YOUR_MATERIAL_ID"
+          },
+          "language": {
+            "source": "en-US"
+          },
+          "options": {
+            "asr": {
+              "quality": "standard"
+            },
+            "speakers": "auto"
+          },
+          "title": "Weekly meeting"
+        }
+      },
+      "AppTranscriptionAcceptedResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "description": "Task ID (same as the job ID on the website)"
+                  },
+                  "taskType": {
+                    "type": "string",
+                    "enum": [
+                      "transcription"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "running",
+                      "finished",
+                      "failed"
+                    ],
+                    "example": "running"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "description": "Creation time"
+                  },
+                  "editorUrl": {
+                    "type": "string",
+                    "description": "Website editor URL for this job (sign in with the same VMEG account)",
+                    "example": "https://www.vmeg.ai/transcription/editor/2047316590123456789/"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AppTranscriptSegment": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Sequence number starting at 1, same as the SRT entry number",
+            "example": 1
+          },
+          "start": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Start time in milliseconds",
+            "example": 0
+          },
+          "end": {
+            "type": "integer",
+            "format": "int64",
+            "description": "End time in milliseconds",
+            "example": 5960
+          },
+          "text": {
+            "type": "string",
+            "description": "Segment text",
+            "example": "Welcome to VMEG."
+          },
+          "speaker": {
+            "type": "string",
+            "description": "Speaker label such as `1`; omitted when there is no speaker information",
+            "example": "1"
+          }
+        }
+      },
+      "AppTranscriptResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "description": "Transcript (format=json)",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "description": "Task ID (same as the job ID on the website)"
+                  },
+                  "segments": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AppTranscriptSegment"
+                    },
+                    "description": "Transcript segments sorted by start time; empty lines are dropped"
                   }
                 }
               }

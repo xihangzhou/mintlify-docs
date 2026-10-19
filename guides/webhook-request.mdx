@@ -66,8 +66,9 @@ VMEG assigns one **`pipelineKey` per accepted async run**. It appears in every w
 | [Voice clone](/guides/products/voice-clone) | `openapi-clone-voice` | [Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async) | `voiceId` and related clone fields when successful |
 | [Media translation](/guides/products/media-translation) | `openapi-media-translation` | [Create media translation (async)](/api-reference/media-translation/create-media-translation-async) | `result` with CDN URLs for deliverables |
 | [App-Synced media translation](/guides/app-synced/overview) | `openapi-app-media-translation` | [Create media translation (App-Synced)](/api-reference/app-synced/media-translation/create-media-translation-async) | Same as [Query job status](/api-reference/app-synced/tasks/get-task-detail); sent once for the first result |
+| [App-Synced transcription](/guides/app-synced/overview#transcription) | `openapi-app-media-translation` (same value; `data.taskType` is `transcription`) | [Create transcription job (App-Synced)](/api-reference/app-synced/transcription/create-transcription-async) | Same as [Query job status](/api-reference/app-synced/tasks/get-task-detail); when finished, `result.srtEndpoint` is the transcript download path; sent once for the first result |
 
-Today, async task completion uses **only** these five `event` values. If we add more callback types later, they will be documented here and in the matching **Callbacks** schema.
+Today, async task completion uses **only** these five `event` values (App-Synced transcription shares `openapi-app-media-translation`). If we add more callback types later, they will be documented here and in the matching **Callbacks** schema.
 
 ### Example handler routing
 
@@ -81,7 +82,7 @@ POST /your-webhook
        openapi-translate        → parse translation data
        openapi-clone-voice      → parse clone data
        openapi-media-translation → parse media result
-       openapi-app-media-translation → parse App-Synced job detail
+       openapi-app-media-translation → parse App-Synced job detail (branch on data.taskType)
   → store pipelineKey → return 200
 ```
 

@@ -17,7 +17,7 @@ The Open API uses the JSON **`code`** field for business outcomes. HTTP status h
 | 401 | Unauthorized | API Key missing or invalid |
 | 402 | Payment Required | Insufficient credits or quota |
 | 404 | Not Found | Resource not found |
-| 409 | Conflict | Idempotency key already used |
+| 409 | Conflict | Idempotency key already used, or the resource is not ready yet (for example an App-Synced transcript before the job finishes) |
 | 413 | Payload Too Large | Upload or body exceeds limit |
 | 422 | Unprocessable Entity | Valid format but cannot be processed |
 | 500 | Internal Server Error | Server error |

@@ -1,6 +1,6 @@
 ---
 title: "应用同源版概览"
-description: "用 API 提交翻译任务，在 VMEG 网站继续编辑和导出"
+description: "用 API 提交翻译和转写任务，在 VMEG 网站继续编辑和导出"
 icon: "window"
 ---
 
@@ -36,11 +36,47 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-a
   }'
 ```
 
+## 转写
+
+转写任务的流程相同：上传素材（或使用 YouTube 链接）、创建任务、获取结果。任务可在网站转写编辑器中打开，下载的转写稿始终是编辑器里的最新版本。
+
+<Steps>
+  <Step title="创建任务">
+    `POST /openapi/v1/app/task/transcription/create-async`，带 `X-Idempotency-Key`。`source.materialId`（音频或视频）与 `source.youtubeUrl` 二选一，并传 `language.source`。
+  </Step>
+  <Step title="等待完成">
+    通过 [Webhook](/zh/guides/webhooks)（`data.taskType` 为 `transcription`）或轮询 `GET /openapi/v1/app/tasks/detail?taskId=...`。`status` 为 `finished` 时会返回 `result.srtEndpoint`。
+  </Step>
+  <Step title="下载转写稿">
+    `GET /openapi/v1/app/tasks/transcription/srt?taskId=...` 返回 SRT 文本。加 `speakers=true` 会带 `[Speaker N]` 标签；加 `format=json` 返回带毫秒时间的句段。
+  </Step>
+</Steps>
+
+```bash
+# 创建
+curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/transcription/create-async" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -H "X-Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": { "materialId": "YOUR_MATERIAL_ID" },
+    "language": { "source": "en-US" },
+    "options": { "asr": { "quality": "standard" }, "speakers": "auto" },
+    "title": "周会记录"
+  }'
+
+# status 为 finished 后下载
+curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TASK_ID&speakers=true" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -o transcript.srt
+```
+
 ## 和独立版的主要不同
 
 - **需要网站账号的 API Key**：在 VMEG 网站创建的 Key 才能调用，任务按网站积分计费。
 - **Webhook 只推首次结果**：任务第一次进入 `finished` 或 `failed` 时，向与独立版相同的 Webhook 地址推送一次；之后在网站重新导出不再推送，需要时请轮询。不配置 Webhook 时靠轮询获取结果，请设置超时；长时间停在 `running` 时，带上 `taskId` 联系客服。
 - **结果会更新**：在网站重新导出后，任务会回到 `running`，新成片排在 `result.outputs[0]`，旧成片仍保留。
+- **转写仅应用同源版提供**：独立版没有转写接口。
 - **选项与网站翻译表单一致**：烧录字幕用字幕模板，默认不烧录；唇形同步要求视频不低于 360p。暂不支持字幕擦除和画面翻译。
 - **素材与网站共享**：同一文件会复用网站上已有的素材，在 API 里删除素材，网站**我的资产**里也会消失。
 
@@ -72,9 +108,18 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-a
     - `result.outputs` 按时间倒序，`result.outputs[0]` 是最近一次成功导出的成片。
     - `finished` 不是最终状态：重新导出会把任务置回 `running`，导出失败则变为 `failed`，之前的成片仍保留在列表中。
   </Accordion>
+  <Accordion title="转写">
+    - `source` 需在 `materialId`（音频或视频素材，其他类型返回 `400`）与 `youtubeUrl` 中二选一。传 `sourceUrl`、`output`、`extraData` 返回 `400`。
+    - `language.source` 必填。`title` 可选，不传时取文件名或 YouTube 视频标题。
+    - `options.asr.quality` 为 `standard`（默认）或 `quick`；`options.speakers` 为 `auto`（默认）或正整数，如 `"2"`。其他值返回 `400`。
+    - 用 `taskType=transcription` 列出转写任务。转写任务的 `result.outputs` 为空；`status` 为 `finished` 后，`result.srtEndpoint` 为下载路径（`https://api.vmeg.ai` 上的相对路径，用同一个 API Key 调用）。运行中、失败的任务以及翻译任务不返回该字段。
+    - 转写稿为网站编辑器中的最新版本，包含你的修改。SRT（`application/x-subrip`）以纯文本返回；`format=json` 时在常规 JSON 结构中返回 `data.segments`（`index`、毫秒 `start` / `end`、`text`、`speaker`）。
+    - 出错时返回 JSON 结构，HTTP 状态为 200：`400` 为 `format`、`speakers` 不合法或缺少 `taskId`；`404` 为不是你账号下的转写任务；`409` 为尚未完成。请不要设置 `Accept` 请求头，或设为 `Accept: */*`。
+  </Accordion>
   <Accordion title="Webhook">
     - 使用网站 **API 配置**页里的 Webhook 地址和密钥，与独立版共用。验签方式见 [Webhook 签名校验](/zh/guides/webhook-verification)。
-    - `event` 为 `openapi-app-media-translation`；`pipelineKey` 为 `openapi-app-{taskId}`。
+    - 所有应用同源版任务（包括转写）的 `event` 都是 `openapi-app-media-translation`，请用 `data.taskType`（`vt`、`at` 或 `transcription`）区分。`pipelineKey` 为 `openapi-app-{taskId}`。
+    - 转写任务完成时，`data.result.srtEndpoint` 为转写稿下载路径。
     - `data` 字段与[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)一致（`taskId`、`taskType`、`status`、`editorUrl`、`result`）。
     - 任务完成时 `code` 为 `200`，失败时为 `500`，失败原因在 `message` 中。
     - 每个任务只推一次，对应它第一次进入 `finished` 或 `failed`。投递失败会在约 40 分钟内重试几次，之后请改为轮询。请按 `pipelineKey` 去重。
