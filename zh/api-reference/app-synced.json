@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "VMEG 开放 API（应用同源版）",
-    "description": "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过 Webhook（只推首次结果，event 为 `openapi-app-media-translation`）或轮询 `GET /openapi/v1/app/tasks/detail` 获取。见[独立版与应用同源版](/zh/guides/choose-api)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
+    "description": "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。支持媒体翻译、转写和声音克隆。结果通过 Webhook（只推首次结果，event 为 `openapi-app-media-translation`）或轮询 `GET /openapi/v1/app/tasks/detail` 获取。见[独立版与应用同源版](/zh/guides/choose-api)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
     "version": "1.0.0"
   },
   "servers": [
@@ -23,6 +23,10 @@
       "description": "在与 vmeg.ai 相同的链路上翻译配音已上传的视频/音频或 YouTube 链接。首轮即产出配音成片，任务同时出现在**我的任务**，可继续编辑并重新导出。结果通过 Webhook（只推首次结果）或轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)获取。"
     },
     {
+      "name": "转写",
+      "description": "在与 vmeg.ai 相同的链路上转写已上传的视频/音频或 YouTube 链接。任务出现在**我的任务**，可在转写编辑器中打开。完成后可下载最新的转写稿（包含你在网站上的修改），格式为 SRT 或 JSON。"
+    },
+    {
       "name": "声音克隆",
       "x-group": "声音克隆",
       "description": "用一段短录音克隆音色。音色保存到网站**我的音色**，返回 `cv_*`，可用于翻译配音任务。"
@@ -30,7 +34,7 @@
     {
       "name": "任务管理",
       "x-group": "任务状态与历史",
-      "description": "列出、查看或删除你 VMEG 账号下的视频/音频翻译任务，包括在网站创建的任务。"
+      "description": "列出、查看或删除你 VMEG 账号下的视频/音频翻译和转写任务，包括在网站创建的任务。"
     },
     {
       "name": "资产 - 素材",
@@ -150,7 +154,8 @@
               "type": "string",
               "enum": [
                 "vt",
-                "at"
+                "at",
+                "transcription"
               ]
             },
             "description": "按任务类型筛选"
@@ -199,7 +204,7 @@
             }
           }
         },
-        "description": "分页列出你 VMEG 账号下的视频/音频翻译任务，包括在网站创建的任务。`status` 为 `running`、`finished` 或 `failed`。"
+        "description": "分页列出你 VMEG 账号下的视频/音频翻译和转写任务，包括在网站创建的任务。可用 `taskType` 筛选（`vt`、`at` 或 `transcription`）。`status` 为 `running`、`finished` 或 `failed`。"
       }
     },
     "/openapi/v1/app/tasks/detail": {
@@ -239,7 +244,7 @@
             }
           }
         },
-        "description": "轮询单个任务。`status` 为 `finished` 时，`result.outputs[0]` 是最新的成片。\n\n`finished` 不是最终状态：在网站编辑器重新导出会把任务置回 `running`，导出失败则变为 `failed`。之前的成片仍保留在 `result.outputs` 中，`result.outputs[0]` 始终是最近一次成功导出的成片。"
+        "description": "轮询单个任务。`status` 为 `finished` 时，`result.outputs[0]` 是最新的成片。\n\n`finished` 不是最终状态：在网站编辑器重新导出会把任务置回 `running`，导出失败则变为 `failed`。之前的成片仍保留在 `result.outputs` 中，`result.outputs[0]` 始终是最近一次成功导出的成片。\n\n转写任务（`taskType` 为 `transcription`）的 `result.outputs` 为空；`status` 为 `finished` 后，从 `result.srtEndpoint` 下载转写稿。"
       }
     },
     "/openapi/v1/app/tasks/delete": {
@@ -858,6 +863,120 @@
           }
         }
       }
+    },
+    "/openapi/v1/app/task/transcription/create-async": {
+      "post": {
+        "tags": [
+          "转写"
+        ],
+        "summary": "创建转写任务",
+        "description": "在**与 vmeg.ai 相同的链路**上创建转写任务。任务会出现在网站**我的任务**中，打开 `editorUrl` 可查看和编辑转写稿。Webhook 会收到首次结果（event 为 `openapi-app-media-translation`，`data.taskType` 为 `transcription`），也可以轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再从 `result.srtEndpoint` 下载转写稿。积分按网站规则扣除。\n\n`source` 接受 `materialId`（音频或视频素材）或 `youtubeUrl` 二选一；传 `sourceUrl`、`output`、`extraData` 返回 `400`。其他未知字段会被忽略。",
+        "operationId": "appTranscriptionCreateAsync",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/transcription/create-transcription-async",
+          "metadata": {
+            "sidebarTitle": "创建转写任务",
+            "title": "创建转写任务"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppTranscriptionCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "任务已受理。`editorUrl` 为该任务的网站转写编辑器地址。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTranscriptionAcceptedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi/v1/app/tasks/transcription/srt": {
+      "get": {
+        "tags": [
+          "转写"
+        ],
+        "summary": "下载转写稿",
+        "description": "以 SRT（默认）或 JSON 格式下载已完成转写任务的转写稿。内容为网站编辑器中的最新版本（包含你的修改），与网站导出的原文字幕一致。\n\nSRT 直接作为纯文本响应体返回（`Content-Type: application/x-subrip; charset=UTF-8`），不包在 JSON 外层结构里。`format=json` 时返回常规 JSON 结构，`data.segments` 与 SRT 条目一一对应，时间为整数毫秒。出错时统一返回 JSON 结构，HTTP 状态为 200，错误码在 body 的 `code` 中：`400` 参数不合法；`404` 该 `taskId` 不是你账号下的转写任务（翻译任务的 ID 也返回 `404`）；`409` 任务尚未完成或转写稿尚未就绪（等 `status` 变为 `finished` 后重试）。\n\n请不要设置 `Accept` 请求头，或设为 `Accept: */*`。如果 `Accept` 只包含非 JSON 类型（例如只有 `application/x-subrip`），出错时可能无法正常返回错误信息。",
+        "operationId": "appTranscriptionSrt",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/transcription/get-transcription-srt",
+          "metadata": {
+            "sidebarTitle": "下载转写稿",
+            "title": "下载转写稿"
+          }
+        },
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "query",
+            "required": true,
+            "description": "转写任务 ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "`srt`（默认）纯文本 SRT | `json` JSON 句段。不区分大小写，其他值返回 `400`。",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "srt",
+                "json"
+              ],
+              "default": "srt"
+            }
+          },
+          {
+            "name": "speakers",
+            "in": "query",
+            "required": false,
+            "description": "为 `true` 时，有说话人信息的 SRT 条目前加 `[Speaker N] `。默认 `false`；`true`/`false` 以外的值返回 `400`。JSON 始终包含 `speaker`。",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "默认返回 SRT 文本；`format=json` 时返回 JSON 结构。",
+            "content": {
+              "application/x-subrip": {
+                "schema": {
+                  "type": "string",
+                  "example": "1\n00:00:00,000 --> 00:00:05,960\nWelcome to VMEG.\n\n2\n00:00:06,120 --> 00:00:09,480\nLet's get started.\n"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTranscriptResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1114,7 +1233,7 @@
             "description": "任务 ID（与网站任务 ID 相同）"
           },
           "taskType": {
-            "$ref": "#/components/schemas/AppTaskType"
+            "$ref": "#/components/schemas/AppTaskKind"
           },
           "status": {
             "type": "string",
@@ -2087,6 +2206,15 @@
           }
         ]
       },
+      "AppTaskKind": {
+        "type": "string",
+        "enum": [
+          "vt",
+          "at",
+          "transcription"
+        ],
+        "description": "`vt` 视频翻译 | `at` 音频翻译 | `transcription` 转写"
+      },
       "AppTaskOutput": {
         "type": "object",
         "properties": {
@@ -2121,7 +2249,7 @@
             "description": "任务 ID（与网站任务 ID 相同）"
           },
           "taskType": {
-            "$ref": "#/components/schemas/AppTaskType"
+            "$ref": "#/components/schemas/AppTaskKind"
           },
           "status": {
             "type": "string",
@@ -2151,7 +2279,12 @@
                 "items": {
                   "$ref": "#/components/schemas/AppTaskOutput"
                 },
-                "description": "成片列表，按时间倒序"
+                "description": "成片列表，按时间倒序。转写任务为空，请用 `srtEndpoint` 下载转写稿。"
+              },
+              "srtEndpoint": {
+                "type": "string",
+                "description": "仅转写任务在 `status` 为 `finished` 时返回：该任务[下载转写稿](/zh/api-reference/app-synced/transcription/get-transcription-srt)的相对路径。请在 `https://api.vmeg.ai` 上用同一个 API Key 调用。",
+                "example": "/openapi/v1/app/tasks/transcription/srt?taskId=2047316590123456789"
               }
             }
           }
@@ -2252,6 +2385,202 @@
                     "type": "integer",
                     "format": "int64",
                     "example": 12
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AppTranscriptionSource": {
+        "type": "object",
+        "description": "`materialId` 与 `youtubeUrl` 二选一。转写不支持 `sourceUrl`，传入返回 `400`。",
+        "properties": {
+          "materialId": {
+            "type": "string",
+            "description": "音频或视频素材 ID，来自[应用同源版上传](/zh/api-reference/app-synced/assets/materials/gen-upload-url)或[素材列表](/zh/api-reference/app-synced/assets/materials/list-materials)。其他文件类型返回 `400`，不存在的 ID 返回 `404`。"
+          },
+          "youtubeUrl": {
+            "type": "string",
+            "description": "公开的 YouTube 视频链接。无法加载的链接返回 `400`。"
+          }
+        }
+      },
+      "AppTranscriptionOptions": {
+        "type": "object",
+        "description": "转写选项（均可省略）",
+        "properties": {
+          "asr": {
+            "type": "object",
+            "description": "语音识别设置",
+            "properties": {
+              "quality": {
+                "type": "string",
+                "enum": [
+                  "quick",
+                  "standard"
+                ],
+                "default": "standard",
+                "description": "`standard`（默认）：准确度更高。`quick`：出结果更快。与网站选项一致，其他值返回 `400`。"
+              }
+            }
+          },
+          "speakers": {
+            "type": "string",
+            "default": "auto",
+            "example": "auto",
+            "description": "说话人数量：`auto`（默认）自动识别，或正整数，如 `\"2\"`。其他值返回 `400`。"
+          }
+        }
+      },
+      "AppTranscriptionCreateRequest": {
+        "type": "object",
+        "required": [
+          "source",
+          "language"
+        ],
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/AppTranscriptionSource"
+          },
+          "language": {
+            "type": "object",
+            "description": "语言设置",
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "example": "en-US",
+                "description": "媒体的说话语言（必填），代码与网站一致。见[支持的语言](/zh/guides/supported-languages)。"
+              }
+            }
+          },
+          "options": {
+            "$ref": "#/components/schemas/AppTranscriptionOptions"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "**我的任务**中显示的任务名（最多 255 个字符）。不传时取文件名或 YouTube 视频标题。"
+          }
+        },
+        "example": {
+          "source": {
+            "materialId": "YOUR_MATERIAL_ID"
+          },
+          "language": {
+            "source": "en-US"
+          },
+          "options": {
+            "asr": {
+              "quality": "standard"
+            },
+            "speakers": "auto"
+          },
+          "title": "Weekly meeting"
+        }
+      },
+      "AppTranscriptionAcceptedResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "description": "任务 ID（与网站任务 ID 相同）"
+                  },
+                  "taskType": {
+                    "type": "string",
+                    "enum": [
+                      "transcription"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "running",
+                      "finished",
+                      "failed"
+                    ],
+                    "example": "running"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "description": "创建时间"
+                  },
+                  "editorUrl": {
+                    "type": "string",
+                    "description": "该任务的网站编辑器地址（登录同一 VMEG 账号）",
+                    "example": "https://www.vmeg.ai/transcription/editor/2047316590123456789/"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AppTranscriptSegment": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "序号，从 1 开始，与 SRT 序号一致",
+            "example": 1
+          },
+          "start": {
+            "type": "integer",
+            "format": "int64",
+            "description": "开始时间（毫秒）",
+            "example": 0
+          },
+          "end": {
+            "type": "integer",
+            "format": "int64",
+            "description": "结束时间（毫秒）",
+            "example": 5960
+          },
+          "text": {
+            "type": "string",
+            "description": "句段文本",
+            "example": "Welcome to VMEG."
+          },
+          "speaker": {
+            "type": "string",
+            "description": "说话人标签，如 `1`；没有说话人信息时不返回",
+            "example": "1"
+          }
+        }
+      },
+      "AppTranscriptResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "description": "转写稿（format=json）",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "description": "任务 ID（与网站任务 ID 相同）"
+                  },
+                  "segments": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AppTranscriptSegment"
+                    },
+                    "description": "转写句段，按开始时间排序，已去掉空句"
                   }
                 }
               }

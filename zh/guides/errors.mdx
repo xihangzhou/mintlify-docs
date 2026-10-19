@@ -17,7 +17,7 @@ Open API 使用 JSON 字段 **`code`** 表示业务结果。HTTP 状态码用于
 | 401 | Unauthorized | API Key 缺失或无效 |
 | 402 | Payment Required | 积分或配额不足 |
 | 404 | Not Found | 资源不存在 |
-| 409 | Conflict | 幂等键已被使用 |
+| 409 | Conflict | 幂等键已被使用，或资源尚未就绪（例如应用同源版转写任务完成前下载转写稿） |
 | 413 | Payload Too Large | 上传或请求体超限 |
 | 422 | Unprocessable Entity | 格式正确但无法处理 |
 | 500 | Internal Server Error | 服务端错误 |

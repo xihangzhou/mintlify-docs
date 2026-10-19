@@ -44,11 +44,12 @@ const HREFS = {
 const T = {
   en: {
     title: "VMEG Open API (App-Synced)",
-    info: "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Get results from your webhook (first result only, event `openapi-app-media-translation`) or by polling `GET /openapi/v1/app/tasks/detail`. See [Standalone vs App-Synced](/guides/choose-api).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
+    info: "Same protocol as the Standalone API, but every task, material, and cloned voice lives in your VMEG website account: jobs show up in **My tasks**, open in the editor, and can be re-exported. Supports media translation, transcription, and voice clone. Get results from your webhook (first result only, event `openapi-app-media-translation`) or by polling `GET /openapi/v1/app/tasks/detail`. See [Standalone vs App-Synced](/guides/choose-api).\n\nLinked guides are written for the Standalone API. The steps are the same; use the `/openapi/v1/app` prefix instead of `/openapi/v1`.",
     tags: {
       "Media translation": "Translate and dub uploaded video/audio or a YouTube link on the same pipeline as vmeg.ai. The first pass renders the dubbed file; the job also appears in **My tasks** for editing and re-export. Get results from your webhook (first result only) or poll [Query job status](/api-reference/app-synced/tasks/get-task-detail).",
       "Voice clone": "Clone a voice from a short recording. The voice is saved to **My voices** on the website and returned as `cv_*` for translate-and-dub jobs.",
-      "Task management": "List, inspect, or delete the video/audio translation jobs in your VMEG account, including jobs created on the website.",
+      "Task management": "List, inspect, or delete the video/audio translation and transcription jobs in your VMEG account, including jobs created on the website.",
+      "Transcription": "Transcribe uploaded video/audio or a YouTube link on the same pipeline as vmeg.ai. The job appears in **My tasks** and opens in the transcription editor. When it finishes, download the latest transcript (including your edits on the website) as SRT or JSON.",
       "Assets - Materials": "Upload and manage the files in your website material library (**My assets**). Finish the upload (single-file or multipart), then pass `materialId` to create-async.",
       "Assets - Voices": "List preset system voices (`sv_*`) and manage your cloned voices (`cv_*`, same as **My voices** on the website).",
     },
@@ -76,15 +77,44 @@ const T = {
     refAudio: "HTTPS reference audio URL (use `refAudioMaterialId` for uploaded files). Provide exactly one of the two.",
     refAudioMaterialId: "Material ID of an uploaded audio/video file",
     listSummary: "List jobs",
-    listDesc: "Paginated video/audio translation jobs in your VMEG account, including jobs created on the website. `status` is `running`, `finished`, or `failed`.",
-    detailDesc: "Poll one job. When `status` is `finished`, `result.outputs[0]` is the latest rendered file.\n\n`finished` is not permanent: re-exporting in the website editor sets the job back to `running`, and a failed re-export ends in `failed`. Earlier renders stay in `result.outputs`; `result.outputs[0]` is always the latest successful one.",
+    listDesc: "Paginated video/audio translation and transcription jobs in your VMEG account, including jobs created on the website. Filter with `taskType` (`vt`, `at`, or `transcription`). `status` is `running`, `finished`, or `failed`.",
+    taskKind: "`vt` video translation | `at` audio translation | `transcription` transcription",
+    srtEndpoint: "Transcription jobs only, present once `status` is `finished`: relative path of [Download transcript](/api-reference/app-synced/transcription/get-transcription-srt) for this job. Call it on `https://api.vmeg.ai` with the same API key.",
+    trCreateSummary: "Create transcription job",
+    trCreateDesc: "Create a transcription job on the **same pipeline as vmeg.ai**. The job appears in **My tasks** on the website; open `editorUrl` to review and edit the transcript. Your webhook receives the first result (event `openapi-app-media-translation`, `data.taskType` is `transcription`), or poll [Query job status](/api-reference/app-synced/tasks/get-task-detail) until `status` is `finished`, then download the transcript from `result.srtEndpoint`. Credits follow website pricing.\n\n`source` takes exactly one of `materialId` (an audio or video material) or `youtubeUrl`; `sourceUrl`, `output`, and `extraData` return `400`. Other unknown fields are ignored.",
+    trCreateResp: "Task accepted. `editorUrl` opens the job in the website transcription editor.",
+    trSource: "Exactly one of `materialId` or `youtubeUrl`. `sourceUrl` is not supported for transcription and returns `400`.",
+    trMaterialId: "Audio or video material ID from [App-Synced upload](/api-reference/app-synced/assets/materials/gen-upload-url) or [List materials](/api-reference/app-synced/assets/materials/list-materials). Other file types return `400`; an unknown ID returns `404`.",
+    trYoutubeUrl: "Public YouTube video URL. A link that cannot be loaded returns `400`.",
+    trLanguage: "Language settings",
+    trLangSource: "Spoken language of the media (required), same codes as the website. See [Supported languages](/guides/supported-languages).",
+    trOptions: "Transcription options (all optional)",
+    trAsr: "Speech recognition settings",
+    trQuality: "`standard` (default): higher accuracy. `quick`: faster turnaround. Same choices as the website. Other values return `400`.",
+    trSpeakers: "Number of speakers: `auto` (default) detects automatically, or a positive integer such as `\"2\"`. Other values return `400`.",
+    trTitle: "Job name shown in **My tasks** (max 255 characters). Defaults to the file name or the YouTube video title.",
+    createdAt: "Creation time",
+    srtSummary: "Download transcript",
+    srtDesc: "Download the transcript of a finished transcription job as SRT (default) or JSON. The content is the latest version in the website editor, including your edits; it is the same transcript the website exports as original-language subtitles.\n\nThe SRT is returned as a plain-text body (`Content-Type: application/x-subrip; charset=UTF-8`), not wrapped in the JSON envelope. With `format=json`, the usual envelope is returned and `data.segments` holds the same entries as the SRT, with times in integer milliseconds. Errors always use the JSON envelope with HTTP 200 and `code` in the body: `400` invalid parameters; `404` the `taskId` is not a transcription job in your account (translation job IDs also return `404`); `409` the job has not finished or its transcript is not ready yet (retry after `status` is `finished`).\n\nOmit the `Accept` header or send `Accept: */*`. If `Accept` lists only non-JSON types (for example only `application/x-subrip`), error responses may not be returned correctly.",
+    srtTaskId: "Transcription task ID",
+    srtFormat: "`srt` (default) plain-text SRT | `json` JSON segments. Case-insensitive; other values return `400`.",
+    srtSpeakers: "`true` prefixes each SRT line with `[Speaker N] ` when speaker information is available. Default `false`; values other than `true`/`false` return `400`. JSON always includes `speaker`.",
+    srtOk: "SRT text by default; JSON envelope with `format=json`.",
+    trData: "Transcript (format=json)",
+    segs: "Transcript segments sorted by start time; empty lines are dropped",
+    segIndex: "Sequence number starting at 1, same as the SRT entry number",
+    segStart: "Start time in milliseconds",
+    segEnd: "End time in milliseconds",
+    segText: "Segment text",
+    segSpeaker: "Speaker label such as `1`; omitted when there is no speaker information",
+    detailDesc: "Poll one job. When `status` is `finished`, `result.outputs[0]` is the latest rendered file.\n\n`finished` is not permanent: re-exporting in the website editor sets the job back to `running`, and a failed re-export ends in `failed`. Earlier renders stay in `result.outputs`; `result.outputs[0]` is always the latest successful one.\n\nFor transcription jobs (`taskType` is `transcription`), `result.outputs` is empty; once `status` is `finished`, download the transcript from `result.srtEndpoint`.",
     deleteSummary: "Delete a job",
     deleteDesc: "Delete a job from your VMEG account. It also disappears from **My tasks** on the website (this applies to jobs created on the website too) and cannot be undone. Requires [`X-Idempotency-Key`](/guides/idempotency).",
     detailData: "App-Synced job detail",
     jobTitle: "Job name shown in **My tasks**",
     status: "`running` | `finished` | `failed`",
     userMessage: "Failure reason when `status` is `failed` (same text as the website)",
-    outputs: "Rendered outputs, newest first",
+    outputs: "Rendered outputs, newest first. Empty for transcription jobs; use `srtEndpoint` instead.",
     genUrlDesc: "Single-file upload **step 1**: get a presigned PUT URL and `materialId`. PUT the file to `uploadUrl`, then call [Complete single-file upload](/api-reference/app-synced/assets/materials/complete-upload). If `material` is returned, the same file is already in your library and no upload is needed. Required unless you create the job from `source.youtubeUrl`.",
     completeDesc: "Single-file upload **step 3**: register the file after the PUT succeeds and get the material back. Requires [`X-Idempotency-Key`](/guides/idempotency).",
     mpInitDesc: "Multipart upload **step 1**: start an upload and get `materialId` and `uploadId`. Requires [`X-Idempotency-Key`](/guides/idempotency).",
@@ -113,11 +143,12 @@ const T = {
   },
   zh: {
     title: "VMEG 开放 API（应用同源版）",
-    info: "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。结果通过 Webhook（只推首次结果，event 为 `openapi-app-media-translation`）或轮询 `GET /openapi/v1/app/tasks/detail` 获取。见[独立版与应用同源版](/zh/guides/choose-api)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
+    info: "与独立版协议一致，但任务、素材、克隆音色都在你的 VMEG 网站账号里：任务出现在**我的任务**，可在编辑器继续编辑并重新导出。支持媒体翻译、转写和声音克隆。结果通过 Webhook（只推首次结果，event 为 `openapi-app-media-translation`）或轮询 `GET /openapi/v1/app/tasks/detail` 获取。见[独立版与应用同源版](/zh/guides/choose-api)。\n\n文中链接的指南按独立版编写，步骤相同，把路径前缀 `/openapi/v1` 换成 `/openapi/v1/app` 即可。",
     tags: {
       "媒体翻译": "在与 vmeg.ai 相同的链路上翻译配音已上传的视频/音频或 YouTube 链接。首轮即产出配音成片，任务同时出现在**我的任务**，可继续编辑并重新导出。结果通过 Webhook（只推首次结果）或轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)获取。",
       "声音克隆": "用一段短录音克隆音色。音色保存到网站**我的音色**，返回 `cv_*`，可用于翻译配音任务。",
-      "任务管理": "列出、查看或删除你 VMEG 账号下的视频/音频翻译任务，包括在网站创建的任务。",
+      "任务管理": "列出、查看或删除你 VMEG 账号下的视频/音频翻译和转写任务，包括在网站创建的任务。",
+      "转写": "在与 vmeg.ai 相同的链路上转写已上传的视频/音频或 YouTube 链接。任务出现在**我的任务**，可在转写编辑器中打开。完成后可下载最新的转写稿（包含你在网站上的修改），格式为 SRT 或 JSON。",
       "资产 - 素材": "上传并管理网站素材库（**我的资产**）里的文件。完成上传（单文件或分片）后，把 `materialId` 传给 create-async。",
       "资产 - 音色": "列出系统预设音色（`sv_*`），管理你的克隆音色（`cv_*`，与网站**我的音色**相同）。",
     },
@@ -145,15 +176,44 @@ const T = {
     refAudio: "HTTPS 参考音频地址（已上传的文件请用 `refAudioMaterialId`），两者二选一。",
     refAudioMaterialId: "已上传音频/视频的素材 ID",
     listSummary: "任务列表",
-    listDesc: "分页列出你 VMEG 账号下的视频/音频翻译任务，包括在网站创建的任务。`status` 为 `running`、`finished` 或 `failed`。",
-    detailDesc: "轮询单个任务。`status` 为 `finished` 时，`result.outputs[0]` 是最新的成片。\n\n`finished` 不是最终状态：在网站编辑器重新导出会把任务置回 `running`，导出失败则变为 `failed`。之前的成片仍保留在 `result.outputs` 中，`result.outputs[0]` 始终是最近一次成功导出的成片。",
+    listDesc: "分页列出你 VMEG 账号下的视频/音频翻译和转写任务，包括在网站创建的任务。可用 `taskType` 筛选（`vt`、`at` 或 `transcription`）。`status` 为 `running`、`finished` 或 `failed`。",
+    taskKind: "`vt` 视频翻译 | `at` 音频翻译 | `transcription` 转写",
+    srtEndpoint: "仅转写任务在 `status` 为 `finished` 时返回：该任务[下载转写稿](/zh/api-reference/app-synced/transcription/get-transcription-srt)的相对路径。请在 `https://api.vmeg.ai` 上用同一个 API Key 调用。",
+    trCreateSummary: "创建转写任务",
+    trCreateDesc: "在**与 vmeg.ai 相同的链路**上创建转写任务。任务会出现在网站**我的任务**中，打开 `editorUrl` 可查看和编辑转写稿。Webhook 会收到首次结果（event 为 `openapi-app-media-translation`，`data.taskType` 为 `transcription`），也可以轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)直到 `status` 为 `finished`，再从 `result.srtEndpoint` 下载转写稿。积分按网站规则扣除。\n\n`source` 接受 `materialId`（音频或视频素材）或 `youtubeUrl` 二选一；传 `sourceUrl`、`output`、`extraData` 返回 `400`。其他未知字段会被忽略。",
+    trCreateResp: "任务已受理。`editorUrl` 为该任务的网站转写编辑器地址。",
+    trSource: "`materialId` 与 `youtubeUrl` 二选一。转写不支持 `sourceUrl`，传入返回 `400`。",
+    trMaterialId: "音频或视频素材 ID，来自[应用同源版上传](/zh/api-reference/app-synced/assets/materials/gen-upload-url)或[素材列表](/zh/api-reference/app-synced/assets/materials/list-materials)。其他文件类型返回 `400`，不存在的 ID 返回 `404`。",
+    trYoutubeUrl: "公开的 YouTube 视频链接。无法加载的链接返回 `400`。",
+    trLanguage: "语言设置",
+    trLangSource: "媒体的说话语言（必填），代码与网站一致。见[支持的语言](/zh/guides/supported-languages)。",
+    trOptions: "转写选项（均可省略）",
+    trAsr: "语音识别设置",
+    trQuality: "`standard`（默认）：准确度更高。`quick`：出结果更快。与网站选项一致，其他值返回 `400`。",
+    trSpeakers: "说话人数量：`auto`（默认）自动识别，或正整数，如 `\"2\"`。其他值返回 `400`。",
+    trTitle: "**我的任务**中显示的任务名（最多 255 个字符）。不传时取文件名或 YouTube 视频标题。",
+    createdAt: "创建时间",
+    srtSummary: "下载转写稿",
+    srtDesc: "以 SRT（默认）或 JSON 格式下载已完成转写任务的转写稿。内容为网站编辑器中的最新版本（包含你的修改），与网站导出的原文字幕一致。\n\nSRT 直接作为纯文本响应体返回（`Content-Type: application/x-subrip; charset=UTF-8`），不包在 JSON 外层结构里。`format=json` 时返回常规 JSON 结构，`data.segments` 与 SRT 条目一一对应，时间为整数毫秒。出错时统一返回 JSON 结构，HTTP 状态为 200，错误码在 body 的 `code` 中：`400` 参数不合法；`404` 该 `taskId` 不是你账号下的转写任务（翻译任务的 ID 也返回 `404`）；`409` 任务尚未完成或转写稿尚未就绪（等 `status` 变为 `finished` 后重试）。\n\n请不要设置 `Accept` 请求头，或设为 `Accept: */*`。如果 `Accept` 只包含非 JSON 类型（例如只有 `application/x-subrip`），出错时可能无法正常返回错误信息。",
+    srtTaskId: "转写任务 ID",
+    srtFormat: "`srt`（默认）纯文本 SRT | `json` JSON 句段。不区分大小写，其他值返回 `400`。",
+    srtSpeakers: "为 `true` 时，有说话人信息的 SRT 条目前加 `[Speaker N] `。默认 `false`；`true`/`false` 以外的值返回 `400`。JSON 始终包含 `speaker`。",
+    srtOk: "默认返回 SRT 文本；`format=json` 时返回 JSON 结构。",
+    trData: "转写稿（format=json）",
+    segs: "转写句段，按开始时间排序，已去掉空句",
+    segIndex: "序号，从 1 开始，与 SRT 序号一致",
+    segStart: "开始时间（毫秒）",
+    segEnd: "结束时间（毫秒）",
+    segText: "句段文本",
+    segSpeaker: "说话人标签，如 `1`；没有说话人信息时不返回",
+    detailDesc: "轮询单个任务。`status` 为 `finished` 时，`result.outputs[0]` 是最新的成片。\n\n`finished` 不是最终状态：在网站编辑器重新导出会把任务置回 `running`，导出失败则变为 `failed`。之前的成片仍保留在 `result.outputs` 中，`result.outputs[0]` 始终是最近一次成功导出的成片。\n\n转写任务（`taskType` 为 `transcription`）的 `result.outputs` 为空；`status` 为 `finished` 后，从 `result.srtEndpoint` 下载转写稿。",
     deleteSummary: "删除任务",
     deleteDesc: "从你的 VMEG 账号删除任务，网站**我的任务**中也会消失（在网站创建的任务同样适用），删除后无法恢复。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。",
     detailData: "应用同源版任务详情",
     jobTitle: "**我的任务**中显示的任务名",
     status: "`running` | `finished` | `failed`",
     userMessage: "`status` 为 `failed` 时的失败原因（与网站展示一致）",
-    outputs: "成片列表，按时间倒序",
+    outputs: "成片列表，按时间倒序。转写任务为空，请用 `srtEndpoint` 下载转写稿。",
     genUrlDesc: "单文件上传**第 1 步**：获取预签名 PUT URL 与 `materialId`。把文件 PUT 到 `uploadUrl`，再调用[完成单文件上传](/zh/api-reference/app-synced/assets/materials/complete-upload)。如果返回了 `material`，说明素材库里已有同一文件，无需上传。除非用 `source.youtubeUrl` 创建任务，否则必须先上传。",
     completeDesc: "单文件上传**第 3 步**：PUT 成功后登记文件，返回素材信息。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。",
     mpInitDesc: "分片上传**第 1 步**：发起上传，获取 `materialId` 与 `uploadId`。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。",
@@ -284,8 +344,10 @@ function build(locale) {
     allOf: [ref("OpenApiResponseBase"), { type: "object", properties: { data: ref("OpenApiCloneVoiceDto") } }],
   };
 
+  // list/detail/webhook also return transcription jobs; create media translation still takes vt|at only.
+  s.AppTaskKind = { type: "string", enum: ["vt", "at", "transcription"], description: t.taskKind };
   s.OpenApiTaskSummary.properties.taskId.description = t.taskId;
-  s.OpenApiTaskSummary.properties.taskType = ref("AppTaskType");
+  s.OpenApiTaskSummary.properties.taskType = ref("AppTaskKind");
   s.OpenApiTaskSummary.properties.status.description = t.status;
   s.AppTaskOutput = {
     type: "object",
@@ -302,7 +364,7 @@ function build(locale) {
     description: t.detailData,
     properties: {
       taskId: { type: "string", description: t.taskId },
-      taskType: ref("AppTaskType"),
+      taskType: ref("AppTaskKind"),
       status: { type: "string", enum: ["running", "finished", "failed"] },
       editorUrl: { type: "string", description: t.editorUrl },
       result: {
@@ -311,6 +373,7 @@ function build(locale) {
           title: { type: "string", description: t.jobTitle },
           userMessage: { type: "string", description: t.userMessage },
           outputs: { type: "array", items: ref("AppTaskOutput"), description: t.outputs },
+          srtEndpoint: { type: "string", description: t.srtEndpoint, example: "/openapi/v1/app/tasks/transcription/srt?taskId=2047316590123456789" },
         },
       },
     },
@@ -345,7 +408,7 @@ function build(locale) {
   const list = at("/tasks/list", "get");
   list.summary = t.listSummary;
   list.description = t.listDesc;
-  list.parameters.find((x) => x.name === "taskType").schema = { type: "string", enum: ["vt", "at"] };
+  list.parameters.find((x) => x.name === "taskType").schema = { type: "string", enum: ["vt", "at", "transcription"] };
   list.parameters.find((x) => x.name === "status").schema = { type: "string", enum: ["running", "finished", "failed"] };
 
   const detail = at("/tasks/detail", "get");
@@ -402,6 +465,137 @@ function build(locale) {
       },
     },
   };
+
+  // App-Synced only: transcription (no Standalone counterpart).
+  s.AppTranscriptionSource = {
+    type: "object",
+    description: t.trSource,
+    properties: {
+      materialId: { type: "string", description: t.trMaterialId },
+      youtubeUrl: { type: "string", description: t.trYoutubeUrl },
+    },
+  };
+  s.AppTranscriptionOptions = {
+    type: "object",
+    description: t.trOptions,
+    properties: {
+      asr: {
+        type: "object",
+        description: t.trAsr,
+        properties: { quality: { type: "string", enum: ["quick", "standard"], default: "standard", description: t.trQuality } },
+      },
+      speakers: { type: "string", default: "auto", example: "auto", description: t.trSpeakers },
+    },
+  };
+  s.AppTranscriptionCreateRequest = {
+    type: "object",
+    required: ["source", "language"],
+    properties: {
+      source: ref("AppTranscriptionSource"),
+      language: {
+        type: "object",
+        description: t.trLanguage,
+        required: ["source"],
+        properties: { source: { type: "string", example: "en-US", description: t.trLangSource } },
+      },
+      options: ref("AppTranscriptionOptions"),
+      title: { type: "string", maxLength: 255, description: t.trTitle },
+    },
+    example: {
+      source: { materialId: "YOUR_MATERIAL_ID" },
+      language: { source: "en-US" },
+      options: { asr: { quality: "standard" }, speakers: "auto" },
+      title: "Weekly meeting",
+    },
+  };
+  s.AppTranscriptionAcceptedResponse = {
+    allOf: [ref("OpenApiResponseBase"), {
+      type: "object",
+      properties: {
+        data: {
+          type: "object",
+          properties: {
+            taskId: { type: "string", description: t.taskId },
+            taskType: { type: "string", enum: ["transcription"] },
+            status: { type: "string", enum: ["running", "finished", "failed"], example: "running" },
+            createdAt: { type: "string", description: t.createdAt },
+            editorUrl: { type: "string", description: t.editorUrl, example: "https://www.vmeg.ai/transcription/editor/2047316590123456789/" },
+          },
+        },
+      },
+    }],
+  };
+  s.AppTranscriptSegment = {
+    type: "object",
+    properties: {
+      index: { type: "integer", description: t.segIndex, example: 1 },
+      start: { type: "integer", format: "int64", description: t.segStart, example: 0 },
+      end: { type: "integer", format: "int64", description: t.segEnd, example: 5960 },
+      text: { type: "string", description: t.segText, example: "Welcome to VMEG." },
+      speaker: { type: "string", description: t.segSpeaker, example: "1" },
+    },
+  };
+  s.AppTranscriptResponse = {
+    allOf: [ref("OpenApiResponseBase"), {
+      type: "object",
+      properties: {
+        data: {
+          type: "object",
+          description: t.trData,
+          properties: {
+            taskId: { type: "string", description: t.taskId },
+            segments: { type: "array", items: ref("AppTranscriptSegment"), description: t.segs },
+          },
+        },
+      },
+    }],
+  };
+  const trTag = locale === "zh" ? "转写" : "Transcription";
+  spec.paths[APP + "/task/transcription/create-async"] = {
+    post: {
+      tags: [trTag],
+      summary: t.trCreateSummary,
+      description: t.trCreateDesc,
+      operationId: "appTranscriptionCreateAsync",
+      "x-mint": {
+        href: `${hrefPrefix}app-synced/transcription/create-transcription-async`,
+        metadata: { sidebarTitle: t.trCreateSummary, title: t.trCreateSummary },
+      },
+      parameters: structuredClone(create.parameters),
+      requestBody: { required: true, content: { "application/json": { schema: ref("AppTranscriptionCreateRequest") } } },
+      responses: {
+        200: { description: t.trCreateResp, content: { "application/json": { schema: ref("AppTranscriptionAcceptedResponse") } } },
+      },
+    },
+  };
+  spec.paths[APP + "/tasks/transcription/srt"] = {
+    get: {
+      tags: [trTag],
+      summary: t.srtSummary,
+      description: t.srtDesc,
+      operationId: "appTranscriptionSrt",
+      "x-mint": {
+        href: `${hrefPrefix}app-synced/transcription/get-transcription-srt`,
+        metadata: { sidebarTitle: t.srtSummary, title: t.srtSummary },
+      },
+      parameters: [
+        { name: "taskId", in: "query", required: true, description: t.srtTaskId, schema: { type: "string" } },
+        { name: "format", in: "query", required: false, description: t.srtFormat, schema: { type: "string", enum: ["srt", "json"], default: "srt" } },
+        { name: "speakers", in: "query", required: false, description: t.srtSpeakers, schema: { type: "boolean", default: false } },
+      ],
+      responses: {
+        200: {
+          description: t.srtOk,
+          content: {
+            "application/x-subrip": {
+              schema: { type: "string", example: "1\n00:00:00,000 --> 00:00:05,960\nWelcome to VMEG.\n\n2\n00:00:06,120 --> 00:00:09,480\nLet's get started.\n" },
+            },
+            "application/json": { schema: ref("AppTranscriptResponse") },
+          },
+        },
+      },
+    },
+  };
   const complete = at("/assets/material/upload/complete");
   complete.description = t.completeDesc;
   body(complete, "AppMaterialUploadCompleteRequest");
@@ -419,6 +613,9 @@ function build(locale) {
   at("/assets/voice/clone/list").description = t.cloneListDesc;
   at("/assets/voice/clone/delete").description = t.cloneDeleteDesc;
 
+  // Transcription has no Standalone tag; list it right after media translation.
+  spec.tags = [...(spec.tags ?? [])];
+  spec.tags.splice(spec.tags.findIndex((tag) => tag.name === create.tags[0]) + 1, 0, { name: locale === "zh" ? "转写" : "Transcription" });
   const usedTags = new Set(Object.values(spec.paths).flatMap((item) => Object.values(item).flatMap((op) => op.tags ?? [])));
   spec.tags = (spec.tags ?? []).filter((tag) => usedTags.has(tag.name))
     .map((tag) => ({ ...tag, description: t.tags[tag.name] ?? tag.description }));
