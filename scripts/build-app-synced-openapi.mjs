@@ -87,7 +87,7 @@ const T = {
     trMaterialId: "Audio or video material ID from [App-Synced upload](/api-reference/app-synced/assets/materials/gen-upload-url) or [List materials](/api-reference/app-synced/assets/materials/list-materials). Other file types return `400`; an unknown ID returns `404`.",
     trYoutubeUrl: "Public YouTube video URL. A link that cannot be loaded returns `400`.",
     trLanguage: "Language settings",
-    trLangSource: "Spoken language of the media (required), same codes as the website. See [Supported languages](/guides/supported-languages).",
+    trLangSource: "Spoken language of the media (required), same codes as the website. See [Supported languages](/guides/supported-languages).\n\n- One code, e.g. `\"en-US\"`: single-language transcription.\n- `\"auto\"` (website default): detects the spoken language automatically. It cannot be combined with other codes.\n- Several codes, e.g. `[\"hi-IN\", \"ta-IN\", \"en-US\"]` or `\"hi-IN,ta-IN,en-US\"`: **multilingual transcription** for recordings that switch between languages (the website's multi-language mode). Each segment keeps the language it was spoken in. Up to 10 codes; requires `options.asr.quality` `standard` (`quick` returns `400`), the same as the website.\n\nDuplicates are removed; invalid codes return `400`.",
     trOptions: "Transcription options (all optional)",
     trAsr: "Speech recognition settings",
     trQuality: "`standard` (default): higher accuracy. `quick`: faster turnaround. Same choices as the website. Other values return `400`.",
@@ -98,6 +98,13 @@ const T = {
     srtDesc: "Download the transcript of a finished transcription job as SRT (default) or JSON. The content is the latest version in the website editor, including your edits; it is the same transcript the website exports as original-language subtitles.\n\nThe SRT is returned as a plain-text body (`Content-Type: application/x-subrip; charset=UTF-8`), not wrapped in the JSON envelope. With `format=json`, the usual envelope is returned and `data.segments` holds the same entries as the SRT, with times in integer milliseconds. Errors always use the JSON envelope with HTTP 200 and `code` in the body: `400` invalid parameters; `404` the `taskId` is not a transcription job in your account (translation job IDs also return `404`); `409` the job has not finished or its transcript is not ready yet (retry after `status` is `finished`).\n\nOmit the `Accept` header or send `Accept: */*`. If `Accept` lists only non-JSON types (for example only `application/x-subrip`), error responses may not be returned correctly.",
     srtTaskId: "Transcription task ID",
     srtFormat: "`srt` (default) plain-text SRT | `json` JSON segments. Case-insensitive; other values return `400`.",
+    srtContent: "`source` (default) the original transcript | `translation` the translated transcript from [Translate transcript](/api-reference/app-synced/transcription/translate-transcription). Translation lines keep the same start/end times and speakers as the original. Case-insensitive; other values return `400`. Returns `409` if no finished translation exists yet.",
+    trTranslateSummary: "Translate transcript",
+    trTranslateDesc: "Translate the whole transcript of a finished transcription job into `targetLanguage`, using the same translation as the **Translate** button in the website transcription editor. Use it for mixed-language recordings too: create the job with several `language.source` codes, then translate the full conversation into English.\n\nTranslation runs asynchronously. Poll [Query job status](/api-reference/app-synced/tasks/get-task-detail): `result.translation.status` goes from `running` to `finished` (or `failed`). Then download it with [Download transcript](/api-reference/app-synced/transcription/get-transcription-srt) and `content=translation`. The original transcript is unchanged and still available with `content=source`.\n\n- **One target language per job**, as on the website. Requesting a different language for a job that already has a translation returns `409`. Requesting the same language again re-translates the whole transcript and replaces the previous translation, including edits made on the website.\n- Requires the same credit balance check as the website; an insufficient balance returns `402`.\n- Requires [`X-Idempotency-Key`](/guides/idempotency).\n\nErrors use the JSON envelope with HTTP 200 and `code` in the body: `400` invalid parameters; `402` insufficient credits; `404` not a transcription job in your account; `409` the job is not finished, a translation is already running, the job already has a different target language, or the transcript is empty.",
+    trTranslateTaskId: "ID of a finished transcription job",
+    trTranslateTarget: "Target language code, e.g. `en-US`. One language only; `auto` and comma-separated lists return `400`. See [Supported languages](/guides/supported-languages).",
+    trTranslateResp: "Translation accepted. `translation.status` is `running`.",
+    translation: "Transcription jobs only, present once `status` is `finished`. `status`: `none` never translated | `running` in progress | `finished` ready, download with `content=translation` | `failed` the last translation request did not complete; request it again. `targetLanguage` is omitted when `status` is `none`.",
     srtSpeakers: "`true` prefixes each SRT line with `[Speaker N] ` when speaker information is available. Default `false`; values other than `true`/`false` return `400`. JSON always includes `speaker`.",
     srtOk: "SRT text by default; JSON envelope with `format=json`.",
     trData: "Transcript (format=json)",
@@ -186,7 +193,7 @@ const T = {
     trMaterialId: "音频或视频素材 ID，来自[应用同源版上传](/zh/api-reference/app-synced/assets/materials/gen-upload-url)或[素材列表](/zh/api-reference/app-synced/assets/materials/list-materials)。其他文件类型返回 `400`，不存在的 ID 返回 `404`。",
     trYoutubeUrl: "公开的 YouTube 视频链接。无法加载的链接返回 `400`。",
     trLanguage: "语言设置",
-    trLangSource: "媒体的说话语言（必填），代码与网站一致。见[支持的语言](/zh/guides/supported-languages)。",
+    trLangSource: "媒体的说话语言（必填），代码与网站一致。见[支持的语言](/zh/guides/supported-languages)。\n\n- 一个语言代码，如 `\"en-US\"`：单语言转写。\n- `\"auto\"`（网站默认）：自动识别说话语言，不能和其他代码一起传。\n- 多个语言代码，如 `[\"hi-IN\", \"ta-IN\", \"en-US\"]` 或 `\"hi-IN,ta-IN,en-US\"`：**多语言转写**，适合一段录音里切换多种语言（对应网站的多语言模式），每句保留原本说的语言。最多 10 个；与网站一致，需要 `options.asr.quality` 为 `standard`（`quick` 返回 `400`）。\n\n重复的代码会被去掉；不合法的代码返回 `400`。",
     trOptions: "转写选项（均可省略）",
     trAsr: "语音识别设置",
     trQuality: "`standard`（默认）：准确度更高。`quick`：出结果更快。与网站选项一致，其他值返回 `400`。",
@@ -197,6 +204,13 @@ const T = {
     srtDesc: "以 SRT（默认）或 JSON 格式下载已完成转写任务的转写稿。内容为网站编辑器中的最新版本（包含你的修改），与网站导出的原文字幕一致。\n\nSRT 直接作为纯文本响应体返回（`Content-Type: application/x-subrip; charset=UTF-8`），不包在 JSON 外层结构里。`format=json` 时返回常规 JSON 结构，`data.segments` 与 SRT 条目一一对应，时间为整数毫秒。出错时统一返回 JSON 结构，HTTP 状态为 200，错误码在 body 的 `code` 中：`400` 参数不合法；`404` 该 `taskId` 不是你账号下的转写任务（翻译任务的 ID 也返回 `404`）；`409` 任务尚未完成或转写稿尚未就绪（等 `status` 变为 `finished` 后重试）。\n\n请不要设置 `Accept` 请求头，或设为 `Accept: */*`。如果 `Accept` 只包含非 JSON 类型（例如只有 `application/x-subrip`），出错时可能无法正常返回错误信息。",
     srtTaskId: "转写任务 ID",
     srtFormat: "`srt`（默认）纯文本 SRT | `json` JSON 句段。不区分大小写，其他值返回 `400`。",
+    srtContent: "`source`（默认）原文转写稿 | `translation` 通过[翻译转写稿](/zh/api-reference/app-synced/transcription/translate-transcription)得到的译文。译文每句的起止时间和说话人与原文相同。不区分大小写，其他值返回 `400`；还没有完成的译文时返回 `409`。",
+    trTranslateSummary: "翻译转写稿",
+    trTranslateDesc: "把已完成转写任务的整篇转写稿翻译成 `targetLanguage`，与网站转写编辑器里的**翻译**按钮是同一套翻译。混合语言录音也适用：创建任务时传多个 `language.source`，再把整段对话翻译成英文。\n\n翻译异步进行。轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)：`result.translation.status` 从 `running` 变为 `finished`（或 `failed`）后，用[下载转写稿](/zh/api-reference/app-synced/transcription/get-transcription-srt)加 `content=translation` 下载译文。原文转写稿不变，仍可用 `content=source` 下载。\n\n- 与网站一致，**每个任务只有一种目标语言**。任务已有译文时再请求其他语言返回 `409`；请求同一语言会重新翻译整篇并覆盖之前的译文（包括在网站上的修改）。\n- 与网站相同的积分余额检查，余额不足返回 `402`。\n- 须 [`X-Idempotency-Key`](/zh/guides/idempotency)。\n\n出错时返回 JSON 结构，HTTP 状态为 200，错误码在 body 的 `code` 中：`400` 参数不合法；`402` 积分不足；`404` 不是你账号下的转写任务；`409` 任务未完成、已有翻译在进行中、任务已有其他目标语言的译文，或转写稿为空。",
+    trTranslateTaskId: "已完成的转写任务 ID",
+    trTranslateTarget: "目标语言代码，如 `en-US`。只能传一个语言，`auto` 或逗号分隔的列表返回 `400`。见[支持的语言](/zh/guides/supported-languages)。",
+    trTranslateResp: "翻译已受理，`translation.status` 为 `running`。",
+    translation: "仅转写任务在 `status` 为 `finished` 时返回。`status`：`none` 未翻译 | `running` 翻译中 | `finished` 已完成，用 `content=translation` 下载 | `failed` 上次翻译没有完成，可重新发起。`status` 为 `none` 时不返回 `targetLanguage`。",
     srtSpeakers: "为 `true` 时，有说话人信息的 SRT 条目前加 `[Speaker N] `。默认 `false`；`true`/`false` 以外的值返回 `400`。JSON 始终包含 `speaker`。",
     srtOk: "默认返回 SRT 文本；`format=json` 时返回 JSON 结构。",
     trData: "转写稿（format=json）",
@@ -374,6 +388,7 @@ function build(locale) {
           userMessage: { type: "string", description: t.userMessage },
           outputs: { type: "array", items: ref("AppTaskOutput"), description: t.outputs },
           srtEndpoint: { type: "string", description: t.srtEndpoint, example: "/openapi/v1/app/tasks/transcription/srt?taskId=2047316590123456789" },
+          translation: ref("AppTranscriptionTranslation"),
         },
       },
     },
@@ -496,7 +511,15 @@ function build(locale) {
         type: "object",
         description: t.trLanguage,
         required: ["source"],
-        properties: { source: { type: "string", example: "en-US", description: t.trLangSource } },
+        properties: {
+          source: {
+            description: t.trLangSource,
+            oneOf: [
+              { type: "string", example: "en-US" },
+              { type: "array", items: { type: "string" }, maxItems: 10, example: ["hi-IN", "ta-IN", "en-US"] },
+            ],
+          },
+        },
       },
       options: ref("AppTranscriptionOptions"),
       title: { type: "string", maxLength: 255, description: t.trTitle },
@@ -550,6 +573,37 @@ function build(locale) {
       },
     }],
   };
+  s.AppTranscriptionTranslation = {
+    type: "object",
+    description: t.translation,
+    properties: {
+      status: { type: "string", enum: ["none", "running", "finished", "failed"], example: "finished" },
+      targetLanguage: { type: "string", example: "en-US" },
+    },
+  };
+  s.AppTranscriptionTranslateRequest = {
+    type: "object",
+    required: ["taskId", "targetLanguage"],
+    properties: {
+      taskId: { type: "string", description: t.trTranslateTaskId },
+      targetLanguage: { type: "string", description: t.trTranslateTarget, example: "en-US" },
+    },
+    example: { taskId: "2047316590123456789", targetLanguage: "en-US" },
+  };
+  s.AppTranscriptionTranslateResponse = {
+    allOf: [ref("OpenApiResponseBase"), {
+      type: "object",
+      properties: {
+        data: {
+          type: "object",
+          properties: {
+            taskId: { type: "string", description: t.taskId },
+            translation: { allOf: [ref("AppTranscriptionTranslation")], example: { status: "running", targetLanguage: "en-US" } },
+          },
+        },
+      },
+    }],
+  };
   const trTag = locale === "zh" ? "转写" : "Transcription";
   spec.paths[APP + "/task/transcription/create-async"] = {
     post: {
@@ -568,6 +622,23 @@ function build(locale) {
       },
     },
   };
+  spec.paths[APP + "/tasks/transcription/translate"] = {
+    post: {
+      tags: [trTag],
+      summary: t.trTranslateSummary,
+      description: t.trTranslateDesc,
+      operationId: "appTranscriptionTranslate",
+      "x-mint": {
+        href: `${hrefPrefix}app-synced/transcription/translate-transcription`,
+        metadata: { sidebarTitle: t.trTranslateSummary, title: t.trTranslateSummary },
+      },
+      parameters: structuredClone(create.parameters),
+      requestBody: { required: true, content: { "application/json": { schema: ref("AppTranscriptionTranslateRequest") } } },
+      responses: {
+        200: { description: t.trTranslateResp, content: { "application/json": { schema: ref("AppTranscriptionTranslateResponse") } } },
+      },
+    },
+  };
   spec.paths[APP + "/tasks/transcription/srt"] = {
     get: {
       tags: [trTag],
@@ -582,6 +653,7 @@ function build(locale) {
         { name: "taskId", in: "query", required: true, description: t.srtTaskId, schema: { type: "string" } },
         { name: "format", in: "query", required: false, description: t.srtFormat, schema: { type: "string", enum: ["srt", "json"], default: "srt" } },
         { name: "speakers", in: "query", required: false, description: t.srtSpeakers, schema: { type: "boolean", default: false } },
+        { name: "content", in: "query", required: false, description: t.srtContent, schema: { type: "string", enum: ["source", "translation"], default: "source" } },
       ],
       responses: {
         200: {

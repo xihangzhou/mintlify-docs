@@ -908,6 +908,50 @@
         }
       }
     },
+    "/openapi/v1/app/tasks/transcription/translate": {
+      "post": {
+        "tags": [
+          "Transcription"
+        ],
+        "summary": "Translate transcript",
+        "description": "Translate the whole transcript of a finished transcription job into `targetLanguage`, using the same translation as the **Translate** button in the website transcription editor. Use it for mixed-language recordings too: create the job with several `language.source` codes, then translate the full conversation into English.\n\nTranslation runs asynchronously. Poll [Query job status](/api-reference/app-synced/tasks/get-task-detail): `result.translation.status` goes from `running` to `finished` (or `failed`). Then download it with [Download transcript](/api-reference/app-synced/transcription/get-transcription-srt) and `content=translation`. The original transcript is unchanged and still available with `content=source`.\n\n- **One target language per job**, as on the website. Requesting a different language for a job that already has a translation returns `409`. Requesting the same language again re-translates the whole transcript and replaces the previous translation, including edits made on the website.\n- Requires the same credit balance check as the website; an insufficient balance returns `402`.\n- Requires [`X-Idempotency-Key`](/guides/idempotency).\n\nErrors use the JSON envelope with HTTP 200 and `code` in the body: `400` invalid parameters; `402` insufficient credits; `404` not a transcription job in your account; `409` the job is not finished, a translation is already running, the job already has a different target language, or the transcript is empty.",
+        "operationId": "appTranscriptionTranslate",
+        "x-mint": {
+          "href": "/api-reference/app-synced/transcription/translate-transcription",
+          "metadata": {
+            "sidebarTitle": "Translate transcript",
+            "title": "Translate transcript"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppTranscriptionTranslateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Translation accepted. `translation.status` is `running`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTranscriptionTranslateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/openapi/v1/app/tasks/transcription/srt": {
       "get": {
         "tags": [
@@ -955,6 +999,20 @@
             "schema": {
               "type": "boolean",
               "default": false
+            }
+          },
+          {
+            "name": "content",
+            "in": "query",
+            "required": false,
+            "description": "`source` (default) the original transcript | `translation` the translated transcript from [Translate transcript](/api-reference/app-synced/transcription/translate-transcription). Translation lines keep the same start/end times and speakers as the original. Case-insensitive; other values return `400`. Returns `409` if no finished translation exists yet.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "source",
+                "translation"
+              ],
+              "default": "source"
             }
           }
         ],
@@ -2285,6 +2343,9 @@
                 "type": "string",
                 "description": "Transcription jobs only, present once `status` is `finished`: relative path of [Download transcript](/api-reference/app-synced/transcription/get-transcription-srt) for this job. Call it on `https://api.vmeg.ai` with the same API key.",
                 "example": "/openapi/v1/app/tasks/transcription/srt?taskId=2047316590123456789"
+              },
+              "translation": {
+                "$ref": "#/components/schemas/AppTranscriptionTranslation"
               }
             }
           }
@@ -2451,9 +2512,25 @@
             ],
             "properties": {
               "source": {
-                "type": "string",
-                "example": "en-US",
-                "description": "Spoken language of the media (required), same codes as the website. See [Supported languages](/guides/supported-languages)."
+                "description": "Spoken language of the media (required), same codes as the website. See [Supported languages](/guides/supported-languages).\n\n- One code, e.g. `\"en-US\"`: single-language transcription.\n- `\"auto\"` (website default): detects the spoken language automatically. It cannot be combined with other codes.\n- Several codes, e.g. `[\"hi-IN\", \"ta-IN\", \"en-US\"]` or `\"hi-IN,ta-IN,en-US\"`: **multilingual transcription** for recordings that switch between languages (the website's multi-language mode). Each segment keeps the language it was spoken in. Up to 10 codes; requires `options.asr.quality` `standard` (`quick` returns `400`), the same as the website.\n\nDuplicates are removed; invalid codes return `400`.",
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "example": "en-US"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 10,
+                    "example": [
+                      "hi-IN",
+                      "ta-IN",
+                      "en-US"
+                    ]
+                  }
+                ]
               }
             }
           },
@@ -2581,6 +2658,80 @@
                       "$ref": "#/components/schemas/AppTranscriptSegment"
                     },
                     "description": "Transcript segments sorted by start time; empty lines are dropped"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AppTranscriptionTranslation": {
+        "type": "object",
+        "description": "Transcription jobs only, present once `status` is `finished`. `status`: `none` never translated | `running` in progress | `finished` ready, download with `content=translation` | `failed` the last translation request did not complete; request it again. `targetLanguage` is omitted when `status` is `none`.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "none",
+              "running",
+              "finished",
+              "failed"
+            ],
+            "example": "finished"
+          },
+          "targetLanguage": {
+            "type": "string",
+            "example": "en-US"
+          }
+        }
+      },
+      "AppTranscriptionTranslateRequest": {
+        "type": "object",
+        "required": [
+          "taskId",
+          "targetLanguage"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "ID of a finished transcription job"
+          },
+          "targetLanguage": {
+            "type": "string",
+            "description": "Target language code, e.g. `en-US`. One language only; `auto` and comma-separated lists return `400`. See [Supported languages](/guides/supported-languages).",
+            "example": "en-US"
+          }
+        },
+        "example": {
+          "taskId": "2047316590123456789",
+          "targetLanguage": "en-US"
+        }
+      },
+      "AppTranscriptionTranslateResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "description": "Task ID (same as the job ID on the website)"
+                  },
+                  "translation": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/AppTranscriptionTranslation"
+                      }
+                    ],
+                    "example": {
+                      "status": "running",
+                      "targetLanguage": "en-US"
+                    }
                   }
                 }
               }

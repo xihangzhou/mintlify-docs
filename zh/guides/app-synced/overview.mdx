@@ -50,6 +50,9 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/media-translation/create-a
   <Step title="下载转写稿">
     `GET /openapi/v1/app/tasks/transcription/srt?taskId=...` 返回 SRT 文本。加 `speakers=true` 会带 `[Speaker N]` 标签；加 `format=json` 返回带毫秒时间的句段。
   </Step>
+  <Step title="翻译（可选）">
+    `POST /openapi/v1/app/tasks/transcription/translate`，传 `{ "taskId": "...", "targetLanguage": "en-US" }`。任务详情里 `result.translation.status` 为 `finished` 后，加 `content=translation` 下载译文。
+  </Step>
 </Steps>
 
 ```bash
@@ -69,6 +72,36 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/transcription/create-async
 curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TASK_ID&speakers=true" \
   -H "Authorization: Bearer $VMEG_API_KEY" \
   -o transcript.srt
+```
+
+### 混合语言录音转成英文
+
+一段录音里切换多种语言时，把说到的语言都传进 `language.source`。任务会使用多语言转写（对应网站的多语言模式），每句保留原本说的语言。再把整段对话翻译成英文，英文每句的起止时间和说话人与原文一致。
+
+```bash
+# 1. 创建多语言转写任务（质量须为 standard）
+curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/transcription/create-async" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -H "X-Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": { "materialId": "YOUR_MATERIAL_ID" },
+    "language": { "source": ["hi-IN", "ta-IN", "en-US"] },
+    "options": { "asr": { "quality": "standard" }, "speakers": "auto" }
+  }'
+
+# 2. status 为 finished 后翻译成英文
+curl -X POST "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/translate" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -H "X-Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{ "taskId": "YOUR_TASK_ID", "targetLanguage": "en-US" }'
+
+# 3. 轮询 /tasks/detail 直到 result.translation.status 为 finished，再分别下载译文和原文
+curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TASK_ID&speakers=true&content=translation" \
+  -H "Authorization: Bearer $VMEG_API_KEY" -o transcript.en.srt
+curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TASK_ID&speakers=true" \
+  -H "Authorization: Bearer $VMEG_API_KEY" -o transcript.original.srt
 ```
 
 ## 和独立版的主要不同
@@ -110,16 +143,19 @@ curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TAS
   </Accordion>
   <Accordion title="转写">
     - `source` 需在 `materialId`（音频或视频素材，其他类型返回 `400`）与 `youtubeUrl` 中二选一。传 `sourceUrl`、`output`、`extraData` 返回 `400`。
-    - `language.source` 必填。`title` 可选，不传时取文件名或 YouTube 视频标题。
+    - `language.source` 必填：传一个语言代码；传 `auto` 自动识别语言；或传多个代码（数组或逗号分隔，最多 10 个）对混合语言音频做多语言转写。`auto` 不能和其他代码一起传；与网站一致，多语言转写需要 `options.asr.quality` 为 `standard`。`title` 可选，不传时取文件名或 YouTube 视频标题。
     - `options.asr.quality` 为 `standard`（默认）或 `quick`；`options.speakers` 为 `auto`（默认）或正整数，如 `"2"`。其他值返回 `400`。
     - 用 `taskType=transcription` 列出转写任务。转写任务的 `result.outputs` 为空；`status` 为 `finished` 后，`result.srtEndpoint` 为下载路径（`https://api.vmeg.ai` 上的相对路径，用同一个 API Key 调用）。运行中、失败的任务以及翻译任务不返回该字段。
     - 转写稿为网站编辑器中的最新版本，包含你的修改。SRT（`application/x-subrip`）以纯文本返回；`format=json` 时在常规 JSON 结构中返回 `data.segments`（`index`、毫秒 `start` / `end`、`text`、`speaker`）。
-    - 出错时返回 JSON 结构，HTTP 状态为 200：`400` 为 `format`、`speakers` 不合法或缺少 `taskId`；`404` 为不是你账号下的转写任务；`409` 为尚未完成。请不要设置 `Accept` 请求头，或设为 `Accept: */*`。
+    - 出错时返回 JSON 结构，HTTP 状态为 200：`400` 为 `format`、`speakers`、`content` 不合法或缺少 `taskId`；`404` 为不是你账号下的转写任务；`409` 为尚未完成，或 `content=translation` 时还没有完成的译文。请不要设置 `Accept` 请求头，或设为 `Accept: */*`。
+    - 翻译：`POST /openapi/v1/app/tasks/transcription/translate` 把整篇转写稿翻译成一种 `targetLanguage`，与网站编辑器的**翻译**按钮相同。每个任务只有一种目标语言：已有译文时请求其他语言返回 `409`，请求同一语言会重新翻译并覆盖之前的译文。积分余额不足返回 `402`。
+    - 已完成的转写任务详情包含 `result.translation`（`status` 为 `none`、`running`、`finished` 或 `failed`，以及 `targetLanguage`）。译文用 `content=translation` 下载，时间和说话人与原文相同。JSON 格式不会在一次响应里同时返回原文和译文，请分别用 `content=source` 和 `content=translation` 下载。
+    - 时间戳为句级，精确到毫秒，暂不提供词级时间戳。
   </Accordion>
   <Accordion title="Webhook">
     - 使用网站 **API 配置**页里的 Webhook 地址和密钥，与独立版共用。验签方式见 [Webhook 签名校验](/zh/guides/webhook-verification)。
     - 所有应用同源版任务（包括转写）的 `event` 都是 `openapi-app-media-translation`，请用 `data.taskType`（`vt`、`at` 或 `transcription`）区分。`pipelineKey` 为 `openapi-app-{taskId}`。
-    - 转写任务完成时，`data.result.srtEndpoint` 为转写稿下载路径。
+    - 转写任务完成时，`data.result.srtEndpoint` 为转写稿下载路径，`data.result.translation` 为翻译状态（此时通常为 `none`）。翻译进度不通过 Webhook 推送，请轮询任务详情。
     - `data` 字段与[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)一致（`taskId`、`taskType`、`status`、`editorUrl`、`result`）。
     - 任务完成时 `code` 为 `200`，失败时为 `500`，失败原因在 `message` 中。
     - 每个任务只推一次，对应它第一次进入 `finished` 或 `failed`。投递失败会在约 40 分钟内重试几次，之后请改为轮询。请按 `pipelineKey` 去重。

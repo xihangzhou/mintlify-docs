@@ -908,6 +908,50 @@
         }
       }
     },
+    "/openapi/v1/app/tasks/transcription/translate": {
+      "post": {
+        "tags": [
+          "转写"
+        ],
+        "summary": "翻译转写稿",
+        "description": "把已完成转写任务的整篇转写稿翻译成 `targetLanguage`，与网站转写编辑器里的**翻译**按钮是同一套翻译。混合语言录音也适用：创建任务时传多个 `language.source`，再把整段对话翻译成英文。\n\n翻译异步进行。轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)：`result.translation.status` 从 `running` 变为 `finished`（或 `failed`）后，用[下载转写稿](/zh/api-reference/app-synced/transcription/get-transcription-srt)加 `content=translation` 下载译文。原文转写稿不变，仍可用 `content=source` 下载。\n\n- 与网站一致，**每个任务只有一种目标语言**。任务已有译文时再请求其他语言返回 `409`；请求同一语言会重新翻译整篇并覆盖之前的译文（包括在网站上的修改）。\n- 与网站相同的积分余额检查，余额不足返回 `402`。\n- 须 [`X-Idempotency-Key`](/zh/guides/idempotency)。\n\n出错时返回 JSON 结构，HTTP 状态为 200，错误码在 body 的 `code` 中：`400` 参数不合法；`402` 积分不足；`404` 不是你账号下的转写任务；`409` 任务未完成、已有翻译在进行中、任务已有其他目标语言的译文，或转写稿为空。",
+        "operationId": "appTranscriptionTranslate",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/transcription/translate-transcription",
+          "metadata": {
+            "sidebarTitle": "翻译转写稿",
+            "title": "翻译转写稿"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppTranscriptionTranslateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "翻译已受理，`translation.status` 为 `running`。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppTranscriptionTranslateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/openapi/v1/app/tasks/transcription/srt": {
       "get": {
         "tags": [
@@ -955,6 +999,20 @@
             "schema": {
               "type": "boolean",
               "default": false
+            }
+          },
+          {
+            "name": "content",
+            "in": "query",
+            "required": false,
+            "description": "`source`（默认）原文转写稿 | `translation` 通过[翻译转写稿](/zh/api-reference/app-synced/transcription/translate-transcription)得到的译文。译文每句的起止时间和说话人与原文相同。不区分大小写，其他值返回 `400`；还没有完成的译文时返回 `409`。",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "source",
+                "translation"
+              ],
+              "default": "source"
             }
           }
         ],
@@ -2285,6 +2343,9 @@
                 "type": "string",
                 "description": "仅转写任务在 `status` 为 `finished` 时返回：该任务[下载转写稿](/zh/api-reference/app-synced/transcription/get-transcription-srt)的相对路径。请在 `https://api.vmeg.ai` 上用同一个 API Key 调用。",
                 "example": "/openapi/v1/app/tasks/transcription/srt?taskId=2047316590123456789"
+              },
+              "translation": {
+                "$ref": "#/components/schemas/AppTranscriptionTranslation"
               }
             }
           }
@@ -2451,9 +2512,25 @@
             ],
             "properties": {
               "source": {
-                "type": "string",
-                "example": "en-US",
-                "description": "媒体的说话语言（必填），代码与网站一致。见[支持的语言](/zh/guides/supported-languages)。"
+                "description": "媒体的说话语言（必填），代码与网站一致。见[支持的语言](/zh/guides/supported-languages)。\n\n- 一个语言代码，如 `\"en-US\"`：单语言转写。\n- `\"auto\"`（网站默认）：自动识别说话语言，不能和其他代码一起传。\n- 多个语言代码，如 `[\"hi-IN\", \"ta-IN\", \"en-US\"]` 或 `\"hi-IN,ta-IN,en-US\"`：**多语言转写**，适合一段录音里切换多种语言（对应网站的多语言模式），每句保留原本说的语言。最多 10 个；与网站一致，需要 `options.asr.quality` 为 `standard`（`quick` 返回 `400`）。\n\n重复的代码会被去掉；不合法的代码返回 `400`。",
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "example": "en-US"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 10,
+                    "example": [
+                      "hi-IN",
+                      "ta-IN",
+                      "en-US"
+                    ]
+                  }
+                ]
               }
             }
           },
@@ -2581,6 +2658,80 @@
                       "$ref": "#/components/schemas/AppTranscriptSegment"
                     },
                     "description": "转写句段，按开始时间排序，已去掉空句"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AppTranscriptionTranslation": {
+        "type": "object",
+        "description": "仅转写任务在 `status` 为 `finished` 时返回。`status`：`none` 未翻译 | `running` 翻译中 | `finished` 已完成，用 `content=translation` 下载 | `failed` 上次翻译没有完成，可重新发起。`status` 为 `none` 时不返回 `targetLanguage`。",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "none",
+              "running",
+              "finished",
+              "failed"
+            ],
+            "example": "finished"
+          },
+          "targetLanguage": {
+            "type": "string",
+            "example": "en-US"
+          }
+        }
+      },
+      "AppTranscriptionTranslateRequest": {
+        "type": "object",
+        "required": [
+          "taskId",
+          "targetLanguage"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "description": "已完成的转写任务 ID"
+          },
+          "targetLanguage": {
+            "type": "string",
+            "description": "目标语言代码，如 `en-US`。只能传一个语言，`auto` 或逗号分隔的列表返回 `400`。见[支持的语言](/zh/guides/supported-languages)。",
+            "example": "en-US"
+          }
+        },
+        "example": {
+          "taskId": "2047316590123456789",
+          "targetLanguage": "en-US"
+        }
+      },
+      "AppTranscriptionTranslateResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpenApiResponseBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "taskId": {
+                    "type": "string",
+                    "description": "任务 ID（与网站任务 ID 相同）"
+                  },
+                  "translation": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/AppTranscriptionTranslation"
+                      }
+                    ],
+                    "example": {
+                      "status": "running",
+                      "targetLanguage": "en-US"
+                    }
                   }
                 }
               }

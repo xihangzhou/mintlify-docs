@@ -50,6 +50,9 @@ Transcription jobs follow the same pattern: upload (or use a YouTube link), crea
   <Step title="Download the transcript">
     `GET /openapi/v1/app/tasks/transcription/srt?taskId=...` returns SRT text. Add `speakers=true` for `[Speaker N]` labels, or `format=json` for segments with millisecond times.
   </Step>
+  <Step title="Translate (optional)">
+    `POST /openapi/v1/app/tasks/transcription/translate` with `{ "taskId": "...", "targetLanguage": "en-US" }`. When `result.translation.status` in the job detail is `finished`, download the translation with `content=translation`.
+  </Step>
 </Steps>
 
 ```bash
@@ -69,6 +72,36 @@ curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/transcription/create-async
 curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TASK_ID&speakers=true" \
   -H "Authorization: Bearer $VMEG_API_KEY" \
   -o transcript.srt
+```
+
+### Mixed-language recordings to English
+
+For a recording that switches between languages, pass every spoken language in `language.source`. The job uses multilingual transcription (the website's multi-language mode), so each line stays in the language it was spoken in. Then translate the whole conversation into English. The English lines keep the original start/end times and speaker labels.
+
+```bash
+# 1. Create a multilingual transcription job (quality must be standard)
+curl -X POST "https://api.vmeg.ai/openapi/v1/app/task/transcription/create-async" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -H "X-Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": { "materialId": "YOUR_MATERIAL_ID" },
+    "language": { "source": ["hi-IN", "ta-IN", "en-US"] },
+    "options": { "asr": { "quality": "standard" }, "speakers": "auto" }
+  }'
+
+# 2. After status is finished, translate into English
+curl -X POST "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/translate" \
+  -H "Authorization: Bearer $VMEG_API_KEY" \
+  -H "X-Idempotency-Key: $(uuidgen)" \
+  -H "Content-Type: application/json" \
+  -d '{ "taskId": "YOUR_TASK_ID", "targetLanguage": "en-US" }'
+
+# 3. Poll /tasks/detail until result.translation.status is finished, then download both versions
+curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TASK_ID&speakers=true&content=translation" \
+  -H "Authorization: Bearer $VMEG_API_KEY" -o transcript.en.srt
+curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TASK_ID&speakers=true" \
+  -H "Authorization: Bearer $VMEG_API_KEY" -o transcript.original.srt
 ```
 
 ## Key differences from the Standalone API
@@ -110,16 +143,19 @@ See the full [API reference](/api-reference/app-synced/media-translation/create-
   </Accordion>
   <Accordion title="Transcription">
     - `source` accepts exactly one of `materialId` (an audio or video material; other types return `400`) or `youtubeUrl`. `sourceUrl`, `output`, and `extraData` return `400`.
-    - `language.source` is required. `title` is optional and defaults to the file name or YouTube video title.
+    - `language.source` is required: one language code, `auto` to detect the language, or several codes (array or comma-separated, up to 10) for multilingual transcription of mixed-language audio. `auto` cannot be combined with other codes, and multilingual transcription requires `options.asr.quality` `standard`, as on the website. `title` is optional and defaults to the file name or YouTube video title.
     - `options.asr.quality` is `standard` (default) or `quick`; `options.speakers` is `auto` (default) or a positive integer such as `"2"`. Other values return `400`.
     - List jobs with `taskType=transcription`. Transcription jobs have empty `result.outputs`; once `status` is `finished`, `result.srtEndpoint` holds the download path (a relative path on `https://api.vmeg.ai`, called with the same API key). It is absent for running or failed jobs and for translation jobs.
     - The transcript is the latest version in the website editor, including your edits. SRT (`application/x-subrip`) is returned as plain text; `format=json` returns `data.segments` (`index`, `start`, `end` in milliseconds, `text`, `speaker`) in the usual JSON envelope.
-    - Errors use the JSON envelope with HTTP 200: `400` invalid `format`, `speakers`, or missing `taskId`; `404` not a transcription job in your account; `409` not finished yet. Omit the `Accept` header or send `Accept: */*`.
+    - Errors use the JSON envelope with HTTP 200: `400` invalid `format`, `speakers`, `content`, or missing `taskId`; `404` not a transcription job in your account; `409` not finished yet, or no finished translation for `content=translation`. Omit the `Accept` header or send `Accept: */*`.
+    - Translation: `POST /openapi/v1/app/tasks/transcription/translate` translates the whole transcript into one `targetLanguage`, the same as the **Translate** button in the website editor. Each job has one target language; asking for a different language once a translation exists returns `409`, and asking for the same language again re-translates and replaces the previous translation. An insufficient credit balance returns `402`.
+    - The job detail of a finished transcription job includes `result.translation` (`status`: `none`, `running`, `finished`, or `failed`, plus `targetLanguage`). Download the translation with `content=translation`; it has the same timing and speakers as the original. The JSON format does not combine original and translated text in one response; download each with `content=source` and `content=translation`.
+    - Timestamps are per sentence segment, with millisecond precision. Word-level timestamps are not available.
   </Accordion>
   <Accordion title="Webhook">
     - Uses the webhook URL and secret from **API Configuration** on the website, shared with the Standalone API. Verify signatures as in [Webhook verification](/guides/webhook-verification).
     - `event` is `openapi-app-media-translation` for every App-Synced job, transcription included; use `data.taskType` (`vt`, `at`, or `transcription`) to tell them apart. `pipelineKey` is `openapi-app-{taskId}`.
-    - For a finished transcription job, `data.result.srtEndpoint` is the transcript download path.
+    - For a finished transcription job, `data.result.srtEndpoint` is the transcript download path and `data.result.translation` its translation status (usually `none` at that point). Translation progress is not pushed by webhook; poll the job detail.
     - `data` has the same fields as [Query job status](/api-reference/app-synced/tasks/get-task-detail) (`taskId`, `taskType`, `status`, `editorUrl`, `result`).
     - `code` is `200` when the job finished and `500` when it failed; on failure `message` holds the reason.
     - Sent once per job, for its first `finished` or `failed`. Failed deliveries are retried a few times within about 40 minutes; after that, poll. Deduplicate by `pipelineKey`.
