@@ -914,7 +914,7 @@
           "Transcription"
         ],
         "summary": "Translate transcript",
-        "description": "Translate the whole transcript of a finished transcription job into `targetLanguage`, using the same translation as the **Translate** button in the website transcription editor. Use it for mixed-language recordings too: create the job with several `language.source` codes, then translate the full conversation into English.\n\nTranslation runs asynchronously. Poll [Query job status](/api-reference/app-synced/tasks/get-task-detail): `result.translation.status` goes from `running` to `finished` (or `failed`). Then download it with [Download transcript](/api-reference/app-synced/transcription/get-transcription-srt) and `content=translation`. The original transcript is unchanged and still available with `content=source`.\n\n- **One target language per job**, as on the website. Requesting a different language for a job that already has a translation returns `409`. Requesting the same language again re-translates the whole transcript and replaces the previous translation, including edits made on the website.\n- Requires the same credit balance check as the website; an insufficient balance returns `402`.\n- Requires [`X-Idempotency-Key`](/guides/idempotency).\n\nErrors use the JSON envelope with HTTP 200 and `code` in the body: `400` invalid parameters; `402` insufficient credits; `404` not a transcription job in your account; `409` the job is not finished, a translation is already running, the job already has a different target language, or the transcript is empty.",
+        "description": "Translate the whole transcript of a finished transcription job into `targetLanguage`, using the same translation as the **Translate** button in the website transcription editor. Use it for mixed-language recordings too: create the job with several `language.source` codes, then translate the full conversation into English.\n\nTranslation runs asynchronously. Poll [Query job status](/api-reference/app-synced/tasks/get-task-detail): `result.translation.status` goes from `running` to `finished`. Then download it with [Download transcript](/api-reference/app-synced/transcription/get-transcription-srt) and `content=translation`. The original transcript is unchanged and still available with `content=source`.\n\n- **One target language per job**, as on the website. Requesting a different language for a job that already has a translation returns `409`. Requesting the same language again re-translates the whole transcript and replaces the previous translation, including edits made on the website.\n- Requires the same credit balance check as the website; an insufficient balance returns `402`.\n- Requires [`X-Idempotency-Key`](/guides/idempotency).\n\nErrors use the JSON envelope with HTTP 200 and `code` in the body: `400` invalid parameters; `402` insufficient credits; `404` not a transcription job in your account; `409` the job is not finished, a translation is already running, the job already has a different target language or the transcript is being updated (retry later).",
         "operationId": "appTranscriptionTranslate",
         "x-mint": {
           "href": "/api-reference/app-synced/transcription/translate-transcription",
@@ -2667,15 +2667,14 @@
       },
       "AppTranscriptionTranslation": {
         "type": "object",
-        "description": "Transcription jobs only, present once `status` is `finished`. `status`: `none` never translated | `running` in progress | `finished` ready, download with `content=translation` | `failed` the last translation request did not complete; request it again. `targetLanguage` is omitted when `status` is `none`.",
+        "description": "Transcription jobs only, present once `status` is `finished`. `status`: `none` never translated | `running` in progress | `finished` ready, download with `content=translation` | if a translation request fails, the status returns to its previous value (`none`, or `finished` with the earlier translation); request it again. `targetLanguage` is omitted when `status` is `none`.",
         "properties": {
           "status": {
             "type": "string",
             "enum": [
               "none",
               "running",
-              "finished",
-              "failed"
+              "finished"
             ],
             "example": "finished"
           },

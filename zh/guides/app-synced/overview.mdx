@@ -149,7 +149,7 @@ curl "https://api.vmeg.ai/openapi/v1/app/tasks/transcription/srt?taskId=YOUR_TAS
     - 转写稿为网站编辑器中的最新版本，包含你的修改。SRT（`application/x-subrip`）以纯文本返回；`format=json` 时在常规 JSON 结构中返回 `data.segments`（`index`、毫秒 `start` / `end`、`text`、`speaker`）。
     - 出错时返回 JSON 结构，HTTP 状态为 200：`400` 为 `format`、`speakers`、`content` 不合法或缺少 `taskId`；`404` 为不是你账号下的转写任务；`409` 为尚未完成，或 `content=translation` 时还没有完成的译文。请不要设置 `Accept` 请求头，或设为 `Accept: */*`。
     - 翻译：`POST /openapi/v1/app/tasks/transcription/translate` 把整篇转写稿翻译成一种 `targetLanguage`，与网站编辑器的**翻译**按钮相同。每个任务只有一种目标语言：已有译文时请求其他语言返回 `409`，请求同一语言会重新翻译并覆盖之前的译文。积分余额不足返回 `402`。
-    - 已完成的转写任务详情包含 `result.translation`（`status` 为 `none`、`running`、`finished` 或 `failed`，以及 `targetLanguage`）。译文用 `content=translation` 下载，时间和说话人与原文相同。JSON 格式不会在一次响应里同时返回原文和译文，请分别用 `content=source` 和 `content=translation` 下载。
+    - 已完成的转写任务详情包含 `result.translation`（`status` 为 `none`、`running` 或 `finished`，以及 `targetLanguage`）。译文用 `content=translation` 下载，时间和说话人与原文相同。JSON 格式不会在一次响应里同时返回原文和译文，请分别用 `content=source` 和 `content=translation` 下载。
     - 时间戳为句级，精确到毫秒，暂不提供词级时间戳。
   </Accordion>
   <Accordion title="Webhook">

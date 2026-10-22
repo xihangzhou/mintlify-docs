@@ -914,7 +914,7 @@
           "转写"
         ],
         "summary": "翻译转写稿",
-        "description": "把已完成转写任务的整篇转写稿翻译成 `targetLanguage`，与网站转写编辑器里的**翻译**按钮是同一套翻译。混合语言录音也适用：创建任务时传多个 `language.source`，再把整段对话翻译成英文。\n\n翻译异步进行。轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)：`result.translation.status` 从 `running` 变为 `finished`（或 `failed`）后，用[下载转写稿](/zh/api-reference/app-synced/transcription/get-transcription-srt)加 `content=translation` 下载译文。原文转写稿不变，仍可用 `content=source` 下载。\n\n- 与网站一致，**每个任务只有一种目标语言**。任务已有译文时再请求其他语言返回 `409`；请求同一语言会重新翻译整篇并覆盖之前的译文（包括在网站上的修改）。\n- 与网站相同的积分余额检查，余额不足返回 `402`。\n- 须 [`X-Idempotency-Key`](/zh/guides/idempotency)。\n\n出错时返回 JSON 结构，HTTP 状态为 200，错误码在 body 的 `code` 中：`400` 参数不合法；`402` 积分不足；`404` 不是你账号下的转写任务；`409` 任务未完成、已有翻译在进行中、任务已有其他目标语言的译文，或转写稿为空。",
+        "description": "把已完成转写任务的整篇转写稿翻译成 `targetLanguage`，与网站转写编辑器里的**翻译**按钮是同一套翻译。混合语言录音也适用：创建任务时传多个 `language.source`，再把整段对话翻译成英文。\n\n翻译异步进行。轮询[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)：`result.translation.status` 从 `running` 变为 `finished` 后，用[下载转写稿](/zh/api-reference/app-synced/transcription/get-transcription-srt)加 `content=translation` 下载译文。原文转写稿不变，仍可用 `content=source` 下载。\n\n- 与网站一致，**每个任务只有一种目标语言**。任务已有译文时再请求其他语言返回 `409`；请求同一语言会重新翻译整篇并覆盖之前的译文（包括在网站上的修改）。\n- 与网站相同的积分余额检查，余额不足返回 `402`。\n- 须 [`X-Idempotency-Key`](/zh/guides/idempotency)。\n\n出错时返回 JSON 结构，HTTP 状态为 200，错误码在 body 的 `code` 中：`400` 参数不合法；`402` 积分不足；`404` 不是你账号下的转写任务；`409` 任务未完成、已有翻译在进行中、任务已有其他目标语言的译文，或转写稿正在被更新（稍后重试）。",
         "operationId": "appTranscriptionTranslate",
         "x-mint": {
           "href": "/zh/api-reference/app-synced/transcription/translate-transcription",
@@ -2667,15 +2667,14 @@
       },
       "AppTranscriptionTranslation": {
         "type": "object",
-        "description": "仅转写任务在 `status` 为 `finished` 时返回。`status`：`none` 未翻译 | `running` 翻译中 | `finished` 已完成，用 `content=translation` 下载 | `failed` 上次翻译没有完成，可重新发起。`status` 为 `none` 时不返回 `targetLanguage`。",
+        "description": "仅转写任务在 `status` 为 `finished` 时返回。`status`：`none` 未翻译 | `running` 翻译中 | `finished` 已完成，用 `content=translation` 下载 | 翻译失败时状态回到之前的值（`none`，或带旧译文的 `finished`），可重新发起。`status` 为 `none` 时不返回 `targetLanguage`。",
         "properties": {
           "status": {
             "type": "string",
             "enum": [
               "none",
               "running",
-              "finished",
-              "failed"
+              "finished"
             ],
             "example": "finished"
           },
