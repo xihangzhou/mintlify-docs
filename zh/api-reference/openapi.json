@@ -131,7 +131,7 @@
             "https://{yourWebhookUrl}": {
               "post": {
                 "summary": "异步任务完成时的 Webhook（`event`: `openapi-tts`）",
-                "description": "文本转语音异步任务完成时，VMEG 向你方 [Webhook](/zh/guides/webhooks) URL POST 的**请求体**。JSON 中 `event` 为 `openapi-tts`（见 [Webhook 请求体](/zh/guides/webhook-request)）。不属于上方 create-async **Response**。完整 schema：[创建 TTS（异步）](/zh/api-reference/tts/create-tts-async) → **Callbacks**。",
+                "description": "文本转语音异步任务完成时，VMEG 向你方 [Webhook](/zh/guides/webhooks) URL POST 的**请求体**。JSON 中 `event` 为 `openapi-tts`（见 [Webhook 请求体](/zh/guides/webhook-request)）。不属于上方 create-async **Response**。完整 schema：[合成语音（异步）](/api-reference/tts/合成语音（异步）) → **Callbacks**。",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -359,7 +359,7 @@
             "https://{yourWebhookUrl}": {
               "post": {
                 "summary": "异步任务完成时的 Webhook（`event`: `openapi-clone-voice`）",
-                "description": "声音克隆异步任务完成时的 Webhook **请求体**；`event` 为 `openapi-clone-voice`。见 [Webhook 请求体](/zh/guides/webhook-request)。完整 schema：[创建声音克隆（异步）](/zh/api-reference/clone-voice/create-voice-clone-async) → **Callbacks**。",
+                "description": "声音克隆异步任务完成时的 Webhook **请求体**；`event` 为 `openapi-clone-voice`。见 [Webhook 请求体](/zh/guides/webhook-request)。完整 schema：[从样本音频克隆音色（异步）](/api-reference/声音克隆/从样本音频克隆音色（异步）) → **Callbacks**。",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -3375,7 +3375,7 @@
         }
       },
       "OpenApiTtsTaskCompletedCallback": {
-        "description": "`event` 为 `openapi-tts` 时的 TTS Webhook **请求体**；`data` 含 `results`、`taskId`。见 [Webhook 请求体](/zh/guides/webhook-request) 与 [创建 TTS（异步）](/zh/api-reference/tts/create-tts-async) → **Callbacks**。",
+        "description": "`event` 为 `openapi-tts` 时的 TTS Webhook **请求体**；`data` 含 `results`、`taskId`。见 [Webhook 请求体](/zh/guides/webhook-request) 与 [合成语音（异步）](/api-reference/tts/合成语音（异步）) → **Callbacks**。",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"

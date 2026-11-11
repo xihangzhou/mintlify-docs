@@ -61,9 +61,9 @@ VMEG 为每次**已受理**的异步任务分配一个 **`pipelineKey`**，并�
 
 | 产品 | `event` 取值 | 异步创建接口 | `data` 中关注的内容 |
 |------|--------------|--------------|---------------------|
-| [文本转语音](/zh/guides/products/text-to-speech) | `openapi-tts` | [创建 TTS（异步）](/zh/api-reference/tts/create-tts-async) | 合成 `results`、`taskId` — 见该页 **Callbacks** |
+| [文本转语音](/zh/guides/products/text-to-speech) | `openapi-tts` | [合成语音（异步）](/api-reference/tts/合成语音（异步）) | 合成 `results`、`taskId` — 见该页 **Callbacks** |
 | [文本翻译](/zh/guides/products/text-translation) | `openapi-translate` | [创建文本翻译（异步）](/zh/api-reference/text-translation/create-text-translation-async) | `items`（译文列表）、`taskId` |
-| [声音克隆](/zh/guides/products/voice-clone) | `openapi-clone-voice` | [创建声音克隆（异步）](/zh/api-reference/clone-voice/create-voice-clone-async) | 成功时的 `voiceId` 等克隆字段 |
+| [声音克隆](/zh/guides/products/voice-clone) | `openapi-clone-voice` | [从样本音频克隆音色（异步）](/api-reference/声音克隆/从样本音频克隆音色（异步）) | 成功时的 `voiceId` 等克隆字段 |
 | [音视频翻译](/zh/guides/products/media-translation) | `openapi-media-translation` | [创建媒体翻译（异步）](/zh/api-reference/media-translation/create-media-translation-async) | 交付物 CDN URL 等，见 `result` |
 | [应用同源版音视频翻译](/zh/guides/app-synced/overview) | `openapi-app-media-translation` | [创建媒体翻译（应用同源版）](/zh/api-reference/app-synced/media-translation/create-media-translation-async) | 与[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)一致；只推首次结果 |
 | [应用同源版转写](/zh/guides/app-synced/overview) | `openapi-app-media-translation`（取值相同，`data.taskType` 为 `transcription`） | [创建转写任务（应用同源版）](/zh/api-reference/app-synced/transcription/create-transcription-async) | 与[查询任务状态](/zh/api-reference/app-synced/tasks/get-task-detail)一致；完成时 `result.srtEndpoint` 为转写稿下载路径；只推首次结果 |

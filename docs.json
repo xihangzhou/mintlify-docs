@@ -29,6 +29,22 @@
     {
       "source": "/zh",
       "destination": "/zh/guides/introduction"
+    },
+    {
+      "source": "/api-reference/tts/create-tts-async",
+      "destination": "/api-reference/tts/synthesize-speech-async"
+    },
+    {
+      "source": "/api-reference/clone-voice/create-voice-clone-async",
+      "destination": "/api-reference/voice-clone/clone-voice-from-sample-audio-async"
+    },
+    {
+      "source": "/zh/api-reference/tts/create-tts-async",
+      "destination": "/api-reference/tts/合成语音（异步）"
+    },
+    {
+      "source": "/zh/api-reference/clone-voice/create-voice-clone-async",
+      "destination": "/api-reference/声音克隆/从样本音频克隆音色（异步）"
     }
   ],
   "navigation": {

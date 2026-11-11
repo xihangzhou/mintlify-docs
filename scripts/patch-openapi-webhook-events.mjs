@@ -14,7 +14,7 @@ const EVENT = {
   tts: {
     value: "openapi-tts",
     product: "Text to speech",
-    api: "[Create TTS (async)](/api-reference/tts/create-tts-async)",
+    api: "[Synthesize speech (async)](/api-reference/tts/synthesize-speech-async)",
     data: "`data` includes synthesis `results` and `taskId`",
   },
   translate: {
@@ -26,7 +26,7 @@ const EVENT = {
   clone: {
     value: "openapi-clone-voice",
     product: "Voice clone",
-    api: "[Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async)",
+    api: "[Clone voice from sample audio (async)](/api-reference/voice-clone/clone-voice-from-sample-audio-async)",
     data: "`data.voiceId` (and related fields when successful)",
   },
   media: {

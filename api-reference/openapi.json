@@ -131,7 +131,7 @@
             "https://{yourWebhookUrl}": {
               "post": {
                 "summary": "Webhook when async task finishes (`event`: `openapi-tts`)",
-                "description": "HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL when a Text to speech async task finishes. The JSON field `event` is `openapi-tts` (see [Webhook request body](/guides/webhook-request)). Not part of the create-async **Response** above. Full schema: [Create TTS (async)](/api-reference/tts/create-tts-async) → **Callbacks**.",
+                "description": "HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL when a Text to speech async task finishes. The JSON field `event` is `openapi-tts` (see [Webhook request body](/guides/webhook-request)). Not part of the create-async **Response** above. Full schema: [Synthesize speech (async)](/api-reference/tts/synthesize-speech-async) → **Callbacks**.",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -359,7 +359,7 @@
             "https://{yourWebhookUrl}": {
               "post": {
                 "summary": "Webhook when async task finishes (`event`: `openapi-clone-voice`)",
-                "description": "HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL when a Voice clone async task finishes. The JSON field `event` is `openapi-clone-voice` (see [Webhook request body](/guides/webhook-request)). Not part of the create-async **Response** above. Full schema: [Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async) → **Callbacks**.",
+                "description": "HTTP **request body** VMEG POSTs to your [Webhook](/guides/webhooks) URL when a Voice clone async task finishes. The JSON field `event` is `openapi-clone-voice` (see [Webhook request body](/guides/webhook-request)). Not part of the create-async **Response** above. Full schema: [Clone voice from sample audio (async)](/api-reference/voice-clone/clone-voice-from-sample-audio-async) → **Callbacks**.",
                 "parameters": [
                   {
                     "$ref": "#/components/parameters/CallbackTimestamp"
@@ -3375,7 +3375,7 @@
         }
       },
       "OpenApiTtsTaskCompletedCallback": {
-        "description": "Webhook callback **request body** for Text to speech when `event` is `openapi-tts`. `data` includes synthesis `results` and `taskId`. See [Webhook request body](/guides/webhook-request) and [Create TTS (async)](/api-reference/tts/create-tts-async) → **Callbacks**.",
+        "description": "Webhook callback **request body** for Text to speech when `event` is `openapi-tts`. `data` includes synthesis `results` and `taskId`. See [Webhook request body](/guides/webhook-request) and [Synthesize speech (async)](/api-reference/tts/synthesize-speech-async) → **Callbacks**.",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"
@@ -3423,7 +3423,7 @@
         ]
       },
       "OpenApiCloneVoiceTaskCompletedCallback": {
-        "description": "Webhook callback **request body** for Voice clone when `event` is `openapi-clone-voice`. `data.voiceId` (and related fields when successful). See [Webhook request body](/guides/webhook-request) and [Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async) → **Callbacks**.",
+        "description": "Webhook callback **request body** for Voice clone when `event` is `openapi-clone-voice`. `data.voiceId` (and related fields when successful). See [Webhook request body](/guides/webhook-request) and [Clone voice from sample audio (async)](/api-reference/voice-clone/clone-voice-from-sample-audio-async) → **Callbacks**.",
         "allOf": [
           {
             "$ref": "#/components/schemas/OpenApiCallbackEnvelope"

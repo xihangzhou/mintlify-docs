@@ -61,9 +61,9 @@ VMEG assigns one **`pipelineKey` per accepted async run**. It appears in every w
 
 | Product | `event` value | Async create endpoint | What to read in `data` |
 |---------|---------------|----------------------|-------------------------|
-| [Text to speech](/guides/products/text-to-speech) | `openapi-tts` | [Create TTS (async)](/api-reference/tts/create-tts-async) | Synthesis `results`, `taskId` — see **Callbacks** on that page |
+| [Text to speech](/guides/products/text-to-speech) | `openapi-tts` | [Synthesize speech (async)](/api-reference/tts/synthesize-speech-async) | Synthesis `results`, `taskId` — see **Callbacks** on that page |
 | [Text translation](/guides/products/text-translation) | `openapi-translate` | [Create text translation (async)](/api-reference/text-translation/create-text-translation-async) | `items` (translated segments), `taskId` |
-| [Voice clone](/guides/products/voice-clone) | `openapi-clone-voice` | [Create voice clone (async)](/api-reference/clone-voice/create-voice-clone-async) | `voiceId` and related clone fields when successful |
+| [Voice clone](/guides/products/voice-clone) | `openapi-clone-voice` | [Clone voice from sample audio (async)](/api-reference/voice-clone/clone-voice-from-sample-audio-async) | `voiceId` and related clone fields when successful |
 | [Media translation](/guides/products/media-translation) | `openapi-media-translation` | [Create media translation (async)](/api-reference/media-translation/create-media-translation-async) | `result` with CDN URLs for deliverables |
 | [App-Synced media translation](/guides/app-synced/overview) | `openapi-app-media-translation` | [Create media translation (App-Synced)](/api-reference/app-synced/media-translation/create-media-translation-async) | Same as [Query job status](/api-reference/app-synced/tasks/get-task-detail); sent once for the first result |
 | [App-Synced transcription](/guides/app-synced/overview#transcription) | `openapi-app-media-translation` (same value; `data.taskType` is `transcription`) | [Create transcription job (App-Synced)](/api-reference/app-synced/transcription/create-transcription-async) | Same as [Query job status](/api-reference/app-synced/tasks/get-task-detail); when finished, `result.srtEndpoint` is the transcript download path; sent once for the first result |
