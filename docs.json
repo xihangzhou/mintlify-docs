@@ -45,6 +45,22 @@
     {
       "source": "/zh/api-reference/clone-voice/create-voice-clone-async",
       "destination": "/api-reference/声音克隆/从样本音频克隆音色（异步）"
+    },
+    {
+      "source": "/api-reference/assets--materials/abort-multipart-upload",
+      "destination": "/api-reference/assets/materials/multipart-abort"
+    },
+    {
+      "source": "/zh/api-reference/assets--materials/abort-multipart-upload",
+      "destination": "/zh/api-reference/assets/materials/multipart-abort"
+    },
+    {
+      "source": "/api-reference/资产--素材/中止分片上传",
+      "destination": "/zh/api-reference/assets/materials/multipart-abort"
+    },
+    {
+      "source": "/zh/api-reference/资产--素材/中止分片上传",
+      "destination": "/zh/api-reference/assets/materials/multipart-abort"
     }
   ],
   "navigation": {

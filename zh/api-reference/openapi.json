@@ -842,6 +842,13 @@
         ],
         "summary": "中止分片上传",
         "operationId": "materialMultipartAbort",
+        "x-mint": {
+          "href": "/zh/api-reference/assets/materials/multipart-abort",
+          "metadata": {
+            "sidebarTitle": "中止分片上传",
+            "title": "中止分片上传"
+          }
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"

@@ -518,6 +518,13 @@
         ],
         "summary": "Abort multipart upload",
         "operationId": "appMaterialMultipartAbort",
+        "x-mint": {
+          "href": "/api-reference/app-synced/assets/materials/multipart-abort",
+          "metadata": {
+            "sidebarTitle": "Abort multipart upload",
+            "title": "Abort multipart upload"
+          }
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -545,10 +552,7 @@
             }
           }
         },
-        "description": "Cancel an in-progress multipart upload. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Material upload](/guides/app-synced/overview).",
-        "x-mint": {
-          "href": "/api-reference/app-synced/assets/materials/multipart-abort"
-        }
+        "description": "Cancel an in-progress multipart upload. Requires [`X-Idempotency-Key`](/guides/idempotency). See [Material upload](/guides/app-synced/overview)."
       }
     },
     "/openapi/v1/app/assets/material/list": {

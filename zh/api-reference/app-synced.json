@@ -518,6 +518,13 @@
         ],
         "summary": "中止分片上传",
         "operationId": "appMaterialMultipartAbort",
+        "x-mint": {
+          "href": "/zh/api-reference/app-synced/assets/materials/multipart-abort",
+          "metadata": {
+            "sidebarTitle": "中止分片上传",
+            "title": "中止分片上传"
+          }
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
@@ -545,10 +552,7 @@
             }
           }
         },
-        "description": "取消进行中的分片上传。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/overview)。",
-        "x-mint": {
-          "href": "/zh/api-reference/app-synced/assets/materials/multipart-abort"
-        }
+        "description": "取消进行中的分片上传。须 [`X-Idempotency-Key`](/zh/guides/idempotency)。见 [素材上传](/zh/guides/app-synced/overview)。"
       }
     },
     "/openapi/v1/app/assets/material/list": {

@@ -842,6 +842,13 @@
         ],
         "summary": "Abort multipart upload",
         "operationId": "materialMultipartAbort",
+        "x-mint": {
+          "href": "/api-reference/assets/materials/multipart-abort",
+          "metadata": {
+            "sidebarTitle": "Abort multipart upload",
+            "title": "Abort multipart upload"
+          }
+        },
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKeyRequired"
